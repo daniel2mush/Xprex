@@ -18,6 +18,7 @@ model User {
     password   String
     avatar     String? // Cloudinary / S3 URL
     bio        String?  @db.Text
+    location   String?
     isVerified Boolean  @default(false)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt

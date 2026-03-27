@@ -1,0 +1,38 @@
+{
+  "name": "@social/messaging-service",
+  "version": "1.0.0",
+  "description": "Realtime messaging service powered by Socket.IO",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "nodemon --exec \"pnpm exec tsx\" src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc"
+  },
+  "keywords": [
+    "socket.io",
+    "messaging",
+    "realtime"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "@social/db": "workspace:*",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
+    "helmet": "^8.1.0",
+    "socket.io": "^4.8.1",
+    "winston": "^3.19.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3"
+  }
+}

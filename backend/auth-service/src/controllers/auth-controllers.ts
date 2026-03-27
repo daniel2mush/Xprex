@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import logger from "../utils/logger";
 import { prisma } from "@social/db";
-import { loginValdation, registrationValidation } from "../utils/validation";
+import {
+  loginValdation,
+  registrationValidation,
+  updateProfileValidation,
+} from "../utils/validation";
 import { sendJson } from "../utils/responseHelper";
 import bcrypt from "bcrypt";
 import { generateTokens } from "../utils/generateTokens";
@@ -26,6 +30,7 @@ const selectPublicUser = {
   username: true,
   avatar: true,
   bio: true,
+  location: true,
   isVerified: true,
   createdAt: true,
   _count: {
@@ -228,6 +233,71 @@ export const logout = async (req: Request, res: Response) => {
     return sendJson(res, 200, true, "Logged out successfully");
   } catch (error: any) {
     logger.error("Logout error", { error: error.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// UPDATE PROFILE
+// ==========================================
+export const updateProfile = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return sendJson(res, 401, false, "Authentication required");
+  }
+
+  try {
+    const validation = updateProfileValidation.safeParse(req.body);
+
+    if (!validation.success) {
+      const errorMsg = validation.error.issues[0]?.message ?? "Invalid input";
+      logger.warn("Profile update validation failed", {
+        userId,
+        error: errorMsg,
+      });
+      return sendJson(res, 400, false, errorMsg);
+    }
+
+    const payload = validation.data;
+    const username = payload.username?.trim();
+    const bio = payload.bio?.trim();
+    const location = payload.location?.trim();
+
+    if (username) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          username,
+          NOT: { id: userId },
+        },
+        select: { id: true },
+      });
+
+      if (existingUser) {
+        return sendJson(res, 409, false, "This username is already taken");
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(payload.username !== undefined && { username: username || undefined }),
+        ...(payload.bio !== undefined && { bio: bio || null }),
+        ...(payload.location !== undefined && { location: location || null }),
+      },
+      select: selectPublicUser,
+    });
+
+    logger.info("Profile updated successfully", { userId });
+    return sendJson(
+      res,
+      200,
+      true,
+      "Profile updated successfully",
+      updatedUser,
+    );
+  } catch (error: any) {
+    logger.error("Profile update failed", { userId, error: error.message });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

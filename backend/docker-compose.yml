@@ -18,9 +18,11 @@ services:
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://rabbitmq:5672
       - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
+      - MESSAGING_SERVICE=http://messaging-service:4007
     depends_on:
       - redis
       - rabbitmq
+      - messaging-service
 
   auth-service:
     build:
@@ -42,6 +44,21 @@ services:
     depends_on:
       - redis
       - rabbitmq
+
+  messaging-service:
+    build:
+      context: .
+      dockerfile: messaging-service/Dockerfile.dev
+    ports:
+      - "4007:4007"
+    env_file:
+      - ./messaging-service/.env
+    volumes:
+      - ./messaging-service:/app/messaging-service
+      - /app/node_modules
+    environment:
+      - PORT=4007
+      - CORS_ORIGINS=http://localhost:3000,http://api-service:4000
 
   # ← keep your redis + rabbitmq services exactly as they were
 

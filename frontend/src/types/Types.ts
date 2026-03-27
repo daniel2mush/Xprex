@@ -68,6 +68,7 @@ export interface User {
   username: string;
   avatar?: string | undefined;
   bio?: string | undefined;
+  location?: string | undefined;
   isVerified: boolean;
   createdAt?: string;
   _count?: postCounts;
@@ -173,13 +174,42 @@ export interface ProfileUser {
   username: string;
   avatar?: string;
   bio?: string;
+  location?: string;
   isVerified: boolean;
   createdAt: string;
   isFollowing?: boolean;
+  followsYou?: boolean;
   _count: {
     posts: number;
     followers: number;
     following: number;
+  };
+}
+
+export interface ProfileConnectionUser {
+  id: string;
+  username: string;
+  avatar?: string;
+  bio?: string;
+  location?: string;
+  isVerified: boolean;
+  createdAt: string;
+  connectedAt: string;
+  isFollowing: boolean;
+  followsYou: boolean;
+  canMessage: boolean;
+  _count: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+}
+
+export interface ProfileConnectionsResponse {
+  success: boolean;
+  data: {
+    type: "followers" | "following";
+    users: ProfileConnectionUser[];
   };
 }
 
@@ -204,5 +234,42 @@ export interface ProfileReply {
     content: string;
     createdAt: string;
     user: CommentUser;
+  };
+}
+
+export interface MessageParticipant {
+  id: string;
+  username: string;
+  avatar?: string;
+  isOnline: boolean;
+}
+
+export interface MessageItem {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface ConversationPreview {
+  id: string;
+  participant: MessageParticipant;
+  lastMessage?: MessageItem;
+  updatedAt: string;
+}
+
+export interface ConversationsResponse {
+  success: boolean;
+  data: ConversationPreview[];
+}
+
+export interface ConversationResponse {
+  success: boolean;
+  data: {
+    id: string;
+    participants: MessageParticipant[];
+    messages: MessageItem[];
+    updatedAt: string;
   };
 }

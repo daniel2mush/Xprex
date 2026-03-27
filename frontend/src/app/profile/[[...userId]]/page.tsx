@@ -1,6 +1,7 @@
 "use client";
 import styles from "./ProfilePage.module.scss";
-import { useParams } from "next/navigation";
+import ConnectionsModal from "./ConnectionsModal";
+import { useParams, useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { useGetProfile, useFollowUser } from "@/query/ProfileQuery";
 import Feed from "@/components/home/Feed/Feed";
@@ -22,6 +23,7 @@ type ActiveTab = "posts" | "replies" | "media" | "likes";
 
 export default function ProfilePage() {
   const params = useParams<{ userId?: string[] }>();
+  const router = useRouter();
   const routeUserId = params?.userId?.[0];
   const { user: currentUser } = useUserStore();
   const resolvedUserId = routeUserId ?? currentUser?.id;
@@ -29,6 +31,9 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("posts");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [connectionsModal, setConnectionsModal] = useState<
+    "followers" | "following" | null
+  >(null);
 
   const { data, isLoading, error } = useGetProfile(resolvedUserId);
   const { mutate: followUser, isPending: isFollowing } = useFollowUser(
@@ -46,6 +51,7 @@ export default function ProfilePage() {
         year: "numeric",
       })
     : null;
+  const canMessage = Boolean(profile && (profile.isFollowing || profile.followsYou));
 
   const formatCount = (n: number) => {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -129,7 +135,15 @@ export default function ProfilePage() {
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!canMessage}
+                    onClick={() => {
+                      if (!profile || !canMessage) return;
+                      router.push(`/messages?userId=${profile.id}`);
+                    }}
+                  >
                     Message
                   </Button>
                   <Button
@@ -170,14 +184,27 @@ export default function ProfilePage() {
                 Joined {joinedDate}
               </span>
             )}
-            <span className={styles.metaItem}>
-              <MapPin size={13} />
-              Amsterdam
-            </span>
-            <span className={styles.metaItem}>
+            {profile?.location && (
+              <span className={styles.metaItem}>
+                <MapPin size={13} />
+                {profile.location}
+              </span>
+            )}
+            {isOwnProfile && !profile?.location && (
+              <span className={styles.metaItem}>
+                <MapPin size={13} />
+                Detecting your location...
+              </span>
+            )}
+            <a
+              href="https://xprex.app"
+              target="_blank"
+              rel="noreferrer"
+              className={styles.metaLink}
+            >
               <Link2 size={13} />
               xprex.app
-            </span>
+            </a>
           </div>
 
           {/* Stats */}
@@ -186,14 +213,22 @@ export default function ProfilePage() {
               <strong>{formatCount(profile?._count?.posts ?? 0)}</strong>
               <span>Posts</span>
             </div>
-            <div className={styles.stat}>
+            <button
+              type="button"
+              className={styles.stat}
+              onClick={() => setConnectionsModal("followers")}
+            >
               <strong>{formatCount(profile?._count?.followers ?? 0)}</strong>
               <span>Followers</span>
-            </div>
-            <div className={styles.stat}>
+            </button>
+            <button
+              type="button"
+              className={styles.stat}
+              onClick={() => setConnectionsModal("following")}
+            >
               <strong>{formatCount(profile?._count?.following ?? 0)}</strong>
               <span>Following</span>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -317,6 +352,14 @@ export default function ProfilePage() {
         <EditProfileModal
           profile={profile}
           onClose={() => setShowEditModal(false)}
+        />
+      )}
+
+      {connectionsModal && resolvedUserId && (
+        <ConnectionsModal
+          userId={resolvedUserId}
+          type={connectionsModal}
+          onClose={() => setConnectionsModal(null)}
         />
       )}
     </div>

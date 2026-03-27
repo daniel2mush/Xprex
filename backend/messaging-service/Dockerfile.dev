@@ -1,0 +1,12 @@
+FROM node:22-alpine
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY messaging-service/package.json ./messaging-service/
+
+RUN pnpm install
+
+CMD ["pnpm", "--filter", "@social/messaging-service", "run", "dev"]

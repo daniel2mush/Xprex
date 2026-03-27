@@ -4,8 +4,10 @@ import {
   CreatePost,
   DeletePost,
   GetAllPosts,
+  GetUserConnections,
   GetSinglePost,
   GetUserProfile,
+  ToggleFollowUser,
   TogglePostLike,
   UpdatePost,
 } from "../controllers/postControllers";
@@ -17,6 +19,8 @@ router.use(sensitiveRateLimiter);
 router.post("/create", authenticateRequest, CreatePost);
 router.get("/all", authenticateRequest, GetAllPosts);
 router.get("/profile/:userId", authenticateRequest, GetUserProfile);
+router.get("/profile/:userId/connections", authenticateRequest, GetUserConnections);
+router.post("/follow/:userId", authenticateRequest, ToggleFollowUser);
 router.patch("/:id/like", authenticateRequest, TogglePostLike);
 router.get("/:id", authenticateRequest, GetSinglePost);
 router.put("/update/:id", authenticateRequest, UpdatePost);

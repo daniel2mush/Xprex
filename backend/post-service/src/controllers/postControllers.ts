@@ -27,6 +27,12 @@ interface LikeCreatedEvent {
   likerId: string;
 }
 
+interface FollowCreatedEvent {
+  followId: string;
+  followerId: string;
+  followingId: string;
+}
+
 // ==========================================
 // HELPERS
 // ==========================================
@@ -91,6 +97,41 @@ const normalizePost = (post: any) => ({
   likes: undefined,
   bookmarks: undefined,
 });
+
+const profileUserSelect = {
+  id: true,
+  email: true,
+  username: true,
+  avatar: true,
+  bio: true,
+  location: true,
+  isVerified: true,
+  createdAt: true,
+  _count: {
+    select: {
+      posts: true,
+      followers: true,
+      following: true,
+    },
+  },
+} as const;
+
+const connectionUserSelect = {
+  id: true,
+  username: true,
+  avatar: true,
+  bio: true,
+  location: true,
+  isVerified: true,
+  createdAt: true,
+  _count: {
+    select: {
+      followers: true,
+      following: true,
+      posts: true,
+    },
+  },
+} as const;
 
 // ==========================================
 // CREATE POST
@@ -287,26 +328,11 @@ export const GetUserProfile = async (req: Request, res: Response) => {
   }
 
   try {
-    const [user, rawPosts, likedEntries, replies, isFollowing] =
+    const [user, rawPosts, likedEntries, replies, isFollowing, followsYou] =
       await Promise.all([
       prisma.user.findUnique({
         where: { id: profileId },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          avatar: true,
-          bio: true,
-          isVerified: true,
-          createdAt: true,
-          _count: {
-            select: {
-              posts: true,
-              followers: true,
-              following: true,
-            },
-          },
-        },
+        select: profileUserSelect,
       }),
         prisma.post.findMany({
           where: { userId: profileId },
@@ -367,6 +393,19 @@ export const GetUserProfile = async (req: Request, res: Response) => {
                 select: { id: true },
               })
               .then((follow) => Boolean(follow)),
+        profileId === viewerId
+          ? Promise.resolve(false)
+          : prisma.follow
+              .findUnique({
+                where: {
+                  followerId_followingId: {
+                    followerId: profileId,
+                    followingId: viewerId,
+                  },
+                },
+                select: { id: true },
+              })
+              .then((follow) => Boolean(follow)),
       ]);
 
     if (!user) return sendJson(res, 404, false, "User not found");
@@ -375,6 +414,7 @@ export const GetUserProfile = async (req: Request, res: Response) => {
       user: {
         ...user,
         isFollowing,
+        followsYou,
       },
       posts: rawPosts.map(normalizePost),
       likedPosts: likedEntries.map((entry) => normalizePost(entry.post)),
@@ -382,6 +422,194 @@ export const GetUserProfile = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     logger.error("Failed to fetch profile", { error: err.message, profileId });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// GET USER CONNECTIONS
+// ==========================================
+export const GetUserConnections = async (req: Request, res: Response) => {
+  const { userId: profileId } = req.params;
+  const viewerId = req.user.userId;
+  const type = req.query.type === "following" ? "following" : "followers";
+
+  if (!profileId) return sendJson(res, 400, false, "User ID is required");
+  if (Array.isArray(profileId)) {
+    return sendJson(res, 400, false, "Invalid user ID");
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: profileId },
+      select: { id: true },
+    });
+
+    if (!user) return sendJson(res, 404, false, "User not found");
+
+    const connections = await prisma.follow.findMany({
+      where:
+        type === "followers"
+          ? { followingId: profileId }
+          : { followerId: profileId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        createdAt: true,
+        follower: {
+          select: connectionUserSelect,
+        },
+        following: {
+          select: connectionUserSelect,
+        },
+      },
+    });
+
+    const mappedUsers = connections.map((connection) =>
+      type === "followers"
+        ? {
+            ...connection.follower,
+            connectedAt: connection.createdAt,
+          }
+        : {
+            ...connection.following,
+            connectedAt: connection.createdAt,
+          },
+    );
+
+    const connectionIds = mappedUsers.map((connection) => connection.id);
+
+    const viewerLinks =
+      connectionIds.length === 0
+        ? []
+        : await prisma.follow.findMany({
+            where: {
+              OR: [
+                {
+                  followerId: viewerId,
+                  followingId: { in: connectionIds },
+                },
+                {
+                  followerId: { in: connectionIds },
+                  followingId: viewerId,
+                },
+              ],
+            },
+            select: {
+              followerId: true,
+              followingId: true,
+            },
+          });
+
+    const mappedViewerLinks = new Set(
+      viewerLinks.map((link) => `${link.followerId}:${link.followingId}`),
+    );
+
+    return sendJson(res, 200, true, "Connections retrieved successfully", {
+      type,
+      users: mappedUsers.map((connection) => {
+        const isFollowing = mappedViewerLinks.has(
+          `${viewerId}:${connection.id}`,
+        );
+        const followsYou = mappedViewerLinks.has(
+          `${connection.id}:${viewerId}`,
+        );
+
+        return {
+          ...connection,
+          isFollowing,
+          followsYou,
+          canMessage:
+            connection.id !== viewerId && (isFollowing || followsYou),
+        };
+      }),
+    });
+  } catch (err: any) {
+    logger.error("Failed to fetch connections", {
+      error: err.message,
+      profileId,
+      type,
+    });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// TOGGLE FOLLOW
+// ==========================================
+export const ToggleFollowUser = async (req: Request, res: Response) => {
+  const viewerId = req.user.userId;
+  const { userId: targetUserId } = req.params;
+
+  if (!targetUserId) return sendJson(res, 400, false, "User ID is required");
+  if (Array.isArray(targetUserId)) {
+    return sendJson(res, 400, false, "Invalid user ID");
+  }
+  if (viewerId === targetUserId) {
+    return sendJson(res, 400, false, "You cannot follow yourself");
+  }
+
+  try {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    });
+
+    if (!targetUser) return sendJson(res, 404, false, "User not found");
+
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: viewerId,
+          followingId: targetUserId,
+        },
+      },
+      select: { id: true },
+    });
+
+    let following = false;
+
+    if (existingFollow) {
+      await prisma.follow.delete({
+        where: { id: existingFollow.id },
+      });
+    } else {
+      const follow = await prisma.follow.create({
+        data: {
+          followerId: viewerId,
+          followingId: targetUserId,
+        },
+      });
+
+      following = true;
+
+      publishEvent("social:follow-created", {
+        followId: follow.id,
+        followerId: viewerId,
+        followingId: targetUserId,
+      } as FollowCreatedEvent);
+    }
+
+    const followersCount = await prisma.follow.count({
+      where: { followingId: targetUserId },
+    });
+
+    return sendJson(
+      res,
+      200,
+      true,
+      following ? "User followed successfully" : "User unfollowed successfully",
+      {
+        targetUserId,
+        following,
+        followersCount,
+      },
+    );
+  } catch (err: any) {
+    logger.error("Failed to toggle follow", {
+      error: err.message,
+      viewerId,
+      targetUserId,
+    });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

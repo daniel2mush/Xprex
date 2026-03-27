@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon --exec npx tsx src/server.ts",
+    "dev": "nodemon --exec \"pnpm exec ts-node\" src/server.ts",
     "start": "node dist/src/server.ts",
     "build": "tsc"
   },

@@ -73,6 +73,16 @@ app.use(
   }),
 );
 
+app.use(
+  "/v1/profile",
+  validateToken,
+  proxy(env.AUTH_SERVICE, {
+    ...baseProxyOptions,
+    proxyReqOptDecorator: withUserId,
+    userResDecorator: logResponse("auth-service"),
+  }),
+);
+
 // ==========================================
 // POST SERVICE
 // ==========================================
@@ -143,6 +153,17 @@ app.use(
     ...baseProxyOptions,
     proxyReqOptDecorator: withUserId,
     userResDecorator: logResponse("comment-service"),
+  }),
+);
+
+// Messaging Service
+app.use(
+  "/v1/messages",
+  validateToken,
+  proxy(env.MESSAGING_SERVICE, {
+    ...baseProxyOptions,
+    proxyReqOptDecorator: withUserId,
+    userResDecorator: logResponse("messaging-service"),
   }),
 );
 

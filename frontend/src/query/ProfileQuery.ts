@@ -1,4 +1,8 @@
-import { ProfileResponse } from "@/types/Types";
+import { useUserStore } from "@/store/userStore";
+import {
+  ProfileConnectionsResponse,
+  ProfileResponse,
+} from "@/types/Types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useGetProfile = (userId?: string) => {
@@ -24,10 +28,12 @@ export interface EditProfileInput {
   username?: string;
   bio?: string;
   avatar?: string;
+  location?: string;
 }
 
 export const useEditProfile = () => {
   const queryClient = useQueryClient();
+  const { user, setUser } = useUserStore();
 
   return useMutation({
     mutationFn: async (data: EditProfileInput) => {
@@ -43,7 +49,14 @@ export const useEditProfile = () => {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.data && user) {
+        setUser({
+          ...user,
+          ...result.data,
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
@@ -65,7 +78,35 @@ export const useFollowUser = (targetUserId: string) => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile", targetUserId] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["messages", "conversations"] });
     },
+  });
+};
+
+export const useGetProfileConnections = (
+  userId?: string,
+  type: "followers" | "following" = "followers",
+  enabled = false,
+) => {
+  return useQuery({
+    queryKey: ["profile", userId, "connections", type],
+    enabled: Boolean(userId) && enabled,
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/profile/${userId}/connections?type=${type}`,
+        {
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch connections");
+      }
+
+      return response.json() as Promise<ProfileConnectionsResponse>;
+    },
+    staleTime: 1000 * 30,
   });
 };

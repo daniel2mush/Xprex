@@ -12,7 +12,7 @@ export async function POST(
 
   try {
     const { data } = await api.post(
-      `follow/${userId}`,
+      `posts/follow/${userId}`,
       {},
       {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},

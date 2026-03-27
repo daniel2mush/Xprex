@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "nodemon --exec npx tsx src/server.ts"
+    "dev": "nodemon --exec \"pnpm exec ts-node\" src/server.ts"
   },
   "keywords": [],
   "author": "",

@@ -20,3 +20,29 @@ export const loginValdation = z.object({
     .string({ error: "password is required" })
     .min(2, { error: "Password must be at least 2 characters" }),
 });
+
+export const updateProfileValidation = z
+  .object({
+    username: z
+      .string()
+      .min(3, { error: "Username must be at least 3 characters" })
+      .max(15, { error: "Username cannot exceed 15 characters" })
+      .optional(),
+    bio: z
+      .string()
+      .max(160, { error: "Bio cannot exceed 160 characters" })
+      .optional(),
+    location: z
+      .string()
+      .max(120, { error: "Location cannot exceed 120 characters" })
+      .optional(),
+  })
+  .refine(
+    (data) =>
+      data.username !== undefined ||
+      data.bio !== undefined ||
+      data.location !== undefined,
+    {
+      error: "At least one profile field is required",
+    },
+  );
