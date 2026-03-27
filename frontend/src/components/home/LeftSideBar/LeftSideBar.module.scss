@@ -88,12 +88,33 @@
 }
 
 .navIcon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -8px;
+  right: -14px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 2px solid var(--bg-surface);
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .navLabel {

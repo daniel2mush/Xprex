@@ -109,7 +109,7 @@ export default function RightSideBar() {
               {link}
             </a>
           ))}
-          <span className={styles.footerLink}>© 2026 Social X</span>
+          <span className={styles.footerLink}>© 2026 Xprex</span>
         </footer>
       </div>
     </aside>

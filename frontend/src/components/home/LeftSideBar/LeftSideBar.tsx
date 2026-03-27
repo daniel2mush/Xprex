@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { useCollapsedStore } from "@/store/sideBarStore";
+import { useGetNotifications } from "@/query/NotificationsQuery";
 
 interface NavigationItem {
   icon: ReactNode;
@@ -36,15 +37,20 @@ export default function LeftSideBar() {
   const { user } = useUserStore();
   const pathname = usePathname();
   const { collapsed, setCollapsedValue } = useCollapsedStore();
+  const { data: notificationsData } = useGetNotifications();
   const profileLink = user ? `/profile/${user.id}` : "/profile";
+  const unreadCount =
+    notificationsData?.data?.filter((notification) => !notification.read)
+      .length ?? 0;
   const navigationItems = SideNav.map(({ icon, name, link }) => {
     const href = name === "Profile" ? profileLink : link;
     const isActive =
       name === "Profile"
         ? pathname === "/profile" || pathname.startsWith("/profile/")
         : pathname === link;
+    const badgeCount = name === "Notifications" ? unreadCount : 0;
 
-    return { icon, name, href, isActive };
+    return { icon, name, href, isActive, badgeCount };
   });
 
   if (!user) return null;
@@ -59,19 +65,26 @@ export default function LeftSideBar() {
         {/* Logo */}
         <div className={styles.header}>
           <div className={styles.logoMark} aria-hidden="true" />
-          <span className={styles.logoText}>Social X</span>
+          <span className={styles.logoText}>Xprex</span>
         </div>
 
         {/* Navigation */}
         <nav className={styles.navs}>
-          {navigationItems.map(({ icon, name, href, isActive }) => (
+          {navigationItems.map(({ icon, name, href, isActive, badgeCount }) => (
             <Link
               key={name}
               href={href}
               className={`${styles.nav} ${isActive ? styles.active : ""}`}
               title={collapsed ? name : undefined}
             >
-              <i className={styles.navIcon}>{icon}</i>
+              <i className={styles.navIcon}>
+                {icon}
+                {badgeCount > 0 && (
+                  <span className={styles.notificationBadge} aria-hidden="true">
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                  </span>
+                )}
+              </i>
               <span className={styles.navLabel}>{name}</span>
               {isActive && (
                 <span className={styles.activeIndicator} aria-hidden="true" />

@@ -34,6 +34,12 @@ export interface PostResponse {
   pagination: pagination;
 }
 
+export interface SinglePostResponse {
+  success: boolean;
+  message: string;
+  data: PostTypes;
+}
+
 export interface ToggleLikeResponse {
   success: boolean;
   message: string;

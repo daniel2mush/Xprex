@@ -176,7 +176,7 @@ export default function ProfilePage() {
             </span>
             <span className={styles.metaItem}>
               <Link2 size={13} />
-              socialx.app
+              xprex.app
             </span>
           </div>
 
@@ -207,7 +207,9 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab(tab)}
               >
                 <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
-                <span className={styles.tabCount}>{formatCount(tabCounts[tab])}</span>
+                <span className={styles.tabCount}>
+                  {formatCount(tabCounts[tab])}
+                </span>
               </button>
             ),
           )}
@@ -232,16 +234,19 @@ export default function ProfilePage() {
           !error &&
           activeTab !== "replies" &&
           activePosts.length === 0 && (
-          <div className={styles.empty}>
-            <p>{emptyCopy[activeTab]}</p>
-          </div>
-        )}
+            <div className={styles.empty}>
+              <p>{emptyCopy[activeTab]}</p>
+            </div>
+          )}
 
-        {!isLoading && !error && activeTab === "replies" && replies.length === 0 && (
-          <div className={styles.empty}>
-            <p>{emptyCopy.replies}</p>
-          </div>
-        )}
+        {!isLoading &&
+          !error &&
+          activeTab === "replies" &&
+          replies.length === 0 && (
+            <div className={styles.empty}>
+              <p>{emptyCopy.replies}</p>
+            </div>
+          )}
 
         {!isLoading &&
           !error &&
@@ -270,7 +275,10 @@ export default function ProfilePage() {
                         {reply.user.username}
                       </span>
                       {reply.user.isVerified && (
-                        <CheckCircle2 size={13} className={styles.replyVerified} />
+                        <CheckCircle2
+                          size={13}
+                          className={styles.replyVerified}
+                        />
                       )}
                     </div>
                     <span className={styles.replyMeta}>

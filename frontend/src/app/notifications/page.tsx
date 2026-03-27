@@ -1,14 +1,17 @@
 "use client";
-import { NotificationTypes } from "@/types/Types";
+import { NotificationTypes, PostTypes } from "@/types/Types";
 import styles from "./Notifications.module.scss";
 import { timeAgoShort } from "@/lib/ParseDate";
 import { Bell, Heart, MessageCircle, UserPlus } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
 import Link from "next/link";
+import { useState } from "react";
 import {
   useGetNotifications,
+  useMarkNotificationRead,
   useMarkAllRead,
 } from "@/query/NotificationsQuery";
+import PostModal from "@/components/postModal/PostModal";
 
 const NotificationIcon = ({ type }: { type: NotificationTypes["type"] }) => {
   const icons = {
@@ -36,9 +39,33 @@ const notificationText = (n: NotificationTypes): string => {
 export default function NotificationsPage() {
   const { data, isLoading } = useGetNotifications();
   const { mutate: markAllRead, isPending } = useMarkAllRead();
+  const { mutate: markNotificationRead } = useMarkNotificationRead();
+  const [activePost, setActivePost] = useState<PostTypes | null>(null);
+  const [loadingPostId, setLoadingPostId] = useState<string | null>(null);
 
   const notifications = data?.data ?? [];
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const openPostModal = async (notificationId: string, postId: string) => {
+    try {
+      markNotificationRead(notificationId);
+      setLoadingPostId(postId);
+      const response = await fetch(`/api/posts/${postId}`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load post");
+      }
+
+      const payload = await response.json();
+      setActivePost(payload.data);
+    } catch (error) {
+      console.error("Failed to open post modal", error);
+    } finally {
+      setLoadingPostId(null);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -71,46 +98,76 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {notifications.map((n) => (
-        <Link
-          key={n.id}
-          href={n.post ? `/posts/${n.post.id}` : `/profile/${n.actor.id}`}
-          className={`${styles.item} ${!n.read ? styles.unread : ""}`}
-        >
-          <div className={styles.actorAvatar}>
-            {n.actor.avatar ? (
-              <img
-                src={n.actor.avatar}
-                alt={n.actor.username}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarFallback}>
-                {n.actor.username[0].toUpperCase()}
-              </div>
-            )}
-            <NotificationIcon type={n.type} />
-          </div>
+      {notifications.map((n) => {
+        const itemClassName = `${styles.item} ${!n.read ? styles.unread : ""}`;
+        const itemContent = (
+          <>
+            <div className={styles.actorAvatar}>
+              {n.actor.avatar ? (
+                <img
+                  src={n.actor.avatar}
+                  alt={n.actor.username}
+                  className={styles.avatar}
+                />
+              ) : (
+                <div className={styles.avatarFallback}>
+                  {n.actor.username[0].toUpperCase()}
+                </div>
+              )}
+              <NotificationIcon type={n.type} />
+            </div>
 
-          <div className={styles.itemBody}>
-            <p className={styles.itemText}>
-              <span className={styles.actorName}>{n.actor.username}</span>{" "}
-              {notificationText(n)}
-            </p>
-            {n.post && (
-              <p className={styles.postPreview}>
-                {n.post.content.slice(0, 60)}
-                {n.post.content.length > 60 ? "..." : ""}
+            <div className={styles.itemBody}>
+              <p className={styles.itemText}>
+                <span className={styles.actorName}>{n.actor.username}</span>{" "}
+                {notificationText(n)}
               </p>
-            )}
-            <span className={styles.time}>
-              {timeAgoShort(new Date(n.createdAt))}
-            </span>
-          </div>
+              {n.post && (
+                <p className={styles.postPreview}>
+                  {n.post.content.slice(0, 60)}
+                  {n.post.content.length > 60 ? "..." : ""}
+                </p>
+              )}
+              <span className={styles.time}>
+                {loadingPostId === n.post?.id
+                  ? "Opening post..."
+                  : timeAgoShort(new Date(n.createdAt))}
+              </span>
+            </div>
 
-          {!n.read && <span className={styles.unreadDot} aria-hidden="true" />}
-        </Link>
-      ))}
+            {!n.read && <span className={styles.unreadDot} aria-hidden="true" />}
+          </>
+        );
+
+        if (n.post) {
+          return (
+            <button
+              key={n.id}
+              type="button"
+              className={itemClassName}
+              onClick={() => openPostModal(n.id, n.post!.id)}
+              disabled={loadingPostId === n.post.id}
+            >
+              {itemContent}
+            </button>
+          );
+        }
+
+        return (
+          <Link
+            key={n.id}
+            href={`/profile/${n.actor.id}`}
+            className={itemClassName}
+            onClick={() => markNotificationRead(n.id)}
+          >
+            {itemContent}
+          </Link>
+        );
+      })}
+
+      {activePost && (
+        <PostModal post={activePost} onClose={() => setActivePost(null)} />
+      )}
     </div>
   );
 }

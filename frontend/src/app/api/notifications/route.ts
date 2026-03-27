@@ -27,6 +27,21 @@ export async function PATCH(req: NextRequest) {
   const accessToken = cookieStore.get("accessToken")?.value;
 
   try {
+    const body = await req.json().catch(() => ({}));
+    const notificationId = body?.notificationId as string | undefined;
+
+    if (notificationId) {
+      const { data } = await api.patch(
+        `/notifications/${notificationId}/read`,
+        {},
+        {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        },
+      );
+
+      return NextResponse.json(data);
+    }
+
     const { data } = await api.patch(
       "/notifications/read-all",
       {},

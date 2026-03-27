@@ -44,3 +44,36 @@ export const markAllRead = async (req: Request, res: Response) => {
     return sendJson(res, 500, false, "Internal server error");
   }
 };
+
+export const markNotificationRead = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { id } = req.params;
+
+  if (!userId) return sendJson(res, 401, false, "Unauthorized");
+  if (!id || Array.isArray(id)) {
+    return sendJson(res, 400, false, "Invalid notification ID");
+  }
+
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        id,
+        userId,
+        read: false,
+      },
+      data: { read: true },
+    });
+
+    if (result.count === 0) {
+      return sendJson(res, 200, true, "Notification already read");
+    }
+
+    return sendJson(res, 200, true, "Notification marked as read");
+  } catch (err: any) {
+    logger.error("Failed to mark notification as read", {
+      error: err.message,
+      notificationId: id,
+    });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
