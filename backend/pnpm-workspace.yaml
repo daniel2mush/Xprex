@@ -1,0 +1,6 @@
+packages:
+  - "packages/*"
+  - "database"
+  - "*-service"
+  - "rabbitmq"
+  - "redis-client"

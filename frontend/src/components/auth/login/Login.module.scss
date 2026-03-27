@@ -1,0 +1,18 @@
+.btn {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.forgetPassword {
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 10px;
+  span {
+    color: var(--brand-primary);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

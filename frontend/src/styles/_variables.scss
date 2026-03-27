@@ -1,0 +1,107 @@
+// ==========================================
+// 📱 BREAKPOINTS (map + individual vars)
+// ==========================================
+@use "sass:map";
+
+$breakpoints: (
+  mobile: 480px,
+  tablet: 768px,
+  desktop: 1024px,
+  wide: 1280px,
+) !default;
+
+$bp-mobile: map.get($breakpoints, mobile) !default;
+$bp-tablet: map.get($breakpoints, tablet) !default;
+$bp-desktop: map.get($breakpoints, desktop) !default;
+$bp-wide: map.get($breakpoints, wide) !default;
+
+// ==========================================
+// 🎨 RAW COLORS — AMOLED Social Dark
+// ==========================================
+$void-black: #000000 !default; // True AMOLED black
+$surface-dark: #111111 !default; // Cards
+$surface-elevated: #1a1a1f !default; // Nested elements / inputs
+$border-dark: #2a2a2e !default; // Structural lines
+
+// Brand — Violet → Rose
+$violet-core: #7c3aed !default; // Primary
+$rose-accent: #ec4899 !default; // Accent / CTA
+$violet-soft: #a78bfa !default; // Ghost buttons, links
+
+// Text
+$pure-white: #ffffff !default;
+$text-primary: #f0f0f0 !default;
+$text-secondary: #a1a1aa !default;
+$text-muted: #52525b !default;
+
+// ==========================================
+// 🏗️ SEMANTIC TOKENS
+// ==========================================
+$bg-app: $void-black !default;
+$bg-surface: $surface-dark !default;
+$bg-header: $void-black !default;
+$bg-input: #0d0d0d !default; // Slightly recessed inputs
+
+$brand-primary: $violet-core !default;
+$brand-hover: $rose-accent !default;
+$brand-light: $violet-soft !default;
+
+$text-main: $text-primary !default;
+$text-body: $text-secondary !default;
+$text-muted-tk: $text-muted !default;
+$text-on-brand: $pure-white !default;
+
+$border-subtle: $border-dark !default;
+
+// ==========================================
+// 🌈 GRADIENTS
+// ==========================================
+$brand-gradient-stops: $violet-core, $rose-accent !default;
+
+$gradient-to-right: linear-gradient(to right, $brand-gradient-stops) !default;
+$gradient-to-bottom-right: linear-gradient(
+  to bottom right,
+  $brand-gradient-stops
+) !default;
+$gradient-to-bottom: linear-gradient(to bottom, $brand-gradient-stops) !default;
+$gradient-radial: radial-gradient(circle, $brand-gradient-stops) !default;
+// ... add other directions if needed
+
+// ==========================================
+// 🔠 4. TYPOGRAPHY
+// ==========================================
+$font-weight-normal: 400 !default;
+$font-weight-medium: 500 !default;
+$font-weight-bold: 700 !default;
+$font-weight-black: 800 !default;
+
+// Fluid typography (mobile-first, perfectly tuned)
+$text-fluid-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem) !default;
+$text-fluid-sm: clamp(0.875rem, 0.84rem + 0.18vw, 1rem) !default;
+$text-fluid-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem) !default;
+$text-fluid-lg: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem) !default;
+$text-fluid-xl: clamp(1.75rem, 1.55rem + 1vw, 2.25rem) !default;
+$text-fluid-2xl: clamp(2.25rem, 1.75rem + 2.5vw, 3.5rem) !default;
+
+// ==========================================
+// 📏 5. SPACING
+// ==========================================
+$spacing-fluid-xs: clamp(0.5rem, 0.45rem + 0.25vw, 0.75rem) !default;
+$spacing-fluid-sm: clamp(0.75rem, 0.65rem + 0.5vw, 1rem) !default;
+$spacing-fluid-md: clamp(1.5rem, 1.3rem + 1vw, 2rem) !default;
+$spacing-fluid-lg: clamp(3rem, 2.6rem + 2vw, 4rem) !default;
+
+// ==========================================
+// 🔲 6. BORDERS & RADII
+// ==========================================
+$radius-sm: 6px !default;
+$radius-md: 12px !default;
+$radius-lg: 16px !default;
+$radius-xl: 24px !default;
+$radius-2xl: 32px !default;
+$radius-full: 9999px !default;
+
+// Font family
+$font-family:
+  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+  sans-serif;

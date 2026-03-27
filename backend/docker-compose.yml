@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  api-service:
+    build:
+      context: .                          # ← root (critical)
+      dockerfile: api-service/Dockerfile.dev
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./api-service/.env
+    volumes:
+      - ./api-service:/app/api-service
+      - ./database:/app/database          # ← shared Prisma
+      - /app/node_modules
+    environment:
+      - PORT=4000
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
+    depends_on:
+      - redis
+      - rabbitmq
+
+  auth-service:
+    build:
+      context: .                          # ← root
+      dockerfile: auth-service/Dockerfile.dev
+    ports:
+      - "4001:4001"
+    env_file:
+      - ./auth-service/.env
+    volumes:
+      - ./auth-service:/app/auth-service
+      - ./database:/app/database          # ← shared Prisma
+      - /app/node_modules
+    environment:
+      - PORT=4001
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
+    depends_on:
+      - redis
+      - rabbitmq
+
+  # ← keep your redis + rabbitmq services exactly as they were
+
+  # Added the missing dependencies
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "5672:5672" # Message broker port
+      - "15672:15672" # Management UI port

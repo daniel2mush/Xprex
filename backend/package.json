@@ -1,0 +1,20 @@
+{
+  "name": "social-media-backend",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "scripts": {
+    "dev": "turbo run dev",
+    "start": "turbo run start",
+    "build": "turbo run build",
+    "prisma:generate": "turbo run prisma:generate --filter=@social/db",
+    "prisma:migrate": "turbo run prisma:migrate --filter=@social/db",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "turbo": "^2.8.17"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
+  }
+}

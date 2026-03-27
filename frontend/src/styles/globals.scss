@@ -1,0 +1,111 @@
+// 1. Configuration and helpers
+// The "as *" removes the namespace, so you can just type $void-black!
+@use "variables" as *;
+@use "mixins";
+
+// 2. Base styles
+@use "reset";
+@use "base";
+
+// ==========================================
+// 🌐 GLOBAL CSS CUSTOM PROPERTIES
+// ==========================================
+:root {
+  /* Backgrounds */
+  --bg-app: #{$void-black}; /* #000000 */
+  --bg-surface: #{$bg-surface}; /* #111111 */
+  --bg-header: #{$bg-header}; /* #000000 */
+  --bg-input: #{$bg-input}; /* #0d0d0d */
+  --bg-elevated: #{$surface-elevated}; /* #1a1a1f */
+
+  /* Brand */
+  --brand-primary: #{$brand-primary}; /* #7c3aed */
+  --brand-hover: #{$brand-hover}; /* #ec4899 */
+  --brand-light: #{$brand-light}; /* #a78bfa */
+
+  /* Text */
+  --text-main: #{$text-main}; /* #f0f0f0 */
+  --text-body: #{$text-body}; /* #a1a1aa */
+  --text-muted: #{$text-muted-tk}; /* #52525b */
+  --text-on-brand: #{$text-on-brand}; /* #ffffff */
+
+  /* Borders */
+  --border-subtle: #{$border-subtle}; /* #2a2a2e */
+
+  /* Raw colors */
+  --color-void-black: #{$void-black}; /* #000000 */
+  --color-surface-dark: #{$surface-dark}; /* #111111 */
+  --color-surface-elevated: #{$surface-elevated}; /* #1a1a1f */
+  --color-border-dark: #{$border-dark}; /* #2a2a2e */
+  --color-violet-core: #{$violet-core}; /* #7c3aed */
+  --color-rose-accent: #{$rose-accent}; /* #ec4899 */
+  --color-violet-soft: #{$violet-soft}; /* #a78bfa */
+
+  /* Gradients */
+  --gradient-to-right: #{$gradient-to-right};
+  --brand-gradient-stops: #{$brand-gradient-stops};
+
+  --gradient-to-bottom-right: #{$gradient-to-bottom-right};
+
+  --gradient-radial: #{$gradient-radial};
+
+  /* Typography */
+  --font-family: #{$font-family};
+  --font-weight-normal: #{$font-weight-normal};
+  --font-weight-medium: #{$font-weight-medium};
+  --font-weight-bold: #{$font-weight-bold};
+  --font-weight-black: #{$font-weight-black};
+
+  --text-fluid-xs: #{$text-fluid-xs};
+  --text-fluid-sm: #{$text-fluid-sm};
+  --text-fluid-base: #{$text-fluid-base};
+  --text-fluid-lg: #{$text-fluid-lg};
+  --text-fluid-xl: #{$text-fluid-xl};
+  --text-fluid-2xl: #{$text-fluid-2xl};
+
+  /* Spacing */
+  --spacing-fluid-xs: #{$spacing-fluid-xs};
+  --spacing-fluid-sm: #{$spacing-fluid-sm};
+  --spacing-fluid-md: #{$spacing-fluid-md};
+  --spacing-fluid-lg: #{$spacing-fluid-lg};
+
+  /* Radii */
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+  --radius-2xl: #{$radius-2xl};
+  --radius-full: #{$radius-full};
+
+  /* Layout */
+  --sidebar-left: 260px;
+  --sidebar-right: 300px;
+  --feed-max: 600px;
+  --gap: clamp(1rem, 3vw, 2rem);
+  --container-max-total: 1400px;
+
+  --bg-hover: #1a1a1f; // same as bg-elevated
+  --bg-active: #1e1535; // violet-tinted surface for active state
+  --text-tertiary: #3f3f46; // dimmer than text-muted
+  --font-weight-semibold: 600;
+}
+
+// ==========================================
+// ☀️ LIGHT THEME OVERRIDES
+// ==========================================
+[data-theme="light"] {
+  /* Backgrounds */
+  --bg-app: #f4f4f5;
+  --bg-surface: #ffffff;
+  --bg-header: #ffffff;
+  --bg-input: #f9f9f9;
+
+  --text-main: #09090b;
+  --text-body: #52525b;
+  --text-muted: #a1a1aa;
+
+  --border-subtle: #e4e4e7;
+  --bg-hover: #f4f4f5;
+  --bg-active: #ede9fe;
+  --text-tertiary: #a1a1aa;
+}

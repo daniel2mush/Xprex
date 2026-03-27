@@ -1,0 +1,225 @@
+// ── Container ──────────────────────────────
+.container {
+  width: var(--sidebar-right);
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px;
+}
+
+// ── Search ─────────────────────────────────
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 9px 14px;
+}
+
+.searchIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--text-fluid-sm);
+  color: var(--text-main);
+  width: 100%;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+// ── Section card ───────────────────────────
+.section {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.sectionTitle {
+  font-size: var(--text-fluid-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+// ── Who to follow ──────────────────────────
+.userList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 0.5px solid var(--border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.userLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-brand);
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userHandle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.followBtn {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  border: 0.5px solid #3b1f7a;
+  background: transparent;
+  color: var(--brand-light);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: var(--bg-active);
+    color: var(--brand-primary);
+  }
+}
+
+.showMore {
+  display: block;
+  font-size: 12px;
+  color: var(--brand-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 0;
+
+  &:hover {
+    color: var(--brand-light);
+  }
+}
+
+// ── Trending ───────────────────────────────
+.trendList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.trendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 0.5px solid var(--border-subtle);
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover .trendTag {
+    color: var(--brand-primary);
+  }
+}
+
+.trendTag {
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  transition: color 0.15s;
+}
+
+.trendCount {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.trendRank {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+// ── Footer ─────────────────────────────────
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 2px;
+}
+
+.footerLink {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--text-body);
+  }
+}

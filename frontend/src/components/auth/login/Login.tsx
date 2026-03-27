@@ -1,0 +1,92 @@
+"use client";
+import z from "zod";
+import style from "./Login.module.scss";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/ui/Input/Input";
+import { Button } from "@/ui/Buttons/Buttons";
+import { LoginUser } from "@/actions/auth-actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
+
+export default function LoginPage() {
+  const { setUser } = useUserStore();
+  const router = useRouter();
+  const loginFormSchema = z.object({
+    email: z.email({
+      error: "Email is required, please enter your email to login",
+    }),
+    password: z
+      .string({ error: "Password is required to login" })
+      .min(4, { error: "Error cannot be less than 4 characters" }),
+  });
+
+  type loginTypes = z.infer<typeof loginFormSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isLoading, isSubmitting },
+  } = useForm<loginTypes>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const Login = async (data: loginTypes) => {
+    const { message, success, user } = await LoginUser(data);
+
+    if (!success || !user) {
+      toast.error(message);
+      return;
+    }
+
+    toast.success(message);
+    setUser({
+      email: user.email,
+      username: user.username,
+      id: user.id,
+      isVerified: false,
+    });
+
+    router.push("/");
+  };
+  return (
+    <div className="container">
+      <div className={style.loginContent}>
+        <form className={style.form} onSubmit={handleSubmit(Login)}>
+          <div>
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              type="email"
+              isError={errors.email ? true : false}
+              error={errors.email?.message}
+              {...register("email")}
+            />
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              type="password"
+              isError={errors.password ? true : false}
+              error={errors.password?.message}
+              {...register("password")}
+            />
+          </div>
+          <Button fullWidth={true} className={style.btn} size="sm">
+            Login
+          </Button>
+        </form>
+
+        <div className={style.forgetPassword}>
+          <p>
+            Forgot your password? <span>Forgot password</span>{" "}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

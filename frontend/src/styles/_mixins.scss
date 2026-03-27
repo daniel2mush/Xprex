@@ -1,0 +1,67 @@
+// ==========================================
+// 1. RESPONSIVE BREAKPOINTS (MOBILE-FIRST)
+// ==========================================
+// Base styles apply to mobile phones by default.
+// These breakpoints trigger when the screen gets WIDER than the value.
+$breakpoints: (
+  "sm": 576px,
+  // Landscape phones / small tablets
+  "md": 768px,
+  // Tablets (Portrait iPad)
+  "lg": 992px,
+  // Laptops / small desktops
+  "xl": 1200px,
+  // Standard desktops
+  "xxl": 1440px, // Ultra-wide monitors
+);
+
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    // THE MAGIC CHANGE: min-width instead of max-width
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @warn "Invalid breakpoint: #{$breakpoint}. Available breakpoints: #{map-keys($breakpoints)}.";
+  }
+}
+
+// ==========================================
+// 2. FLEXBOX UTILITIES
+// ==========================================
+@mixin flex($justify: center, $align: center, $direction: row, $gap: 0) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+  gap: $gap;
+}
+
+@mixin flex-center {
+  @include flex(center, center);
+}
+
+// ==========================================
+// 3. LAYOUT CONTAINERS
+// ==========================================
+// The outer wrapper (Full-bleed backgrounds & padding)
+@mixin container($min-height: auto) {
+  width: 100%;
+  min-height: $min-height;
+  padding: clamp(20px, 5vw, 80px) clamp(16px, 3vw, 40px);
+}
+
+// The inner wrapper (Max-width constraint & centering)
+@mixin content($max-width: 1200px) {
+  width: 100%;
+  max-width: $max-width;
+  margin-inline: auto; // Modern equivalent of margin: 0 auto;
+}
+
+@function opacity($color, $amount) {
+  // Convert the 0-1 amount into a "Transparency" percentage
+  $transparency: (1 - $amount) * 100%;
+
+  // Use interpolation #{} to ensure Sass outputs the values correctly
+  @return color-mix(in srgb, #{$color}, transparent #{$transparency});
+}

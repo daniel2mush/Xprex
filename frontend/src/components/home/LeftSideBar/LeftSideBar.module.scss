@@ -1,0 +1,273 @@
+// ── Container ──────────────────────────────
+.container {
+  position: relative;
+  width: var(--sidebar-left);
+  height: 100vh;
+
+  border-right: 0.5px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0 0;
+}
+
+// ── Logo ───────────────────────────────────
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  margin-bottom: 32px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.logoMark {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: var(--text-fluid-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  white-space: nowrap;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+// ── Navigation ─────────────────────────────
+.navs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-body);
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+  }
+
+  &.active {
+    background-color: var(--bg-active);
+    color: var(--brand-primary);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.navLabel {
+  transition: opacity 0.2s ease;
+  flex-wrap: nowrap;
+}
+
+.activeIndicator {
+  position: absolute;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+// ── Profile ────────────────────────────────
+.profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  margin: 10px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-subtle);
+  background-color: var(--bg-elevated);
+  gap: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+  flex: 1;
+}
+
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-brand);
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: #22c55e;
+  border: 2px solid var(--bg-elevated);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+  transition: opacity 0.2s ease;
+}
+
+.infoName {
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.infoEmail {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileMore {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.2s ease;
+
+  &:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+  }
+}
+
+// ── Collapse toggle ────────────────────────
+.collapseBtn {
+  position: absolute;
+  top: 10%;
+  right: -30px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 44px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border: 0.5px solid var(--border-subtle);
+  border-left: none;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  z-index: 10;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+  }
+}
+
+// ── Collapsed state ────────────────────────
+.collapsed {
+  width: 80px;
+
+  .logoText,
+  .navLabel,
+  .info,
+  .activeIndicator,
+  .profileMore {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .profile {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .nav {
+    padding: 20px;
+  }
+}

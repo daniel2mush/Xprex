@@ -1,0 +1,179 @@
+.container {
+  max-width: var(--feed-max);
+  width: 100%;
+  min-height: 100vh;
+  border-right: 0.5px solid var(--border-subtle);
+  border-left: 0.5px solid var(--border-subtle);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 0.5px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--bg-app);
+  z-index: 10;
+}
+
+.title {
+  font-size: var(--text-fluid-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+// ── Notification item ──────────────────────
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--border-subtle);
+  text-decoration: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+}
+
+.unread {
+  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+}
+
+.actorAvatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-brand);
+}
+
+.iconWrap {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconLike {
+  color: #e879a0;
+}
+.iconComment {
+  color: var(--brand-primary);
+}
+.iconReply {
+  color: var(--brand-light);
+}
+.iconFollow {
+  color: #34d399;
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemText {
+  font-size: var(--text-fluid-sm);
+  color: var(--text-body);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+.actorName {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+.postPreview {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+// ── Loading ────────────────────────────────
+.loadingStack {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton {
+  height: 72px;
+  background: var(--bg-surface);
+  border-bottom: 0.5px solid var(--border-subtle);
+  animation: shimmer 1.4s infinite;
+}
+
+// ── Empty ──────────────────────────────────
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+}
+
+.emptyIcon {
+  color: var(--text-muted);
+}
+
+.empty p {
+  font-size: var(--text-fluid-sm);
+  color: var(--text-muted);
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}

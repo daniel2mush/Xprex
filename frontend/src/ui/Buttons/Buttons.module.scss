@@ -1,0 +1,161 @@
+// ── Base ───────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+
+  border-radius: var(--radius-md);
+  border: 0.5px solid transparent;
+  font-family: var(--font-family);
+  cursor: pointer;
+  white-space: nowrap;
+  width: auto;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+// ── Sizes ──────────────────────────────────
+.sm {
+  height: 34px;
+  padding: 0 14px;
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.md {
+  height: 40px;
+  padding: 0 20px;
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.lg {
+  height: 48px;
+  padding: 0 28px;
+  font-size: var(--text-fluid-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+// ── Variants ───────────────────────────────
+
+// Primary
+.primary {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
+  border-color: transparent;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
+// Outline
+.outline {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+
+  &:hover:not(:disabled) {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  }
+}
+
+// CTA — full brand gradient, slightly more padding
+.cta {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
+  border-color: transparent;
+  padding-inline: 28px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
+  }
+}
+
+// Ghost — icon buttons, toolbar actions
+.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+
+  &:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-main);
+  }
+}
+
+// Danger
+.danger {
+  background: var(--color-error);
+  color: var(--text-on-brand);
+  border-color: transparent;
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
+  }
+}
+
+// Danger text — inline destructive link style
+.danger-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-error);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  }
+}
+
+// ── Loading state ──────────────────────────
+.loading {
+  cursor: wait;
+}
+
+.hiddenLabel {
+  visibility: hidden;
+  // keeps layout stable — spinner is absolutely positioned over it
+}
+
+.spinnerIcon {
+  position: absolute;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+// ── Spinner ────────────────────────────────
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

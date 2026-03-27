@@ -1,0 +1,172 @@
+.container {
+  @include container(100vh);
+  @include flex-center;
+  background: var(--bg-app);
+}
+
+.content {
+  @include content(460px);
+  @include flex(flex-start, center, column);
+  background-color: var(--bg-surface);
+  padding: 40px 36px;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+// ── Logo mark ──────────────────────────────
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+// ── Heading block ──────────────────────────
+.heading {
+  margin-bottom: 4px;
+  font-size: var(--text-fluid-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+.subheading {
+  font-size: var(--text-fluid-xs);
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+// ── Google button ──────────────────────────
+.googleBtn {
+  @include flex-center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-full);
+  border: 0.5px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  color: var(--text-body);
+  font-size: var(--text-fluid-sm);
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: var(--brand-light);
+    background: var(--bg-input);
+  }
+}
+
+// ── Divider ────────────────────────────────
+.divider {
+  @include flex(center, center);
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+
+  &Line {
+    flex: 1;
+    height: 0.5px;
+    background: var(--border-subtle);
+  }
+
+  &Text {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+
+// ── Tabs ───────────────────────────────────
+.TabsRoot {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.TabsList {
+  @include flex-center;
+  width: 100%;
+  background-color: var(--bg-app);
+  padding: 3px;
+  border-radius: var(--radius-full);
+  height: 40px;
+  gap: 2px;
+}
+
+.TabsTrigger {
+  flex: 1;
+  height: 34px;
+  border: none;
+  font-size: var(--text-fluid-sm);
+  background: transparent;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &[data-state="active"] {
+    background: var(--bg-elevated);
+    color: var(--text-main);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+// ── Fields ─────────────────────────────────
+
+
+// ── Forgot password ────────────────────────
+.forgot {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--brand-primary);
+  margin-bottom: 20px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--brand-light);
+  }
+}
+
+// ── Submit button ──────────────────────────
+.submitBtn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+// ── Footer ─────────────────────────────────
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 20px;
+
+  a {
+    color: var(--brand-light);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--brand-primary);
+    }
+  }
+}

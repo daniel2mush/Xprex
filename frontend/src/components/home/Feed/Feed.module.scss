@@ -1,0 +1,252 @@
+// ── Container ──────────────────────────────
+.container {
+  padding: 16px;
+  border-bottom: 0.5px solid var(--border-subtle);
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
+  }
+}
+
+// ── Header ─────────────────────────────────
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.avatarLink {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.avatarImg {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-brand);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nameLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+
+.username {
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.verified {
+  font-size: 11px;
+  color: var(--brand-primary);
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.moreBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+  }
+}
+
+// ── Body ───────────────────────────────────
+.body {
+  font-size: var(--text-fluid-sm);
+  color: var(--text-body);
+  line-height: 1.65;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// ── Media grid ─────────────────────────────
+.mediaGrid {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 12px;
+
+  &[data-count="1"] {
+    grid-template-columns: 1fr;
+  }
+  &[data-count="2"] {
+    grid-template-columns: 1fr 1fr;
+  }
+  &[data-count="3"] {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+
+    .mediaItem[data-index="0"] {
+      grid-row: span 2;
+    }
+  }
+  &[data-count="4"] {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+.mediaItem {
+  overflow: hidden;
+  background: var(--bg-elevated);
+  aspect-ratio: 16 / 9;
+
+  // Single image taller
+  [data-count="1"] & {
+    aspect-ratio: 4 / 3;
+  }
+  // 3-grid first item full height
+  [data-count="3"] &[data-index="0"] {
+    aspect-ratio: unset;
+  }
+}
+
+.mediaImg,
+.mediaVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+// ── Actions ────────────────────────────────
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border-subtle);
+}
+
+.actionGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  // Like hover
+  &:first-child:hover {
+    background: color-mix(in srgb, #e879a0 10%, transparent);
+    color: #e879a0;
+  }
+}
+
+// Comment hover
+.commentBtn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  color: var(--brand-primary);
+}
+
+// Repost hover
+.repostBtn:hover {
+  background: color-mix(in srgb, #34d399 10%, transparent);
+  color: #34d399;
+}
+
+// Liked state
+.liked {
+  color: #e879a0;
+}
+
+.heartFilled {
+  fill: #e879a0;
+  stroke: none;
+}
+
+// Bookmark
+.bookmarkBtn {
+  padding: 6px 8px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: color-mix(in srgb, #fbbf24 10%, transparent);
+    color: #fbbf24;
+  }
+}
+
+.bookmarked {
+  color: #fbbf24;
+}
+
+.bookmarkFilled {
+  fill: #fbbf24;
+  stroke: none;
+}
