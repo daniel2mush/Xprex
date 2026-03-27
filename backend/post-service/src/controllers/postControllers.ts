@@ -279,6 +279,7 @@ export const GetSinglePost = async (req: Request, res: Response) => {
 // ==========================================
 export const GetUserProfile = async (req: Request, res: Response) => {
   const { userId: profileId } = req.params;
+  const viewerId = req.user.userId;
 
   if (!profileId) return sendJson(res, 400, false, "User ID is required");
   if (Array.isArray(profileId)) {
@@ -286,7 +287,8 @@ export const GetUserProfile = async (req: Request, res: Response) => {
   }
 
   try {
-    const [user, rawPosts] = await Promise.all([
+    const [user, rawPosts, likedEntries, replies, isFollowing] =
+      await Promise.all([
       prisma.user.findUnique({
         where: { id: profileId },
         select: {
@@ -306,18 +308,77 @@ export const GetUserProfile = async (req: Request, res: Response) => {
           },
         },
       }),
-      prisma.post.findMany({
-        where: { userId: profileId },
-        orderBy: { createdAt: "desc" },
-        include: postInclude(req.user.userId!),
-      }),
-    ]);
+        prisma.post.findMany({
+          where: { userId: profileId },
+          orderBy: { createdAt: "desc" },
+          include: postInclude(viewerId!),
+        }),
+        prisma.like.findMany({
+          where: { userId: profileId },
+          orderBy: { createdAt: "desc" },
+          include: {
+            post: {
+              include: postInclude(viewerId!),
+            },
+          },
+        }),
+        prisma.comment.findMany({
+          where: {
+            userId: profileId,
+            parentId: { not: null },
+          },
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+                isVerified: true,
+              },
+            },
+            post: {
+              select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    avatar: true,
+                    isVerified: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        profileId === viewerId
+          ? Promise.resolve(false)
+          : prisma.follow
+              .findUnique({
+                where: {
+                  followerId_followingId: {
+                    followerId: viewerId,
+                    followingId: profileId,
+                  },
+                },
+                select: { id: true },
+              })
+              .then((follow) => Boolean(follow)),
+      ]);
 
     if (!user) return sendJson(res, 404, false, "User not found");
 
     return sendJson(res, 200, true, "Profile retrieved successfully", {
-      user,
+      user: {
+        ...user,
+        isFollowing,
+      },
       posts: rawPosts.map(normalizePost),
+      likedPosts: likedEntries.map((entry) => normalizePost(entry.post)),
+      replies,
     });
   } catch (err: any) {
     logger.error("Failed to fetch profile", { error: err.message, profileId });

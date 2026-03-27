@@ -3,15 +3,16 @@ import { cookies } from "next/headers";
 import api from "@/lib/Axios";
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { userId: string } },
+  _req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
+  const { userId } = await params;
 
   try {
     const { data } = await api.post(
-      `follow/${params.userId}`,
+      `follow/${userId}`,
       {},
       {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},

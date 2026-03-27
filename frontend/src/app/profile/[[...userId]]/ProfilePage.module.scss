@@ -204,6 +204,10 @@
 
 .tab {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 14px 8px;
   font-size: var(--text-fluid-sm);
   font-weight: var(--font-weight-medium);
@@ -225,6 +229,19 @@
   color: var(--text-main);
   font-weight: var(--font-weight-bold);
   border-bottom-color: var(--brand-primary);
+}
+
+.tabCount {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 11px;
+  background: var(--bg-surface);
+}
+
+.tabActive .tabCount {
+  color: var(--brand-primary);
 }
 
 // ── Loading / empty ────────────────────────
@@ -250,6 +267,105 @@
     font-size: var(--text-fluid-sm);
     color: var(--text-muted);
   }
+}
+
+.replyCard {
+  padding: 18px 20px;
+  border-bottom: 0.5px solid var(--border-subtle);
+  background: var(--bg-app);
+}
+
+.replyHeader {
+  margin-bottom: 10px;
+}
+
+.replyAuthorLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.replyAvatar,
+.replyAvatarFallback {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+}
+
+.replyAvatar {
+  object-fit: cover;
+}
+
+.replyAvatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-brand);
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+}
+
+.replyAuthorRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.replyAuthor {
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+.replyVerified {
+  color: var(--brand-primary);
+}
+
+.replyMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.replyContent {
+  margin: 0 0 14px;
+  color: var(--text-body);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.replyContext {
+  padding: 12px 14px;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.replyContextLabel {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+}
+
+.replyPostAuthor {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.replyPostPreview {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 @keyframes shimmer {

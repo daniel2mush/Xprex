@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/ui/Buttons/Buttons";
+import { timeAgoShort } from "@/lib/ParseDate";
+import Link from "next/link";
 
 type ActiveTab = "posts" | "replies" | "media" | "likes";
 
@@ -35,6 +37,9 @@ export default function ProfilePage() {
 
   const profile = data?.data.user;
   const posts = data?.data.posts ?? [];
+  const likedPosts = data?.data.likedPosts ?? [];
+  const replies = data?.data.replies ?? [];
+  const mediaPosts = posts.filter((post) => post.media.length > 0);
   const joinedDate = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString("en-US", {
         month: "long",
@@ -46,6 +51,29 @@ export default function ProfilePage() {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
     if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
     return String(n);
+  };
+
+  const tabCounts: Record<ActiveTab, number> = {
+    posts: posts.length,
+    replies: replies.length,
+    media: mediaPosts.length,
+    likes: likedPosts.length,
+  };
+
+  const activePosts =
+    activeTab === "posts"
+      ? posts
+      : activeTab === "media"
+        ? mediaPosts
+        : activeTab === "likes"
+          ? likedPosts
+          : [];
+
+  const emptyCopy: Record<ActiveTab, string> = {
+    posts: "No posts yet.",
+    replies: "No replies yet.",
+    media: "No media posts yet.",
+    likes: "No liked posts yet.",
   };
 
   return (
@@ -178,7 +206,8 @@ export default function ProfilePage() {
                 className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ""}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+                <span className={styles.tabCount}>{formatCount(tabCounts[tab])}</span>
               </button>
             ),
           )}
@@ -199,15 +228,79 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {!isLoading && !error && posts.length === 0 && (
+        {!isLoading &&
+          !error &&
+          activeTab !== "replies" &&
+          activePosts.length === 0 && (
           <div className={styles.empty}>
-            <p>No posts yet.</p>
+            <p>{emptyCopy[activeTab]}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && activeTab === "replies" && replies.length === 0 && (
+          <div className={styles.empty}>
+            <p>{emptyCopy.replies}</p>
           </div>
         )}
 
         {!isLoading &&
           !error &&
-          posts.map((post) => <Feed key={post.id} data={post} />)}
+          activeTab === "replies" &&
+          replies.map((reply) => (
+            <article key={reply.id} className={styles.replyCard}>
+              <div className={styles.replyHeader}>
+                <Link
+                  href={`/profile/${reply.user.id}`}
+                  className={styles.replyAuthorLink}
+                >
+                  {reply.user.avatar ? (
+                    <img
+                      src={reply.user.avatar}
+                      alt={reply.user.username}
+                      className={styles.replyAvatar}
+                    />
+                  ) : (
+                    <div className={styles.replyAvatarFallback}>
+                      {reply.user.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <div className={styles.replyAuthorRow}>
+                      <span className={styles.replyAuthor}>
+                        {reply.user.username}
+                      </span>
+                      {reply.user.isVerified && (
+                        <CheckCircle2 size={13} className={styles.replyVerified} />
+                      )}
+                    </div>
+                    <span className={styles.replyMeta}>
+                      replied {timeAgoShort(new Date(reply.createdAt))}
+                    </span>
+                  </div>
+                </Link>
+              </div>
+
+              <p className={styles.replyContent}>{reply.content}</p>
+
+              <div className={styles.replyContext}>
+                <span className={styles.replyContextLabel}>In reply to</span>
+                <Link
+                  href={`/profile/${reply.post.user.id}`}
+                  className={styles.replyPostAuthor}
+                >
+                  @{reply.post.user.username}
+                </Link>
+                <p className={styles.replyPostPreview}>
+                  {reply.post.content || "View original post"}
+                </p>
+              </div>
+            </article>
+          ))}
+
+        {!isLoading &&
+          !error &&
+          activeTab !== "replies" &&
+          activePosts.map((post) => <Feed key={post.id} data={post} />)}
       </main>
 
       <RightSideBar />

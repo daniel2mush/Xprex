@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import api from "@/lib/Axios";
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { userId: string } },
+  _req: Request,
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await params;
 

@@ -182,5 +182,21 @@ export interface ProfileResponse {
   data: {
     user: ProfileUser;
     posts: PostTypes[];
+    likedPosts: PostTypes[];
+    replies: ProfileReply[];
+  };
+}
+
+export interface ProfileReply {
+  id: string;
+  content: string;
+  createdAt: string;
+  parentId?: string | null;
+  user: CommentUser;
+  post: {
+    id: string;
+    content: string;
+    createdAt: string;
+    user: CommentUser;
   };
 }
