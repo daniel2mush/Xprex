@@ -19,3 +19,11 @@ export interface ChatConversation {
   messages: ChatMessage[];
   updatedAt: string;
 }
+
+export interface ConversationPreview {
+  id: string;
+  participant: ChatParticipant;
+  lastMessage?: ChatMessage;
+  updatedAt: string;
+  unreadCount: number;
+}

@@ -45,12 +45,7 @@ export default function LoginPage() {
     }
 
     toast.success(message);
-    setUser({
-      email: user.email,
-      username: user.username,
-      id: user.id,
-      isVerified: false,
-    });
+    setUser(user);
 
     router.push("/");
   };

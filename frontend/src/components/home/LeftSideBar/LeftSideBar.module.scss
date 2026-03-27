@@ -1,161 +1,262 @@
-// ── Container ──────────────────────────────
 .container {
-  position: relative;
   width: var(--sidebar-left);
   height: 100vh;
-  border-right: 0.5px solid var(--border-subtle);
-  background-color: var(--bg-surface);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
-  overflow: visible; // was missing — collapseBtn was being clipped
+  position: sticky;
+  top: 0;
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.12), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-surface) 94%, transparent), var(--bg-app));
+  border-right: 0.5px solid var(--border-subtle);
+  backdrop-filter: blur(18px);
+  transition: width 0.28s ease;
 }
 
 .content {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 20px 0 0;
+  gap: 14px;
+  padding: 18px 14px 16px;
 }
 
-// ── Logo ───────────────────────────────────
-.header {
+.headerBlock {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brandRow {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 20px;
-  margin-bottom: 32px;
-  height: 40px;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .logoMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  box-shadow: 0 16px 30px rgba(14, 165, 233, 0.2);
   flex-shrink: 0;
 }
 
-.logoText {
-  font-size: var(--text-fluid-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-main);
-  white-space: nowrap;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-// ── Navigation ─────────────────────────────
+.logoText {
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-black);
+  color: var(--text-main);
+}
+
+.logoSubtext {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.collapseBtn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.summaryCard {
+  padding: 16px;
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(14, 165, 233, 0.08), rgba(16, 185, 129, 0.04)),
+    var(--bg-elevated);
+}
+
+.summaryEyebrow {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+}
+
+.summaryTitle {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--text-main);
+}
+
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.summaryStat {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.summaryValue {
+  display: block;
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  color: var(--text-main);
+}
+
+.summaryLabel {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.summaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
 .navs {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 0 10px;
+  gap: 8px;
   overflow-y: auto;
-  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .nav {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
-  height: 48px;
-  padding: 0 14px;
-  border-radius: var(--radius-md);
+  padding: 14px 14px 13px;
+  border-radius: 18px;
+  border: 1px solid transparent;
   text-decoration: none;
   color: var(--text-body);
-  font-size: var(--text-fluid-sm);
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
-  overflow: hidden;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
 
-  &:hover {
-    background-color: var(--bg-hover);
-    color: var(--text-main);
-  }
+.nav:hover {
+  transform: translateY(-1px);
+  color: var(--text-main);
+  border-color: rgba(14, 165, 233, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
 
-  &.active {
-    background-color: var(--bg-active);
-    color: var(--brand-primary);
-    font-weight: var(--font-weight-semibold);
-  }
+.active {
+  color: var(--text-main);
+  border-color: rgba(14, 165, 233, 0.22);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(16, 185, 129, 0.05));
 }
 
 .navIcon {
   position: relative;
-  display: flex;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  margin-top: 2px;
 }
 
 .notificationBadge {
   position: absolute;
   top: -8px;
-  right: -14px;
+  right: -12px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid var(--bg-surface);
   border-radius: 999px;
   background: #ef4444;
   color: #fff;
   font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  line-height: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
+  font-weight: var(--font-weight-black);
+}
+
+.navContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .navLabel {
-  transition: opacity 0.2s ease;
-  flex-wrap: nowrap;
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.navMeta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
 
 .activeIndicator {
   position: absolute;
-  right: 10px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--brand-primary);
-  flex-shrink: 0;
-  transition: opacity 0.2s ease;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
 }
 
-// ── Profile ────────────────────────────────
+.profileShell {
+  position: relative;
+}
+
 .profile {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  margin: 10px;
-  border-radius: var(--radius-md);
-  border: 0.5px solid var(--border-subtle);
-  background-color: var(--bg-elevated);
-  gap: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: var(--bg-elevated);
 }
 
 .profileLink {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
-  color: inherit;
-  min-width: 0;
   flex: 1;
+  color: inherit;
+  text-decoration: none;
 }
 
 .avatar {
@@ -163,48 +264,48 @@
   flex-shrink: 0;
 }
 
+.avatarImg,
+.avatarFallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+}
+
 .avatarImg {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
   object-fit: cover;
 }
 
 .avatarFallback {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
   color: var(--text-on-brand);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
 }
 
 .onlineDot {
   position: absolute;
-  bottom: 1px;
   right: 1px;
-  width: 9px;
-  height: 9px;
-  border-radius: var(--radius-full);
+  bottom: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
   background: #22c55e;
   border: 2px solid var(--bg-elevated);
 }
 
 .info {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  gap: 1px;
-  transition: opacity 0.2s ease;
+  gap: 2px;
 }
 
 .infoName {
-  font-size: var(--text-fluid-sm);
-  font-weight: var(--font-weight-semibold);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-bold);
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
@@ -212,83 +313,184 @@
 }
 
 .infoEmail {
-  font-size: 0.7rem;
-  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .profileMore {
-  flex-shrink: 0;
-  display: flex;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
   border: none;
+  border-radius: 12px;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    opacity 0.2s ease;
-
-  &:hover {
-    background-color: var(--bg-hover);
-    color: var(--text-main);
-  }
 }
 
-// ── Collapse toggle ────────────────────────
-.collapseBtn {
+.profileMenu {
   position: absolute;
-  top: 10%;
-  right: -30px;
-  transform: translateY(-50%);
-  width: 30px;
-  height: 44px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  border: 0.5px solid var(--border-subtle);
-  border-left: none;
+  right: 0;
+  bottom: calc(100% + 10px);
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
-  color: var(--text-muted);
-  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(5, 12, 24, 0.18);
+  z-index: 12;
+}
+
+.profileMenuItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-  z-index: 10;
-
-  &:hover {
-    background: var(--bg-hover);
-    color: var(--text-main);
-  }
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
 }
 
-// ── Collapsed state ────────────────────────
-.collapsed {
-  width: 80px;
+.logoutItem {
+  color: #ef4444;
+}
 
-  .logoText,
-  .navLabel,
-  .info,
+.collapsed {
+  width: 92px;
+
+  .logoSubtext,
+  .summaryCard,
+  .navContent,
   .activeIndicator,
-  .profileMore {
-    opacity: 0;
-    pointer-events: none;
+  .info,
+  .profileMore,
+  .profileMenu {
+    display: none;
+  }
+
+  .brandRow {
+    justify-content: center;
   }
 
   .profile {
     justify-content: center;
-    padding: 10px;
   }
 
   .nav {
-    padding: 20px;
+    justify-content: center;
+    padding: 14px 10px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .container {
+    width: 96px;
+  }
+
+  .summaryCard,
+  .logoSubtext,
+  .navMeta,
+  .info,
+  .profileMore {
+    display: none;
+  }
+
+  .brandRow,
+  .profile {
+    justify-content: center;
+  }
+
+  .nav {
+    justify-content: center;
+    padding: 14px 10px;
+  }
+
+  .activeIndicator {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    z-index: 40;
+    border-right: none;
+    border-top: 0.5px solid var(--border-subtle);
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.84)),
+      var(--bg-surface);
+    backdrop-filter: blur(20px);
+  }
+
+  .content {
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+
+  .headerBlock,
+  .summaryCard,
+  .profileShell {
+    display: none;
+  }
+
+  .navs {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 6px;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .nav {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 16px;
+  }
+
+  .navIcon {
+    margin-top: 0;
+  }
+
+  .navContent {
+    display: flex;
+  }
+
+  .navMeta {
+    display: none;
+  }
+
+  .navLabel {
+    font-size: 0.68rem;
+  }
+
+  .notificationBadge {
+    top: -6px;
+    right: -9px;
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
   }
 }

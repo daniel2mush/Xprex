@@ -5,7 +5,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Define your route categories
-  const protectedPrefixes = ["/profile", "/settings", "/messages"];
+  const protectedPrefixes = ["/profile", "/settings", "/messages", "/explore"];
   const authRoutes = ["/auth"];
 
   const refreshToken = request.cookies.get("refreshToken");
@@ -37,5 +37,6 @@ export const config = {
     "/profile/:path*",
     "/settings/:path*",
     "/messages/:path*",
+    "/explore/:path*",
   ],
 };

@@ -8,3 +8,17 @@
   padding-inline: var(--gap);
   background: var(--bg-app);
 }
+
+@media (max-width: 1200px) {
+  .homeContainer {
+    gap: 1rem;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .homeContainer {
+    display: block;
+    min-height: auto;
+  }
+}

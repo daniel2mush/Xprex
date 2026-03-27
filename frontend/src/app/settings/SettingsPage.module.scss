@@ -1,0 +1,346 @@
+.layout {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  max-width: calc(var(--feed-max) + var(--sidebar-right));
+  min-width: 0;
+  padding: 26px 22px 48px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.heroCopy {
+  padding: 8px 0;
+}
+
+.eyebrow,
+.cardEyebrow {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+  line-height: 1.05;
+  color: var(--text-main);
+}
+
+.subtitle {
+  margin: 14px 0 0;
+  max-width: 60ch;
+  line-height: 1.7;
+  color: var(--text-body);
+}
+
+.profileSnapshot {
+  overflow: hidden;
+  padding: 0;
+}
+
+.snapshotBanner {
+  height: 110px;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.22), transparent 34%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(14, 165, 233, 0.12));
+  background-size: cover;
+  background-position: center;
+}
+
+.snapshotBody {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px 18px;
+  margin-top: -24px;
+}
+
+.snapshotAvatar,
+.snapshotAvatarFallback {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  border: 4px solid var(--bg-surface);
+}
+
+.snapshotAvatar {
+  object-fit: cover;
+}
+
+.snapshotAvatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  color: #fff;
+  font-weight: var(--font-weight-black);
+}
+
+.snapshotBody strong,
+.cardTitle {
+  color: var(--text-main);
+}
+
+.snapshotBody p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+  gap: 18px;
+}
+
+.profileCard,
+.settingsCard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sideStack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cardIcon {
+  color: var(--text-muted);
+}
+
+.mediaEditors {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.headerEditor {
+  height: 150px;
+  border: 1px dashed rgba(14, 165, 233, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(14, 165, 233, 0.12));
+  background-size: cover;
+  background-position: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.avatarEditorRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatarEditor {
+  flex-shrink: 0;
+}
+
+.avatarPreview,
+.avatarPreviewFallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+}
+
+.avatarPreview {
+  object-fit: cover;
+}
+
+.avatarPreviewFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  color: #fff;
+  font-weight: var(--font-weight-black);
+}
+
+.avatarEditorCopy {
+  flex: 1;
+}
+
+.avatarEditorCopy strong {
+  color: var(--text-main);
+}
+
+.avatarEditorCopy p {
+  margin: 5px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label,
+.preferenceLabel,
+.accountList dt {
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+.textarea {
+  min-height: 120px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--bg-input);
+  color: var(--text-main);
+  resize: vertical;
+  outline: none;
+}
+
+.helperText {
+  align-self: flex-end;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.actions,
+.sessionActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inlineLink {
+  color: #0ea5e9;
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.preferenceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.themeSwitches {
+  display: flex;
+  gap: 10px;
+}
+
+.themeButton,
+.preferenceToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.themeButtonActive {
+  color: var(--text-main);
+  border-color: rgba(14, 165, 233, 0.3);
+  background: rgba(14, 165, 233, 0.09);
+}
+
+.preferenceToggle {
+  justify-content: flex-start;
+}
+
+.accountList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.accountList div {
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border-subtle);
+}
+
+.accountList div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.accountList dd {
+  margin: 6px 0 0;
+  color: var(--text-body);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 18px 12px 110px;
+  }
+
+  .formGrid,
+  .themeSwitches,
+  .actions,
+  .sessionActions,
+  .avatarEditorRow {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .snapshotBody {
+    padding-inline: 14px;
+  }
+
+  .avatarEditor {
+    align-self: center;
+  }
+}

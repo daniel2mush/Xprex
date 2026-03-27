@@ -1,5 +1,6 @@
 .section {
   display: flex;
+  min-height: 100vh;
 }
 
 .body {
@@ -7,4 +8,16 @@
   height: 100vh;
   overflow: hidden;
   overflow-y: scroll;
+}
+
+@media (max-width: 768px) {
+  .section {
+    display: block;
+  }
+
+  .body {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
 }

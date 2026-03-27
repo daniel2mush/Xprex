@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Phone, Search, Send, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import {
-  ConversationPreview,
   ConversationsResponse,
   ConversationResponse,
   MessageItem,
@@ -23,31 +22,6 @@ const MESSAGING_URL =
 type IncomingMessagePayload = {
   conversationId: string;
   message: MessageItem;
-};
-
-const upsertConversationPreview = (
-  conversations: ConversationPreview[] | undefined,
-  conversationId: string,
-  message: MessageItem,
-) => {
-  if (!conversations) return conversations;
-
-  const updated = conversations.map((conversation) =>
-    conversation.id === conversationId
-      ? {
-          ...conversation,
-          lastMessage: message,
-          updatedAt: message.createdAt,
-        }
-      : conversation,
-  );
-
-  updated.sort(
-    (a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-  );
-
-  return updated;
 };
 
 export default function MessagesPage() {
@@ -117,6 +91,25 @@ export default function MessagesPage() {
   }, [activeConversation?.id, activeConversation?.messages]);
 
   useEffect(() => {
+    if (!activeConversation?.id) return;
+
+    queryClient.setQueryData<ConversationsResponse | undefined>(
+      ["messages", "conversations"],
+      (current) =>
+        current
+          ? {
+              ...current,
+              data: current.data.map((conversation) =>
+                conversation.id === activeConversation.id
+                  ? { ...conversation, unreadCount: 0 }
+                  : conversation,
+              ),
+            }
+          : current,
+    );
+  }, [activeConversation?.id, queryClient]);
+
+  useEffect(() => {
     activeConversationRef.current = activeConversationId;
   }, [activeConversationId]);
 
@@ -160,11 +153,26 @@ export default function MessagesPage() {
             ? {
                 ...current,
                 data:
-                  upsertConversationPreview(
-                    current.data,
-                    payload.conversationId,
-                    payload.message,
-                  ) ?? current.data,
+                  current.data
+                    .map((conversation) =>
+                      conversation.id === payload.conversationId
+                        ? {
+                            ...conversation,
+                            lastMessage: payload.message,
+                            updatedAt: payload.message.createdAt,
+                            unreadCount:
+                              payload.conversationId === activeConversationRef.current
+                                ? 0
+                                : conversation.unreadCount +
+                                  (payload.message.senderId === user?.id ? 0 : 1),
+                          }
+                        : conversation,
+                    )
+                    .sort(
+                      (a, b) =>
+                        new Date(b.updatedAt).getTime() -
+                        new Date(a.updatedAt).getTime(),
+                    ) ?? current.data,
               }
             : current,
       );

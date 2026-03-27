@@ -32,6 +32,11 @@ export const updateProfileValidation = z
       .string()
       .max(160, { error: "Bio cannot exceed 160 characters" })
       .optional(),
+    avatar: z.string().url({ error: "Avatar must be a valid URL" }).optional(),
+    headerPhoto: z
+      .string()
+      .url({ error: "Header photo must be a valid URL" })
+      .optional(),
     location: z
       .string()
       .max(120, { error: "Location cannot exceed 120 characters" })
@@ -41,6 +46,8 @@ export const updateProfileValidation = z
     (data) =>
       data.username !== undefined ||
       data.bio !== undefined ||
+      data.avatar !== undefined ||
+      data.headerPhoto !== undefined ||
       data.location !== undefined,
     {
       error: "At least one profile field is required",

@@ -22,6 +22,77 @@
   width: 100%;
 }
 
+.feedHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 4px 18px;
+}
+
+.feedEyebrow {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+}
+
+.feedTitle {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1.05;
+  color: var(--text-main);
+}
+
+.feedSubtitle {
+  margin: 10px 0 0;
+  max-width: 50ch;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+.feedHighlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: min(260px, 42%);
+}
+
+.feedStat {
+  padding: 12px 14px;
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(14, 165, 233, 0.06), rgba(16, 185, 129, 0.03)),
+    var(--bg-surface);
+}
+
+.feedStat strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.feedStat span {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.composeCard {
+  padding: 1.1rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 34%),
+    var(--bg-surface);
+  box-shadow: 0 18px 40px rgba(5, 12, 24, 0.12);
+}
+
 // ── Compose card ───────────────────────────
 .compose {
   display: flex;
@@ -92,7 +163,7 @@
   width: 100%;
   height: 0.5px;
   background: var(--border-subtle);
-  margin: 8px 0;
+  margin: 14px 0 10px;
 }
 
 // ── Loading skeletons ──────────────────────
@@ -246,5 +317,64 @@
   li {
     font-size: 12px;
     color: var(--color-error);
+  }
+}
+
+@media (max-width: 1024px) {
+  .feedHero {
+    flex-direction: column;
+  }
+
+  .feedHighlights {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    height: auto;
+    min-height: 100vh;
+    border-left: none;
+    border-right: none;
+    padding-bottom: 92px;
+  }
+
+  .content {
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .feedHero {
+    padding: 6px 2px 14px;
+    gap: 14px;
+  }
+
+  .feedSubtitle {
+    font-size: 0.92rem;
+  }
+
+  .feedHighlights {
+    grid-template-columns: 1fr;
+  }
+
+  .composeCard {
+    border-radius: 20px;
+    padding: 0.9rem;
+  }
+
+  .compose {
+    gap: 10px;
+    padding: 0;
+  }
+
+  .composeActions {
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .composeRight {
+    width: 100%;
+    justify-content: space-between;
   }
 }

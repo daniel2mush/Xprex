@@ -67,6 +67,7 @@ export interface User {
   email: string;
   username: string;
   avatar?: string | undefined;
+  headerPhoto?: string | undefined;
   bio?: string | undefined;
   location?: string | undefined;
   isVerified: boolean;
@@ -173,6 +174,7 @@ export interface ProfileUser {
   id: string;
   username: string;
   avatar?: string;
+  headerPhoto?: string;
   bio?: string;
   location?: string;
   isVerified: boolean;
@@ -257,6 +259,7 @@ export interface ConversationPreview {
   participant: MessageParticipant;
   lastMessage?: MessageItem;
   updatedAt: string;
+  unreadCount: number;
 }
 
 export interface ConversationsResponse {
@@ -271,5 +274,53 @@ export interface ConversationResponse {
     participants: MessageParticipant[];
     messages: MessageItem[];
     updatedAt: string;
+    unreadCount?: number;
+  };
+}
+
+export interface SearchResponse {
+  success: boolean;
+  data: {
+    posts: PostTypes[];
+    query: string;
+    pagination: pagination;
+  };
+}
+
+export interface SearchHistoryItem {
+  id: string;
+  query: string;
+  createdAt: string;
+}
+
+export interface SearchHistoryResponse {
+  success: boolean;
+  data: SearchHistoryItem[];
+}
+
+export interface SearchUserResult {
+  id: string;
+  username: string;
+  avatar?: string;
+  headerPhoto?: string;
+  bio?: string;
+  location?: string;
+  isVerified: boolean;
+  createdAt: string;
+  isFollowing: boolean;
+  followsYou: boolean;
+  canMessage: boolean;
+  _count: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+}
+
+export interface SearchUsersResponse {
+  success: boolean;
+  data: {
+    users: SearchUserResult[];
+    query: string;
   };
 }

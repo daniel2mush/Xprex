@@ -55,6 +55,8 @@
 .coverPreview {
   height: 120px;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  background-size: cover;
+  background-position: center;
   position: relative;
 }
 
@@ -74,6 +76,12 @@
   .coverPreview:hover & {
     opacity: 1;
   }
+}
+
+.uploadLabel {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
 }
 
 // ── Avatar ─────────────────────────────────
@@ -114,6 +122,8 @@
   position: absolute;
   inset: 0;
   border-radius: var(--radius-full);
+  flex-direction: column;
+  gap: 4px;
   display: flex;
   align-items: center;
   justify-content: center;

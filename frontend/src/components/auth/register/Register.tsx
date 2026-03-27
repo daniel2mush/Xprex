@@ -61,12 +61,7 @@ export default function RegisterPage() {
       return toast.error(message);
     }
     toast.success(message);
-    setUser({
-      email: user.email,
-      username: user.username,
-      id: user.id,
-      isVerified: false,
-    });
+    setUser(user);
 
     router.push("/");
     return;

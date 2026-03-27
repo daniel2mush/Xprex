@@ -58,6 +58,7 @@ export default function Center() {
   const [errors, setErrors] = useState<string[]>([]);
 
   const posts = data?.data.posts;
+  const postCount = posts?.length ?? 0;
 
   // ── File selection ──────────────────────
   const handleFileChange = useCallback(
@@ -163,8 +164,29 @@ export default function Center() {
   return (
     <main className={styles.container}>
       <div className={styles.content}>
+        <header className={styles.feedHero}>
+          <div>
+            <p className={styles.feedEyebrow}>Home</p>
+            <h1 className={styles.feedTitle}>Your timeline</h1>
+            <p className={styles.feedSubtitle}>
+              Share updates, catch up with people you follow, and keep the
+              conversation moving.
+            </p>
+          </div>
+          <div className={styles.feedHighlights}>
+            <div className={styles.feedStat}>
+              <strong>{postCount}</strong>
+              <span>recent posts</span>
+            </div>
+            <div className={styles.feedStat}>
+              <strong>{user?.location || "Global"}</strong>
+              <span>current location</span>
+            </div>
+          </div>
+        </header>
+
         {/* Compose card */}
-        <Card>
+        <Card className={styles.composeCard}>
           <div className={styles.compose}>
             {/* Avatar */}
             <div className={styles.composeAvatar}>
@@ -186,7 +208,7 @@ export default function Center() {
               <textarea
                 ref={textareaRef}
                 className={styles.input}
-                placeholder="What's on your mind?"
+                placeholder="What are you building, noticing, or thinking about?"
                 value={content}
                 onChange={handleTextareaChange}
                 rows={3}

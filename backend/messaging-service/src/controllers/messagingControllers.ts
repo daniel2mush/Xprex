@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   getConversationMessages,
   listConversations,
+  markConversationRead,
 } from "../store/messageStore";
 
 export const getMessagingStatus = (_req: Request, res: Response) => {
@@ -58,8 +59,13 @@ export const getConversationById = async (req: Request, res: Response) => {
     });
   }
 
+  markConversationRead(userId, id);
+
   return res.status(200).json({
     success: true,
-    data: conversation,
+    data: {
+      ...conversation,
+      unreadCount: 0,
+    },
   });
 };

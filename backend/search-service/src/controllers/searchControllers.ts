@@ -71,21 +71,69 @@ const normalizePost = (post: any) => ({
   bookmarks: undefined,
 });
 
+const normalizeQuery = (value: string) => value.trim().replace(/^#+/, "");
+
+const searchUserSelect = (userId: string) => ({
+  id: true,
+  username: true,
+  avatar: true,
+  headerPhoto: true,
+  bio: true,
+  location: true,
+  isVerified: true,
+  createdAt: true,
+  _count: {
+    select: {
+      posts: true,
+      followers: true,
+      following: true,
+    },
+  },
+  following: {
+    where: { followingId: userId },
+    select: { id: true },
+    take: 1,
+  },
+  followers: {
+    where: { followerId: userId },
+    select: { id: true },
+    take: 1,
+  },
+});
+
+const normalizeUser = (user: any) => {
+  const isFollowing = user.following?.length > 0;
+  const followsYou = user.followers?.length > 0;
+
+  return {
+    ...user,
+    isFollowing,
+    followsYou,
+    canMessage: isFollowing || followsYou,
+    following: undefined,
+    followers: undefined,
+  };
+};
+
 // ==========================================
 // SEARCH POSTS
 // ==========================================
 export const searchPosts = async (req: Request, res: Response) => {
-  const userId = req.user.userId;
-  if (!userId) return sendJson(res, 401, false, "Unauthorized");
-
   try {
+    const userId = req.user?.userId;
+    if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
     const rawQuery = req.query.search;
 
     if (!rawQuery || typeof rawQuery !== "string" || rawQuery.trim() === "") {
       return sendJson(res, 400, false, "Search query is required");
     }
 
-    const query = rawQuery.trim();
+    const query = normalizeQuery(rawQuery);
+
+    if (!query) {
+      return sendJson(res, 400, false, "Search query is required");
+    }
 
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(
@@ -189,13 +237,77 @@ export const searchPosts = async (req: Request, res: Response) => {
 };
 
 // ==========================================
+// SEARCH USERS
+// ==========================================
+export const searchUsers = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
+    const rawQuery = req.query.search;
+
+    if (!rawQuery || typeof rawQuery !== "string" || rawQuery.trim() === "") {
+      return sendJson(res, 400, false, "Search query is required");
+    }
+
+    const query = normalizeQuery(rawQuery);
+
+    if (!query) {
+      return sendJson(res, 400, false, "Search query is required");
+    }
+
+    const limit = Math.min(
+      12,
+      Math.max(1, parseInt(req.query.limit as string) || 8),
+    );
+
+    const rawUsers = await prisma.user.findMany({
+      where: {
+        id: { not: userId },
+        OR: [
+          {
+            username: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+          {
+            bio: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+          {
+            location: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+      take: limit,
+      orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
+      select: searchUserSelect(userId),
+    });
+
+    return sendJson(res, 200, true, "User results retrieved", {
+      users: rawUsers.map(normalizeUser),
+      query,
+    });
+  } catch (err: any) {
+    logger.error("User search failed", { error: err.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
 // GET SEARCH HISTORY
 // ==========================================
 export const getSearchHistory = async (req: Request, res: Response) => {
-  const userId = req.user.userId;
-  if (!userId) return sendJson(res, 401, false, "Unauthorized");
-
   try {
+    const userId = req.user?.userId;
+    if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
     const history = await prisma.search.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -218,10 +330,10 @@ export const getSearchHistory = async (req: Request, res: Response) => {
 // CLEAR SEARCH HISTORY
 // ==========================================
 export const clearSearchHistory = async (req: Request, res: Response) => {
-  const userId = req.user.userId;
-  if (!userId) return sendJson(res, 401, false, "Unauthorized");
-
   try {
+    const userId = req.user?.userId;
+    if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
     await prisma.search.deleteMany({ where: { userId } });
     return sendJson(res, 200, true, "Search history cleared");
   } catch (err: any) {

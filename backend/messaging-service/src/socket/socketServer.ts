@@ -6,6 +6,7 @@ import {
   appendMessage,
   getConversationMessages,
   markUserConnected,
+  markConversationRead,
   markUserDisconnected,
 } from "../store/messageStore";
 
@@ -41,6 +42,7 @@ export const createSocketServer = (httpServer: HttpServer) => {
       const conversation = await getConversationMessages(userId, conversationId);
       if (!conversation) return;
 
+      markConversationRead(userId, conversationId);
       socket.join(conversationId);
       logger.info("Socket joined conversation", {
         socketId: socket.id,

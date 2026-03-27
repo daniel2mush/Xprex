@@ -6,7 +6,9 @@ import { X, Camera } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
 import { Input } from "@/ui/Input/Input";
 import { useEditProfile, EditProfileInput } from "@/query/ProfileQuery";
+import { useUploadMedia } from "@/query/HomeQuery";
 import { ProfileUser } from "@/types/Types";
+import { toast } from "sonner";
 
 interface EditProfileModalProps {
   profile: ProfileUser;
@@ -18,12 +20,21 @@ export default function EditProfileModal({
   onClose,
 }: EditProfileModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<EditProfileInput>({
     username: profile.username,
     bio: profile.bio ?? "",
+    avatar: profile.avatar ?? "",
+    headerPhoto: profile.headerPhoto ?? "",
   });
+  const [uploadTarget, setUploadTarget] = useState<"avatar" | "header" | null>(
+    null,
+  );
 
   const { mutate: editProfile, isPending, error } = useEditProfile();
+  const { mutateAsync: uploadMedia, isPending: isUploadingMedia } =
+    useUploadMedia();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -39,6 +50,36 @@ export default function EditProfileModal({
 
   const handleSubmit = () => {
     editProfile(form, { onSuccess: onClose });
+  };
+
+  const handleUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    target: "avatar" | "header",
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadTarget(target);
+      const urls = await uploadMedia([file]);
+      const nextUrl = urls[0];
+
+      if (!nextUrl) {
+        throw new Error("Upload did not return a media URL");
+      }
+
+      setForm((current) => ({
+        ...current,
+        ...(target === "avatar"
+          ? { avatar: nextUrl }
+          : { headerPhoto: nextUrl }),
+      }));
+    } catch (uploadError: any) {
+      toast.error(uploadError.message ?? "Media upload failed");
+    } finally {
+      setUploadTarget(null);
+      event.target.value = "";
+    }
   };
 
   return createPortal(
@@ -61,18 +102,42 @@ export default function EditProfileModal({
         </div>
 
         {/* Cover preview */}
-        <div className={styles.coverPreview}>
-          <button className={styles.coverEditBtn} aria-label="Edit cover">
+        <div
+          className={styles.coverPreview}
+          style={
+            form.headerPhoto
+              ? { backgroundImage: `url(${form.headerPhoto})` }
+              : undefined
+          }
+        >
+          <button
+            className={styles.coverEditBtn}
+            aria-label="Edit cover"
+            onClick={() => headerInputRef.current?.click()}
+            type="button"
+          >
             <Camera size={16} />
+            <span className={styles.uploadLabel}>
+              {uploadTarget === "header" && isUploadingMedia
+                ? "Uploading header..."
+                : "Change header"}
+            </span>
           </button>
+          <input
+            ref={headerInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(event) => handleUpload(event, "header")}
+          />
         </div>
 
         {/* Avatar preview */}
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrap}>
-            {profile.avatar ? (
+            {form.avatar ? (
               <img
-                src={profile.avatar}
+                src={form.avatar}
                 alt={profile.username}
                 className={styles.avatar}
               />
@@ -81,9 +146,26 @@ export default function EditProfileModal({
                 {profile.username[0].toUpperCase()}
               </div>
             )}
-            <button className={styles.avatarEditBtn} aria-label="Edit avatar">
+            <button
+              className={styles.avatarEditBtn}
+              aria-label="Edit avatar"
+              onClick={() => avatarInputRef.current?.click()}
+              type="button"
+            >
               <Camera size={14} />
+              <span className={styles.uploadLabel}>
+                {uploadTarget === "avatar" && isUploadingMedia
+                  ? "Uploading..."
+                  : "Change"}
+              </span>
             </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => handleUpload(event, "avatar")}
+            />
           </div>
         </div>
 

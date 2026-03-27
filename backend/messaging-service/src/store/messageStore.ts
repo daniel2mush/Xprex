@@ -4,6 +4,7 @@ import {
   ChatConversation,
   ChatMessage,
   ChatParticipant,
+  ConversationPreview,
 } from "../types/messaging";
 
 type StoredConversation = {
@@ -20,6 +21,7 @@ type ConnectedUser = {
 
 const conversations = new Map<string, StoredConversation>();
 const connectedUsers = new Map<string, number>();
+const conversationReads = new Map<string, Map<string, string>>();
 
 const buildConversationId = (firstUserId: string, secondUserId: string) =>
   `dm:${[firstUserId, secondUserId].sort().join(":")}`;
@@ -42,6 +44,31 @@ const parseConversationId = (conversationId: string, userId: string) => {
 };
 
 const isUserOnline = (userId: string) => Boolean(connectedUsers.get(userId));
+
+const getConversationReadMap = (conversationId: string) => {
+  const currentReads = conversationReads.get(conversationId);
+
+  if (currentReads) {
+    return currentReads;
+  }
+
+  const nextReads = new Map<string, string>();
+  conversationReads.set(conversationId, nextReads);
+  return nextReads;
+};
+
+const getUnreadCount = (conversationId: string, userId: string) => {
+  const conversation = conversations.get(conversationId);
+  if (!conversation) return 0;
+
+  const lastReadAt = conversationReads.get(conversationId)?.get(userId);
+
+  return conversation.messages.filter((message) => {
+    if (message.senderId === userId) return false;
+    if (!lastReadAt) return true;
+    return new Date(message.createdAt).getTime() > new Date(lastReadAt).getTime();
+  }).length;
+};
 
 const toParticipant = (
   user: { id: string; username: string; avatar: string | null },
@@ -155,7 +182,7 @@ export const listConversations = async (userId: string) => {
   const contacts = await getConnectedUsersFor(userId);
 
   return contacts
-    .map((contact) => {
+    .map<ConversationPreview>((contact) => {
       const conversationId = buildConversationId(userId, contact.id);
       const conversation = conversations.get(conversationId);
       const lastMessage = conversation?.messages[conversation.messages.length - 1];
@@ -170,6 +197,7 @@ export const listConversations = async (userId: string) => {
         },
         lastMessage,
         updatedAt: lastMessage?.createdAt ?? conversation?.updatedAt ?? contact.relationCreatedAt,
+        unreadCount: getUnreadCount(conversationId, userId),
       };
     })
     .sort(
@@ -200,6 +228,16 @@ export const getConversationMessages = async (
     updatedAt:
       storedConversation?.updatedAt ?? contact.relationCreatedAt,
   };
+};
+
+export const markConversationRead = (userId: string, conversationId: string) => {
+  const conversation = conversations.get(conversationId);
+  const readMap = getConversationReadMap(conversationId);
+
+  readMap.set(
+    userId,
+    conversation?.updatedAt ?? new Date().toISOString(),
+  );
 };
 
 export const appendMessage = async ({
@@ -239,6 +277,8 @@ export const appendMessage = async ({
   };
 
   conversations.set(conversationId, nextConversation);
+  const readMap = getConversationReadMap(conversationId);
+  readMap.set(senderId, message.createdAt);
 
   return {
     conversation: {

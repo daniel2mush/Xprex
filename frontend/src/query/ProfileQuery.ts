@@ -28,6 +28,7 @@ export interface EditProfileInput {
   username?: string;
   bio?: string;
   avatar?: string;
+  headerPhoto?: string;
   location?: string;
 }
 

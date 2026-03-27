@@ -29,6 +29,7 @@ const selectPublicUser = {
   email: true,
   username: true,
   avatar: true,
+  headerPhoto: true,
   bio: true,
   location: true,
   isVerified: true,
@@ -283,6 +284,10 @@ export const updateProfile = async (req: Request, res: Response) => {
       data: {
         ...(payload.username !== undefined && { username: username || undefined }),
         ...(payload.bio !== undefined && { bio: bio || null }),
+        ...(payload.avatar !== undefined && { avatar: payload.avatar || null }),
+        ...(payload.headerPhoto !== undefined && {
+          headerPhoto: payload.headerPhoto || null,
+        }),
         ...(payload.location !== undefined && { location: location || null }),
       },
       select: selectPublicUser,

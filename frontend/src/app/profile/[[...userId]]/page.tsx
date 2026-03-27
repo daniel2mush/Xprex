@@ -86,9 +86,21 @@ export default function ProfilePage() {
     <div className={styles.layout}>
       <main className={styles.main}>
         {/* Cover */}
-        <div className={styles.cover}>
+        <div
+          className={styles.cover}
+          style={
+            profile?.headerPhoto
+              ? { backgroundImage: `url(${profile.headerPhoto})` }
+              : undefined
+          }
+        >
           {isOwnProfile && (
-            <button className={styles.coverEditBtn} aria-label="Edit cover">
+            <button
+              className={styles.coverEditBtn}
+              aria-label="Edit cover"
+              type="button"
+              onClick={() => setShowEditModal(true)}
+            >
               <Camera size={16} />
             </button>
           )}
@@ -116,6 +128,7 @@ export default function ProfilePage() {
                 <button
                   className={styles.avatarEditBtn}
                   aria-label="Edit avatar"
+                  type="button"
                   onClick={() => setShowEditModal(true)}
                 >
                   <Camera size={13} />

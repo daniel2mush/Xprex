@@ -20,6 +20,7 @@ export const useGetConversations = () => {
       return response.json() as Promise<ConversationsResponse>;
     },
     staleTime: 1000 * 30,
+    refetchInterval: 15_000,
   });
 };
 
