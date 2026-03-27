@@ -5,13 +5,18 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Define your route categories
-  const protectedRoutes = ["/", "/profile"];
+  const protectedPrefixes = ["/profile", "/settings", "/messages"];
   const authRoutes = ["/auth"];
 
   const refreshToken = request.cookies.get("refreshToken");
+  const isProtectedRoute =
+    pathname === "/" ||
+    protectedPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
 
   // 2. Redirect to Login if no token is found on protected routes
-  if (protectedRoutes.includes(pathname) && !refreshToken) {
+  if (isProtectedRoute && !refreshToken) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 

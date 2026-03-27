@@ -2,24 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import api from "@/lib/Axios";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ commentId: string }> },
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { userId: string } },
 ) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
 
-  const { commentId } = await params;
-
   try {
-    const { data } = await api.get(`/comments/${commentId}/replies`, {
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-    });
-
+    const { data } = await api.post(
+      `follow/${params.userId}`,
+      {},
+      {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      },
+    );
     return NextResponse.json(data);
   } catch (error: any) {
     const status = error.response?.status ?? 500;
-    const message = error.response?.data?.message ?? "Failed to fetch replies";
+    const message = error.response?.data?.message ?? "Failed to follow";
     return NextResponse.json({ success: false, message }, { status });
   }
 }

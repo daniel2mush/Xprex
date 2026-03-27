@@ -8,27 +8,49 @@ import {
   MoreHorizontal,
   Repeat2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PostTypes } from "@/types/Types";
-import { useRouter } from "next/navigation";
 import PostModal from "@/components/postModal/PostModal";
+import { useTogglePostLike } from "@/query/HomeQuery";
 
 export default function Feed({ data }: { data: PostTypes }) {
-  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const { mutate: toggleLike, isPending: isTogglingLike } = useTogglePostLike();
 
   const [liked, setLiked] = useState(data.isLiked ?? false);
   const [bookmarked, setBookmarked] = useState(data.isBookmarked ?? false);
   const [likeCount, setLikeCount] = useState(data._count?.likes ?? 0);
 
+  useEffect(() => {
+    setLiked(data.isLiked ?? false);
+    setBookmarked(data.isBookmarked ?? false);
+    setLikeCount(data._count?.likes ?? 0);
+  }, [data._count?.likes, data.isBookmarked, data.isLiked]);
+
   const mediaItems = data.media ?? [];
   const mediaCount = Math.min(mediaItems.length, 4); // cap at 4
 
   const handleLike = () => {
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
-    // TODO: call mutation
+    if (isTogglingLike) return;
+
+    const previousLiked = liked;
+    const previousCount = likeCount;
+    const nextLiked = !liked;
+
+    setLiked(nextLiked);
+    setLikeCount((prev) => Math.max(0, prev + (nextLiked ? 1 : -1)));
+
+    toggleLike(data.id, {
+      onSuccess: (response) => {
+        setLiked(response.data.liked);
+        setLikeCount(response.data.likesCount);
+      },
+      onError: () => {
+        setLiked(previousLiked);
+        setLikeCount(previousCount);
+      },
+    });
   };
 
   const handleBookmark = () => {
@@ -115,6 +137,7 @@ export default function Feed({ data }: { data: PostTypes }) {
               onClick={handleLike}
               aria-label={liked ? "Unlike" : "Like"}
               aria-pressed={liked}
+              disabled={isTogglingLike}
             >
               <Heart size={16} className={liked ? styles.heartFilled : ""} />
               {likeCount > 0 && <span>{formatCount(likeCount)}</span>}

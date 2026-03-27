@@ -34,6 +34,16 @@ export interface PostResponse {
   pagination: pagination;
 }
 
+export interface ToggleLikeResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: string;
+    liked: boolean;
+    likesCount: number;
+  };
+}
+
 export interface RegisterProps {
   email: string;
   username: string;
@@ -53,8 +63,18 @@ export interface User {
   avatar?: string | undefined;
   bio?: string | undefined;
   isVerified: boolean;
+  createdAt?: string;
   _count?: postCounts;
 }
+
+// export interface ProfileResponse {
+//   success: boolean;
+//   message: string;
+//   data: {
+//     user: User;
+//     posts: PostTypes[];
+//   };
+// }
 
 export interface AuthResponse {
   message: string;
@@ -140,4 +160,27 @@ export interface NotificationTypes {
 export interface NotificationResponse {
   success: boolean;
   data: NotificationTypes[];
+}
+
+export interface ProfileUser {
+  id: string;
+  username: string;
+  avatar?: string;
+  bio?: string;
+  isVerified: boolean;
+  createdAt: string;
+  isFollowing?: boolean;
+  _count: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+}
+
+export interface ProfileResponse {
+  success: boolean;
+  data: {
+    user: ProfileUser;
+    posts: PostTypes[];
+  };
 }

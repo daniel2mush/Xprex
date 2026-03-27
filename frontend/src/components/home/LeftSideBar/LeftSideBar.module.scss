@@ -3,11 +3,11 @@
   position: relative;
   width: var(--sidebar-left);
   height: 100vh;
-
   border-right: 0.5px solid var(--border-subtle);
   background-color: var(--bg-surface);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  overflow: visible; // was missing — collapseBtn was being clipped
 }
 
 .content {

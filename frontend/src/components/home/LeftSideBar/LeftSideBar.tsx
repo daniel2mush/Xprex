@@ -11,7 +11,7 @@ import {
   User,
 } from "lucide-react";
 import styles from "./LeftSideBar.module.scss";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
@@ -36,6 +36,16 @@ export default function LeftSideBar() {
   const { user } = useUserStore();
   const pathname = usePathname();
   const { collapsed, setCollapsedValue } = useCollapsedStore();
+  const profileLink = user ? `/profile/${user.id}` : "/profile";
+  const navigationItems = SideNav.map(({ icon, name, link }) => {
+    const href = name === "Profile" ? profileLink : link;
+    const isActive =
+      name === "Profile"
+        ? pathname === "/profile" || pathname.startsWith("/profile/")
+        : pathname === link;
+
+    return { icon, name, href, isActive };
+  });
 
   if (!user) return null;
 
@@ -54,16 +64,16 @@ export default function LeftSideBar() {
 
         {/* Navigation */}
         <nav className={styles.navs}>
-          {SideNav.map(({ icon, name, link }) => (
+          {navigationItems.map(({ icon, name, href, isActive }) => (
             <Link
               key={name}
-              href={link}
-              className={`${styles.nav} ${pathname === link ? styles.active : ""}`}
+              href={href}
+              className={`${styles.nav} ${isActive ? styles.active : ""}`}
               title={collapsed ? name : undefined}
             >
               <i className={styles.navIcon}>{icon}</i>
               <span className={styles.navLabel}>{name}</span>
-              {pathname === link && (
+              {isActive && (
                 <span className={styles.activeIndicator} aria-hidden="true" />
               )}
             </Link>
@@ -72,7 +82,7 @@ export default function LeftSideBar() {
 
         {/* Profile */}
         <div className={styles.profile}>
-          <Link href="/profile" className={styles.profileLink}>
+          <Link href={profileLink} className={styles.profileLink}>
             <div className={styles.avatar}>
               {/* {user.avatarUrl ? (
                 <img

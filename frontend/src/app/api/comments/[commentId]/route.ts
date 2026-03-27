@@ -3,14 +3,13 @@ import { cookies } from "next/headers";
 import api from "@/lib/Axios";
 
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { commentId: string } },
+  _req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> },
 ) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
 
-  const value = await params;
-  const commentId = value.commentId;
+  const { commentId } = await params;
 
   try {
     const { data } = await api.delete(`/comments/api/comments/${commentId}`, {

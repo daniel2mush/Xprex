@@ -4,12 +4,11 @@ import api from "@/lib/Axios";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
-  const value = await params;
-  const postId = value.postId;
+  const { postId } = await params;
 
   try {
     const { searchParams } = new URL(req.url);
@@ -31,10 +30,9 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { postId: string } },
+  { params }: { params: Promise<{ postId: string }> },
 ) {
-  const value = await params;
-  const postId = value.postId;
+  const { postId } = await params;
 
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;

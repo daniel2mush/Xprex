@@ -4,13 +4,13 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Heart, Repeat2, Bookmark } from "lucide-react";
 import { PostTypes } from "@/types/Types";
-import { timeAgoShort } from "@/lib/ParseDate";
 import { useGetComments, useCreateComment } from "@/query/CommentQuery";
 import { Button } from "@/ui/Buttons/Buttons";
 import { useUserStore } from "@/store/userStore";
 import { useState } from "react";
 import Link from "next/link";
 import Comment from "../comments/Comment";
+import { useTogglePostLike } from "@/query/HomeQuery";
 
 interface PostModalProps {
   post: PostTypes;
@@ -20,8 +20,11 @@ interface PostModalProps {
 export default function PostModal({ post, onClose }: PostModalProps) {
   const { user } = useUserStore();
   const [content, setContent] = useState("");
+  const [liked, setLiked] = useState(post.isLiked ?? false);
+  const [likeCount, setLikeCount] = useState(post._count?.likes ?? 0);
   const overlayRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { mutate: toggleLike, isPending: isTogglingLike } = useTogglePostLike();
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetComments(post.id);
@@ -52,12 +55,39 @@ export default function PostModal({ post, onClose }: PostModalProps) {
     };
   }, []);
 
+  useEffect(() => {
+    setLiked(post.isLiked ?? false);
+    setLikeCount(post._count?.likes ?? 0);
+  }, [post._count?.likes, post.id, post.isLiked]);
+
   const handleSubmit = () => {
     if (!content.trim()) return;
     createComment(
       { content: content.trim() },
       { onSuccess: () => setContent("") },
     );
+  };
+
+  const handleLike = () => {
+    if (isTogglingLike) return;
+
+    const previousLiked = liked;
+    const previousCount = likeCount;
+    const nextLiked = !liked;
+
+    setLiked(nextLiked);
+    setLikeCount((prev) => Math.max(0, prev + (nextLiked ? 1 : -1)));
+
+    toggleLike(post.id, {
+      onSuccess: (response) => {
+        setLiked(response.data.liked);
+        setLikeCount(response.data.likesCount);
+      },
+      onError: () => {
+        setLiked(previousLiked);
+        setLikeCount(previousCount);
+      },
+    });
   };
 
   const mediaItems = post.media ?? [];
@@ -157,9 +187,9 @@ export default function PostModal({ post, onClose }: PostModalProps) {
 
             {/* Stats */}
             <div className={styles.postStats}>
-              {(post._count?.likes ?? 0) > 0 && (
+              {likeCount > 0 && (
                 <span className={styles.stat}>
-                  <strong>{post._count!.likes}</strong> Likes
+                  <strong>{likeCount}</strong> Likes
                 </span>
               )}
               {(post._count?.comments ?? 0) > 0 && (
@@ -172,10 +202,14 @@ export default function PostModal({ post, onClose }: PostModalProps) {
             {/* Actions */}
             <div className={styles.postActions}>
               <button
-                className={`${styles.actionBtn} ${post.isLiked ? styles.liked : ""}`}
+                className={`${styles.actionBtn} ${liked ? styles.liked : ""}`}
+                onClick={handleLike}
+                aria-label={liked ? "Unlike" : "Like"}
+                aria-pressed={liked}
+                disabled={isTogglingLike}
               >
                 <Heart size={16} />
-                <span>Like</span>
+                <span>{liked ? "Unlike" : "Like"}</span>
               </button>
               <button className={styles.actionBtn}>
                 <Repeat2 size={16} />

@@ -20,6 +20,13 @@ interface PostCreatedEvent {
   content: string;
 }
 
+interface LikeCreatedEvent {
+  likeId: string;
+  postId: string;
+  postOwnerId: string;
+  likerId: string;
+}
+
 // ==========================================
 // HELPERS
 // ==========================================
@@ -263,6 +270,134 @@ export const GetSinglePost = async (req: Request, res: Response) => {
     return sendJson(res, 200, true, "Post retrieved successfully", post);
   } catch (err: any) {
     logger.error("Failed to fetch post", { error: err.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// GET USER PROFILE
+// ==========================================
+export const GetUserProfile = async (req: Request, res: Response) => {
+  const { userId: profileId } = req.params;
+
+  if (!profileId) return sendJson(res, 400, false, "User ID is required");
+  if (Array.isArray(profileId)) {
+    return sendJson(res, 400, false, "Invalid user ID");
+  }
+
+  try {
+    const [user, rawPosts] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: profileId },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatar: true,
+          bio: true,
+          isVerified: true,
+          createdAt: true,
+          _count: {
+            select: {
+              posts: true,
+              followers: true,
+              following: true,
+            },
+          },
+        },
+      }),
+      prisma.post.findMany({
+        where: { userId: profileId },
+        orderBy: { createdAt: "desc" },
+        include: postInclude(req.user.userId!),
+      }),
+    ]);
+
+    if (!user) return sendJson(res, 404, false, "User not found");
+
+    return sendJson(res, 200, true, "Profile retrieved successfully", {
+      user,
+      posts: rawPosts.map(normalizePost),
+    });
+  } catch (err: any) {
+    logger.error("Failed to fetch profile", { error: err.message, profileId });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// TOGGLE POST LIKE
+// ==========================================
+export const TogglePostLike = async (req: Request, res: Response) => {
+  const { id: postId } = req.params;
+  const userId = req.user.userId;
+
+  if (!postId) return sendJson(res, 400, false, "Post ID is required");
+  if (Array.isArray(postId)) {
+    return sendJson(res, 400, false, "Invalid post ID");
+  }
+  if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true, userId: true },
+    });
+
+    if (!post) return sendJson(res, 404, false, "Post not found");
+
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    });
+
+    let liked = false;
+
+    if (existingLike) {
+      await prisma.like.delete({
+        where: { id: existingLike.id },
+      });
+    } else {
+      const like = await prisma.like.create({
+        data: {
+          userId,
+          postId,
+        },
+      });
+
+      liked = true;
+
+      publishEvent("social:like-created", {
+        likeId: like.id,
+        postId,
+        postOwnerId: post.userId,
+        likerId: userId,
+      } as LikeCreatedEvent);
+    }
+
+    const likesCount = await prisma.like.count({
+      where: { postId },
+    });
+
+    await invalidatePostCache(req, postId);
+
+    return sendJson(
+      res,
+      200,
+      true,
+      liked ? "Post liked successfully" : "Post unliked successfully",
+      {
+        postId,
+        liked,
+        likesCount,
+      },
+    );
+  } catch (err: any) {
+    logger.error("Failed to toggle like", { error: err.message, postId });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

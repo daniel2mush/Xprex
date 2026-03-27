@@ -1,4 +1,8 @@
-import { PostResponse, CreatePostTypes } from "@/types/Types";
+import {
+  PostResponse,
+  CreatePostTypes,
+  ToggleLikeResponse,
+} from "@/types/Types";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
 export const useGetAllPost = () => {
@@ -32,6 +36,29 @@ export const useCreatePost = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+    },
+  });
+};
+
+export const useTogglePostLike = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Failed to toggle like");
+      }
+
+      return response.json() as Promise<ToggleLikeResponse>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 };
