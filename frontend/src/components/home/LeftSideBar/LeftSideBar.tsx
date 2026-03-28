@@ -17,7 +17,7 @@ import {
 import styles from "./LeftSideBar.module.scss";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { useCollapsedStore } from "@/store/sideBarStore";
 import { useGetNotifications } from "@/query/NotificationsQuery";
@@ -73,6 +73,7 @@ const sideNav: NavigationItem[] = [
 export default function LeftSideBar() {
   const { user, clearUser } = useUserStore();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { collapsed, setCollapsedValue } = useCollapsedStore();
   const { data: notificationsData } = useGetNotifications();
@@ -119,6 +120,10 @@ export default function LeftSideBar() {
 
   if (!user || pathname === "/auth") return null;
 
+  const isActiveMobileMessageThread =
+    pathname.startsWith("/messages") &&
+    (searchParams.has("conversationId") || searchParams.has("userId"));
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", {
@@ -134,7 +139,11 @@ export default function LeftSideBar() {
   };
 
   return (
-    <aside className={`${styles.container} ${collapsed ? styles.collapsed : ""}`}>
+    <aside
+      className={`${styles.container} ${collapsed ? styles.collapsed : ""} ${
+        isActiveMobileMessageThread ? styles.hideOnMessagesMobile : ""
+      }`}
+    >
       <div className={styles.content}>
         <div className={styles.headerBlock}>
           <div className={styles.brandRow}>

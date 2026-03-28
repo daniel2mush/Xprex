@@ -7,7 +7,7 @@ import {
   useUploadMedia,
 } from "@/query/HomeQuery";
 import { useUserStore } from "@/store/userStore";
-import { ImageIcon, X } from "lucide-react";
+import { ImageIcon, Plus, X } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
 import { useRef, useState, useCallback, useEffect } from "react";
 import Feed from "../Feed/Feed";
@@ -63,6 +63,7 @@ export default function Center() {
   const [content, setContent] = useState("");
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const [showMobileComposer, setShowMobileComposer] = useState(false);
 
   const posts = data?.pages.flatMap((page) => page.data.posts) ?? [];
   const postCount = posts?.length ?? 0;
@@ -156,6 +157,7 @@ export default function Center() {
         {
           onSuccess: () => {
             setContent("");
+            setShowMobileComposer(false);
             setPreviews((prev) => {
               prev.forEach((p) => URL.revokeObjectURL(p.preview));
               return [];
@@ -213,7 +215,18 @@ export default function Center() {
           </div>
         </header>
 
-        <Card className={styles.composeCard}>
+        {showMobileComposer && (
+          <button
+            type="button"
+            className={styles.mobileComposerBackdrop}
+            aria-label="Close post composer"
+            onClick={() => setShowMobileComposer(false)}
+          />
+        )}
+
+        <Card
+          className={`${styles.composeCard} ${showMobileComposer ? styles.composeCardOpen : ""}`}
+        >
           <div className={styles.composeHeader}>
             <div>
               <p className={styles.composeEyebrow}>Create update</p>
@@ -221,9 +234,19 @@ export default function Center() {
                 Publish something your network can react to quickly
               </h2>
             </div>
-            <span className={styles.composeHint}>
-              Add up to 4 images or a short clip.
-            </span>
+            <div className={styles.composeHeaderActions}>
+              <span className={styles.composeHint}>
+                Add up to 4 images or a short clip.
+              </span>
+              <button
+                type="button"
+                className={styles.mobileComposerClose}
+                aria-label="Close post composer"
+                onClick={() => setShowMobileComposer(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           <div className={styles.compose}>
@@ -360,6 +383,15 @@ export default function Center() {
           </div>
         )}
       </div>
+
+      <button
+        type="button"
+        className={styles.mobileComposerButton}
+        aria-label="Create post"
+        onClick={() => setShowMobileComposer(true)}
+      >
+        <Plus size={20} />
+      </button>
     </main>
   );
 }

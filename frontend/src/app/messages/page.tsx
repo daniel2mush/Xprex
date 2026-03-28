@@ -1,11 +1,18 @@
 "use client";
 
 import styles from "./Messages.module.scss";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Phone, Search, Send, Sparkles } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  MessageSquare,
+  Phone,
+  Search,
+  Send,
+  Sparkles,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ConversationsResponse,
   ConversationResponse,
@@ -26,33 +33,40 @@ type IncomingMessagePayload = {
 
 export default function MessagesPage() {
   const { user } = useUserStore();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const activeConversationRef = useRef<string | undefined>(undefined);
+  const activeMessagesRef = useRef<MessageItem[]>([]);
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
-  const [activeConversationId, setActiveConversationId] = useState<string>();
+  const [selectedConversationId, setSelectedConversationId] = useState<
+    string | null | undefined
+  >(undefined);
   const [draft, setDraft] = useState("");
-  const [liveMessages, setLiveMessages] = useState<MessageItem[]>([]);
+  const [liveMessagesByConversation, setLiveMessagesByConversation] = useState<
+    Record<string, MessageItem[]>
+  >({});
   const [isSending, setIsSending] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [isMobileLayout, setIsMobileLayout] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 960px)").matches
+      : false,
+  );
   const requestedUserId = searchParams.get("userId");
   const requestedConversationId = searchParams.get("conversationId");
 
   const { data: conversationsData, isLoading: loadingConversations } =
     useGetConversations();
-  const { data: conversationData, isLoading: loadingConversation } =
-    useGetConversation(activeConversationId);
-
-  const conversations = conversationsData?.data ?? [];
-  const activeConversation = conversationData?.data;
-  const activeParticipant = activeConversation?.participants.find(
-    (participant) => participant.id !== user?.id,
+  const conversations = useMemo(
+    () => conversationsData?.data ?? [],
+    [conversationsData?.data],
   );
 
-  useEffect(() => {
-    if (conversations.length === 0) return;
+  const defaultConversationId = useMemo(() => {
+    if (conversations.length === 0) return undefined;
 
     if (requestedConversationId) {
       const matchedConversation = conversations.find(
@@ -60,8 +74,7 @@ export default function MessagesPage() {
       );
 
       if (matchedConversation) {
-        setActiveConversationId(matchedConversation.id);
-        return;
+        return matchedConversation.id;
       }
     }
 
@@ -71,24 +84,64 @@ export default function MessagesPage() {
       );
 
       if (matchedConversation) {
-        setActiveConversationId(matchedConversation.id);
-        return;
+        return matchedConversation.id;
       }
     }
 
-    if (!activeConversationId) {
-      setActiveConversationId(conversations[0].id);
-    }
+    return undefined;
   }, [
-    activeConversationId,
     conversations,
     requestedConversationId,
     requestedUserId,
   ]);
 
+  const activeConversationId =
+    selectedConversationId === undefined
+      ? defaultConversationId
+      : selectedConversationId ?? undefined;
+
+  const syncConversationUrl = (conversationId?: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (conversationId) {
+      params.set("conversationId", conversationId);
+    } else {
+      params.delete("conversationId");
+      params.delete("userId");
+    }
+
+    const nextQuery = params.toString();
+    router.replace(nextQuery ? `/messages?${nextQuery}` : "/messages", {
+      scroll: false,
+    });
+  };
+
+  const { data: conversationData, isLoading: loadingConversation } =
+    useGetConversation(activeConversationId);
+  const activeConversation = conversationData?.data;
+  const activeParticipant = activeConversation?.participants.find(
+    (participant) => participant.id !== user?.id,
+  );
+  const liveMessages =
+    (activeConversationId
+      ? liveMessagesByConversation[activeConversationId]
+      : undefined) ??
+    activeConversation?.messages ??
+    [];
+
   useEffect(() => {
-    setLiveMessages(activeConversation?.messages ?? []);
-  }, [activeConversation?.id, activeConversation?.messages]);
+    const mediaQuery = window.matchMedia("(max-width: 960px)");
+    const syncLayout = (event: MediaQueryList | MediaQueryListEvent) => {
+      setIsMobileLayout(event.matches);
+    };
+
+    syncLayout(mediaQuery);
+    mediaQuery.addEventListener("change", syncLayout);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncLayout);
+    };
+  }, []);
 
   useEffect(() => {
     if (!activeConversation?.id) return;
@@ -114,6 +167,10 @@ export default function MessagesPage() {
   }, [activeConversationId]);
 
   useEffect(() => {
+    activeMessagesRef.current = activeConversation?.messages ?? [];
+  }, [activeConversation?.messages]);
+
+  useEffect(() => {
     if (!user?.id) return;
 
     const socket = io(`${MESSAGING_URL}/messages`, {
@@ -134,16 +191,25 @@ export default function MessagesPage() {
     });
 
     socket.on("message:new", (payload: IncomingMessagePayload) => {
-      setLiveMessages((current) => {
+      setLiveMessagesByConversation((current) => {
         if (payload.conversationId !== activeConversationRef.current) {
           return current;
         }
 
-        if (current.some((message) => message.id === payload.message.id)) {
+        const currentMessages =
+          current[payload.conversationId] ??
+          (payload.conversationId === activeConversationRef.current
+            ? activeMessagesRef.current
+            : []);
+
+        if (currentMessages.some((message) => message.id === payload.message.id)) {
           return current;
         }
 
-        return [...current, payload.message];
+        return {
+          ...current,
+          [payload.conversationId]: [...currentMessages, payload.message],
+        };
       });
 
       queryClient.setQueryData<ConversationsResponse | undefined>(
@@ -243,9 +309,30 @@ export default function MessagesPage() {
 
   return (
     <section className={styles.layout}>
-      <aside className={styles.sidebar}>
+      <aside
+        className={`${styles.sidebar} ${
+          isMobileLayout && activeConversationId ? styles.mobileHidden : ""
+        }`}
+      >
         <div className={styles.sidebarHeader}>
-          <div>
+          <div className={styles.sidebarHeaderCopy}>
+            {isMobileLayout && (
+              <button
+                type="button"
+                className={styles.panelBackButton}
+                aria-label="Go back"
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    router.back();
+                    return;
+                  }
+
+                  router.push("/");
+                }}
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
             <p className={styles.eyebrow}>Realtime chat</p>
             <h1 className={styles.title}>Messages</h1>
           </div>
@@ -286,7 +373,12 @@ export default function MessagesPage() {
                     ? styles.conversationActive
                     : ""
                 }`}
-                onClick={() => setActiveConversationId(conversation.id)}
+                onClick={() => {
+                  setSelectedConversationId(conversation.id);
+                  if (isMobileLayout) {
+                    syncConversationUrl(conversation.id);
+                  }
+                }}
               >
                 {conversation.participant.avatar ? (
                   <img
@@ -318,12 +410,16 @@ export default function MessagesPage() {
         </div>
       </aside>
 
-      <main className={styles.chatPanel}>
-        {!activeConversationId && (
+      <main
+        className={`${styles.chatPanel} ${
+          isMobileLayout && !activeConversationId ? styles.mobileHidden : ""
+        }`}
+      >
+        {!activeConversationId && !isMobileLayout && (
           <div className={styles.emptyState}>
             <MessageSquare size={36} />
             <h2>No conversation selected</h2>
-            <p>Choose a chat from the left rail to begin messaging.</p>
+            <p>Click a person to chat and the conversation will open here.</p>
           </div>
         )}
 
@@ -331,6 +427,19 @@ export default function MessagesPage() {
           <>
             <header className={styles.chatHeader}>
               <div className={styles.chatIdentity}>
+                {isMobileLayout && (
+                  <button
+                    type="button"
+                    className={styles.backButton}
+                    aria-label="Back to conversations"
+                    onClick={() => {
+                      setSelectedConversationId(null);
+                      syncConversationUrl();
+                    }}
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                )}
                 {activeParticipant?.avatar ? (
                   <img
                     src={activeParticipant.avatar}

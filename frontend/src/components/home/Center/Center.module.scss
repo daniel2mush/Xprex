@@ -115,6 +115,12 @@
   padding: 4px 4px 16px;
 }
 
+.composeHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .composeTitle {
   margin: 0;
   max-width: 26ch;
@@ -132,6 +138,12 @@
   color: var(--text-body);
   font-size: 0.78rem;
   white-space: nowrap;
+}
+
+.mobileComposerClose,
+.mobileComposerButton,
+.mobileComposerBackdrop {
+  display: none;
 }
 
 .compose {
@@ -384,6 +396,11 @@
   .composeHint {
     white-space: normal;
   }
+
+  .composeHeaderActions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 768px) {
@@ -400,8 +417,7 @@
   }
 
   .feedHero {
-    gap: 16px;
-    padding: 2px 2px 0;
+    display: none;
   }
 
   .feedHighlights {
@@ -409,8 +425,61 @@
   }
 
   .composeCard {
+    display: none;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .composeCardOpen {
+    display: block;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    z-index: 45;
     padding: 1rem;
     border-radius: 24px;
+    box-shadow: var(--shadow-strong);
+  }
+
+  .mobileComposerBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    border: none;
+    background: var(--overlay-scrim);
+  }
+
+  .mobileComposerClose {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-main);
+  }
+
+  .mobileComposerButton {
+    position: fixed;
+    right: 16px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    z-index: 43;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+    color: var(--text-on-brand);
+    box-shadow: var(--shadow-strong);
   }
 
   .compose {

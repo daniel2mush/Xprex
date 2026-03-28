@@ -3,8 +3,16 @@
   grid-template-columns: 340px minmax(0, 1fr);
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.1), transparent 24%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--brand-primary) 16%, transparent),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      color-mix(in srgb, var(--brand-hover) 14%, transparent),
+      transparent 24%
+    ),
     var(--bg-app);
 }
 
@@ -24,9 +32,15 @@
   padding: 1.4rem 1.2rem 1rem;
 }
 
+.sidebarHeaderCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .eyebrow {
   margin: 0 0 0.25rem;
-  color: var(--brand-hover);
+  color: var(--brand-light);
   font-size: 0.7rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
@@ -51,8 +65,8 @@
 }
 
 .connected {
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.28);
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .searchBox {
@@ -64,7 +78,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
 }
 
 .searchBox input {
@@ -103,14 +117,18 @@
 }
 
 .conversationItem:hover {
-  border-color: rgba(124, 58, 237, 0.22);
-  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border-accent);
+  background: var(--surface-accent);
   transform: translateY(-1px);
 }
 
 .conversationActive {
-  border-color: rgba(236, 72, 153, 0.28);
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(236, 72, 153, 0.08));
+  border-color: color-mix(in srgb, var(--brand-hover) 24%, var(--border-subtle));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-primary) 18%, transparent),
+    color-mix(in srgb, var(--brand-hover) 12%, transparent)
+  );
 }
 
 .avatar,
@@ -168,7 +186,7 @@
 .conversationSkeleton {
   height: 78px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
   animation: pulse 1.2s infinite;
 }
 
@@ -186,7 +204,7 @@
   gap: 1rem;
   padding: 1.25rem 1.4rem;
   border-bottom: 0.5px solid var(--border-subtle);
-  background: rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--bg-app) 76%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -194,6 +212,14 @@
   display: flex;
   align-items: center;
   gap: 0.85rem;
+}
+
+.backButton {
+  display: none;
+}
+
+.panelBackButton {
+  display: none;
 }
 
 .chatName {
@@ -237,16 +263,20 @@
 .messageBubble {
   max-width: min(80%, 520px);
   padding: 0.9rem 1rem 0.7rem;
-  border: 1px solid rgba(124, 58, 237, 0.16);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
   border-radius: 20px 20px 20px 6px;
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
 }
 
 .ownMessageBubble {
-  border-color: rgba(236, 72, 153, 0.2);
+  border-color: color-mix(in srgb, var(--brand-hover) 24%, transparent);
   border-radius: 20px 20px 6px 20px;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.28), rgba(236, 72, 153, 0.18));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-primary) 26%, transparent),
+    color-mix(in srgb, var(--brand-hover) 18%, transparent)
+  );
 }
 
 .messageBubble p {
@@ -263,23 +293,23 @@
 
 .composer {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.8rem;
   padding: 1rem 1.4rem 1.2rem;
   border-top: 0.5px solid var(--border-subtle);
-  background: rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--bg-app) 74%, transparent);
 }
 
 .composerInput {
   width: 100%;
   max-height: 150px;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(124, 58, 237, 0.18);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
   border-radius: 18px;
   outline: none;
   resize: none;
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
 }
 
 .emptyState {
@@ -312,16 +342,105 @@
 
 @media (max-width: 960px) {
   .layout {
+    min-height: calc(100dvh - 72px);
     grid-template-columns: 1fr;
   }
 
+  .mobileHidden {
+    display: none;
+  }
+
   .sidebar {
-    min-height: auto;
+    min-height: calc(100dvh - 72px);
     border-right: none;
-    border-bottom: 0.5px solid var(--border-subtle);
+    border-bottom: none;
   }
 
   .conversationList {
-    max-height: 280px;
+    max-height: none;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .chatPanel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: calc(100dvh - 72px);
+  }
+
+  .chatHeader {
+    flex-shrink: 0;
+    padding: 1rem;
+  }
+
+  .sidebarHeader {
+    padding: 1rem;
+  }
+
+  .sidebarHeaderCopy {
+    gap: 0.35rem;
+  }
+
+  .messageStream {
+    flex: 1;
+    min-height: 0;
+    padding: 1rem 1rem calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .composer {
+    align-items: center;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 36;
+    flex-shrink: 0;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border-subtle);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--bg-app) 10%, transparent),
+        color-mix(in srgb, var(--bg-app) 88%, transparent)
+      ),
+      var(--bg-surface);
+    backdrop-filter: blur(14px);
+  }
+
+  .composerInput {
+    min-height: 48px;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .backButton {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface-card);
+    color: var(--text-main);
+    flex-shrink: 0;
+  }
+
+  .panelBackButton {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface-card);
+    color: var(--text-main);
+    flex-shrink: 0;
+  }
+
+  .callButton {
+    width: 38px;
+    height: 38px;
   }
 }
