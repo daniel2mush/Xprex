@@ -43,6 +43,7 @@ export const useCreateComment = (postId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 };
@@ -63,6 +64,8 @@ export const useDeleteComment = (postId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 };

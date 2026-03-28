@@ -3,6 +3,7 @@
 import {
   ArrowUpRight,
   Bell,
+  Bookmark,
   Compass,
   HomeIcon,
   LogOut,
@@ -42,6 +43,12 @@ const sideNav: NavigationItem[] = [
     name: "Notifications",
     link: "/notifications",
     match: (pathname) => pathname === "/notifications" || pathname.startsWith("/notifications/"),
+  },
+  {
+    icon: <Bookmark size={20} />,
+    name: "Bookmarks",
+    link: "/bookmarks",
+    match: (pathname) => pathname === "/bookmarks" || pathname.startsWith("/bookmarks/"),
   },
   {
     icon: <MessageCircle size={20} />,
@@ -192,6 +199,8 @@ export default function LeftSideBar() {
                     ? "Direct and follower chats"
                     : name === "Notifications"
                       ? "Mentions, follows, reactions"
+                      : name === "Bookmarks"
+                        ? "Saved posts for later"
                       : name === "Explore"
                         ? "Search and discover"
                         : name === "Profile"

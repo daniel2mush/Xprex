@@ -382,7 +382,11 @@
   }
 
   .brandRow {
-    justify-content: center;
+    display: none;
+  }
+
+  .headerBlock {
+    justify-content: flex-end;
   }
 
   .profile {

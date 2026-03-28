@@ -179,6 +179,13 @@ exports.Prisma.BookmarkScalarFieldEnum = {
   postId: 'postId'
 };
 
+exports.Prisma.RepostScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  userId: 'userId',
+  postId: 'postId'
+};
+
 exports.Prisma.FollowScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -248,6 +255,7 @@ exports.Prisma.ModelName = {
   Like: 'Like',
   Comment: 'Comment',
   Bookmark: 'Bookmark',
+  Repost: 'Repost',
   Follow: 'Follow',
   RefreshToken: 'RefreshToken',
   Search: 'Search',

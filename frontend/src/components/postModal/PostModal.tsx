@@ -10,7 +10,13 @@ import { useUserStore } from "@/store/userStore";
 import { useState } from "react";
 import Link from "next/link";
 import Comment from "../comments/Comment";
-import { useTogglePostLike } from "@/query/HomeQuery";
+import MediaViewer from "@/components/mediaViewer/MediaViewer";
+import RepostDialog from "@/components/repostDialog/RepostDialog";
+import {
+  useTogglePostBookmark,
+  useTogglePostLike,
+  useTogglePostRepost,
+} from "@/query/HomeQuery";
 
 interface PostModalProps {
   post: PostTypes;
@@ -21,10 +27,19 @@ export default function PostModal({ post, onClose }: PostModalProps) {
   const { user } = useUserStore();
   const [content, setContent] = useState("");
   const [liked, setLiked] = useState(post.isLiked ?? false);
+  const [bookmarked, setBookmarked] = useState(post.isBookmarked ?? false);
+  const [reposted, setReposted] = useState(post.isReposted ?? false);
   const [likeCount, setLikeCount] = useState(post._count?.likes ?? 0);
+  const [repostCount, setRepostCount] = useState(post._count?.reposts ?? 0);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [showRepostDialog, setShowRepostDialog] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { mutate: toggleLike, isPending: isTogglingLike } = useTogglePostLike();
+  const { mutate: toggleBookmark, isPending: isTogglingBookmark } =
+    useTogglePostBookmark();
+  const { mutate: toggleRepost, isPending: isTogglingRepost } =
+    useTogglePostRepost();
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetComments(post.id);
@@ -57,8 +72,18 @@ export default function PostModal({ post, onClose }: PostModalProps) {
 
   useEffect(() => {
     setLiked(post.isLiked ?? false);
+    setBookmarked(post.isBookmarked ?? false);
+    setReposted(post.isReposted ?? false);
     setLikeCount(post._count?.likes ?? 0);
-  }, [post._count?.likes, post.id, post.isLiked]);
+    setRepostCount(post._count?.reposts ?? 0);
+  }, [
+    post._count?.likes,
+    post._count?.reposts,
+    post.id,
+    post.isBookmarked,
+    post.isLiked,
+    post.isReposted,
+  ]);
 
   const handleSubmit = () => {
     if (!content.trim()) return;
@@ -90,17 +115,59 @@ export default function PostModal({ post, onClose }: PostModalProps) {
     });
   };
 
+  const handleBookmark = () => {
+    if (isTogglingBookmark) return;
+
+    const previousBookmarked = bookmarked;
+    const nextBookmarked = !bookmarked;
+    setBookmarked(nextBookmarked);
+
+    toggleBookmark(post.id, {
+      onSuccess: (response) => {
+        setBookmarked(response.data.bookmarked);
+      },
+      onError: () => {
+        setBookmarked(previousBookmarked);
+      },
+    });
+  };
+
+  const handleConfirmRepost = () => {
+    if (isTogglingRepost) return;
+
+    const previousReposted = reposted;
+    const previousCount = repostCount;
+    const nextReposted = !reposted;
+
+    setReposted(nextReposted);
+    setRepostCount((prev) => Math.max(0, prev + (nextReposted ? 1 : -1)));
+
+    toggleRepost(post.id, {
+      onSuccess: (response) => {
+        setReposted(response.data.reposted);
+        setRepostCount(response.data.repostsCount);
+        setShowRepostDialog(false);
+      },
+      onError: () => {
+        setReposted(previousReposted);
+        setRepostCount(previousCount);
+      },
+    });
+  };
+
   const mediaItems = post.media ?? [];
 
-  return createPortal(
-    <div
-      className={styles.overlay}
-      ref={overlayRef}
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className={styles.modal}>
+  return (
+    <>
+      {createPortal(
+        <div
+          className={styles.overlay}
+          ref={overlayRef}
+          onClick={handleOverlayClick}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={styles.modal}>
         {/* ── Left: post ── */}
         <div className={styles.postSide}>
           <div className={styles.postSideInner}>
@@ -153,7 +220,13 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                 data-count={Math.min(mediaItems.length, 4)}
               >
                 {mediaItems.slice(0, 4).map((media, i) => (
-                  <div key={media.id} className={styles.mediaItem}>
+                  <button
+                    key={media.id}
+                    type="button"
+                    className={styles.mediaItem}
+                    data-count={Math.min(mediaItems.length, 4)}
+                    onClick={() => setViewerIndex(i)}
+                  >
                     {media.type === "IMAGE" || media.type === "GIF" ? (
                       <img
                         src={media.url}
@@ -164,12 +237,11 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                     ) : (
                       <video
                         src={media.url}
-                        controls
                         preload="metadata"
                         className={styles.mediaImg}
                       />
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -197,6 +269,11 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                   <strong>{post._count!.comments}</strong> Replies
                 </span>
               )}
+              {repostCount > 0 && (
+                <span className={styles.stat}>
+                  <strong>{repostCount}</strong> Reposts
+                </span>
+              )}
             </div>
 
             {/* Actions */}
@@ -211,15 +288,22 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                 <Heart size={16} />
                 <span>{liked ? "Unlike" : "Like"}</span>
               </button>
-              <button className={styles.actionBtn}>
+              <button
+                className={`${styles.actionBtn} ${reposted ? styles.reposted : ""}`}
+                onClick={() => setShowRepostDialog(true)}
+                type="button"
+              >
                 <Repeat2 size={16} />
-                <span>Repost</span>
+                <span>{reposted ? "Reposted" : "Repost"}</span>
               </button>
               <button
-                className={`${styles.actionBtn} ${post.isBookmarked ? styles.bookmarked : ""}`}
+                className={`${styles.actionBtn} ${bookmarked ? styles.bookmarked : ""}`}
+                onClick={handleBookmark}
+                disabled={isTogglingBookmark}
+                type="button"
               >
                 <Bookmark size={16} />
-                <span>Save</span>
+                <span>{bookmarked ? "Saved" : "Save"}</span>
               </button>
             </div>
           </div>
@@ -310,8 +394,28 @@ export default function PostModal({ post, onClose }: PostModalProps) {
             </div>
           </div>
         </div>
-      </div>
-    </div>,
-    document.body,
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {viewerIndex !== null && (
+        <MediaViewer
+          items={mediaItems}
+          initialIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
+
+      {showRepostDialog && (
+        <RepostDialog
+          reposted={reposted}
+          username={post.user.username}
+          onClose={() => setShowRepostDialog(false)}
+          onConfirm={handleConfirmRepost}
+          isPending={isTogglingRepost}
+        />
+      )}
+    </>
   );
 }

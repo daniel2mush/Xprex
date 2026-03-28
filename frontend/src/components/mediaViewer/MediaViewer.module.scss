@@ -1,0 +1,92 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.94);
+  padding: 24px;
+}
+
+.stage {
+  position: relative;
+  width: min(1200px, 100%);
+  height: min(88vh, 900px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.closeBtn,
+.navBtn {
+  position: fixed;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.8);
+  color: #fff;
+  cursor: pointer;
+}
+
+.closeBtn {
+  top: 20px;
+  right: 20px;
+}
+
+.leftBtn {
+  left: 20px;
+}
+
+.rightBtn {
+  right: 20px;
+}
+
+.counter {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.82);
+  color: #fff;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    padding: 12px;
+  }
+
+  .closeBtn,
+  .navBtn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .leftBtn {
+    left: 10px;
+  }
+
+  .rightBtn {
+    right: 10px;
+  }
+
+  .closeBtn {
+    top: 10px;
+    right: 10px;
+  }
+}

@@ -81,6 +81,7 @@ export const useFollowUser = (targetUserId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["messages", "conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["search", "users"] });
     },
   });
 };

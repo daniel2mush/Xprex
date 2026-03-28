@@ -12,6 +12,8 @@ import {
   useSearchPosts,
   useSearchUsers,
 } from "@/query/SearchQuery";
+import { useFollowUser } from "@/query/ProfileQuery";
+import { SearchUserResult } from "@/types/Types";
 import styles from "./ExplorePage.module.scss";
 
 const buildTrendingTopics = (contents: string[]) => {
@@ -67,6 +69,9 @@ export default function ExplorePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const rawTab = searchParams.get("tab");
+  const activeTab =
+    rawTab === "people" || rawTab === "posts" ? rawTab : "top";
   const { data: postsData, isLoading: loadingFeed } = useGetAllPost();
   const { data: historyData } = useSearchHistory();
   const { mutate: clearSearchHistory, isPending: clearingHistory } =
@@ -113,9 +118,14 @@ export default function ExplorePage() {
     return [...creators.values()].sort((a, b) => b.count - a.count).slice(0, 5);
   }, [posts]);
 
-  const submitQuery = (value: string) => {
+  const submitQuery = (value: string, nextTab = activeTab) => {
     const trimmed = value.trim();
-    router.push(trimmed ? `/explore?q=${encodeURIComponent(trimmed)}` : "/explore");
+    const tabParam = nextTab === "top" ? "" : `&tab=${nextTab}`;
+    router.push(
+      trimmed
+        ? `/explore?q=${encodeURIComponent(trimmed)}${tabParam}`
+        : `/explore${tabParam ? `?tab=${nextTab}` : ""}`,
+    );
   };
 
   return (
@@ -138,7 +148,7 @@ export default function ExplorePage() {
           className={styles.searchBar}
           onSubmit={(event) => {
             event.preventDefault();
-            submitQuery(query);
+            submitQuery(query, activeTab);
           }}
         >
           <Search size={18} />
@@ -149,6 +159,23 @@ export default function ExplorePage() {
           />
           <button type="submit">Search</button>
         </form>
+
+        <div className={styles.tabRow}>
+          {[
+            { id: "top", label: "Top" },
+            { id: "people", label: "People" },
+            { id: "posts", label: "Posts" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`${styles.tabButton} ${activeTab === tab.id ? styles.tabButtonActive : ""}`}
+              onClick={() => submitQuery(query, tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
@@ -237,7 +264,13 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {query.trim() && (
+          {!query.trim() && activeTab === "people" && (
+            <div className={styles.stateBlock}>
+              Search for a name, bio keyword, or location to discover people.
+            </div>
+          )}
+
+          {query.trim() && activeTab !== "posts" && (
             <section className={styles.peopleSection}>
               <div className={styles.peopleHeader}>
                 <div>
@@ -256,101 +289,130 @@ export default function ExplorePage() {
 
               <div className={styles.peopleGrid}>
                 {peopleResults.map((person) => (
-                  <article key={person.id} className={styles.personCard}>
-                    <button
-                      type="button"
-                      className={styles.personCardLink}
-                      onClick={() => router.push(`/profile/${person.id}`)}
-                    >
-                      <div
-                        className={styles.personBanner}
-                        style={
-                          person.headerPhoto
-                            ? { backgroundImage: `url(${person.headerPhoto})` }
-                            : undefined
-                        }
-                      />
-                      <div className={styles.personBody}>
-                        {person.avatar ? (
-                          <img
-                            src={person.avatar}
-                            alt={person.username}
-                            className={styles.personAvatar}
-                          />
-                        ) : (
-                          <div className={styles.personAvatarFallback}>
-                            {person.username[0].toUpperCase()}
-                          </div>
-                        )}
-                        <div className={styles.personCopy}>
-                          <div className={styles.personNameRow}>
-                            <strong>{person.username}</strong>
-                            {person.isVerified && <CheckCircle2 size={14} />}
-                          </div>
-                          <p className={styles.personBio}>
-                            {person.bio || "No bio yet."}
-                          </p>
-                          <div className={styles.personMeta}>
-                            {person.location && (
-                              <span>
-                                <MapPin size={12} />
-                                {person.location}
-                              </span>
-                            )}
-                            {person.followsYou && (
-                              <span className={styles.relationshipPill}>Follows you</span>
-                            )}
-                            {person.isFollowing && (
-                              <span className={styles.relationshipPill}>You follow</span>
-                            )}
-                          </div>
-                          <div className={styles.personStats}>
-                            <span>{person._count.followers} followers</span>
-                            <span>{person._count.posts} posts</span>
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                    <div className={styles.personActions}>
-                      <button
-                        type="button"
-                        className={styles.personAction}
-                        onClick={() => router.push(`/profile/${person.id}`)}
-                      >
-                        View profile
-                      </button>
-                      {person.canMessage && (
-                        <button
-                          type="button"
-                          className={styles.personActionSecondary}
-                          onClick={() => router.push(`/messages?userId=${person.id}`)}
-                        >
-                          Message
-                        </button>
-                      )}
-                    </div>
-                  </article>
+                  <PersonSearchCard key={person.id} person={person} />
                 ))}
               </div>
             </section>
           )}
 
-          {query.trim() && loadingSearch && <div className={styles.stateBlock}>Searching...</div>}
-          {query.trim() && searchError && <div className={styles.stateBlock}>{searchError.message}</div>}
+          {activeTab !== "people" && query.trim() && loadingSearch && <div className={styles.stateBlock}>Searching...</div>}
+          {activeTab !== "people" && query.trim() && searchError && <div className={styles.stateBlock}>{searchError.message}</div>}
           {!query.trim() && loadingFeed && <div className={styles.stateBlock}>Loading the latest posts...</div>}
-          {!loadingSearch && !loadingFeed && activePosts.length === 0 && (
+          {activeTab !== "people" && !loadingSearch && !loadingFeed && activePosts.length === 0 && (
             <div className={styles.stateBlock}>
               {query.trim() ? "No posts matched that search yet." : "No posts to explore yet."}
             </div>
           )}
 
-          {activePosts.map((post) => (
-            <Feed key={`${post.id}-${query}`} data={post} />
-          ))}
+          {activeTab !== "people" &&
+            activePosts.map((post) => (
+              <Feed key={`${post.id}-${query}`} data={post} />
+            ))}
         </section>
       </main>
 
       <RightSideBar />
     </section>
+  );
+}
+
+function PersonSearchCard({ person }: { person: SearchUserResult }) {
+  const router = useRouter();
+  const { mutate: followUser, isPending } = useFollowUser(person.id);
+  const [isFollowing, setIsFollowing] = useState(person.isFollowing);
+
+  useEffect(() => {
+    setIsFollowing(person.isFollowing);
+  }, [person.isFollowing]);
+
+  const canMessage = person.followsYou || isFollowing;
+
+  return (
+    <article className={styles.personCard}>
+      <button
+        type="button"
+        className={styles.personCardLink}
+        onClick={() => router.push(`/profile/${person.id}`)}
+      >
+        <div
+          className={styles.personBanner}
+          style={
+            person.headerPhoto
+              ? { backgroundImage: `url(${person.headerPhoto})` }
+              : undefined
+          }
+        />
+        <div className={styles.personBody}>
+          {person.avatar ? (
+            <img
+              src={person.avatar}
+              alt={person.username}
+              className={styles.personAvatar}
+            />
+          ) : (
+            <div className={styles.personAvatarFallback}>
+              {person.username[0].toUpperCase()}
+            </div>
+          )}
+          <div className={styles.personCopy}>
+            <div className={styles.personNameRow}>
+              <strong>{person.username}</strong>
+              {person.isVerified && <CheckCircle2 size={14} />}
+            </div>
+            <p className={styles.personBio}>{person.bio || "No bio yet."}</p>
+            <div className={styles.personMeta}>
+              {person.location && (
+                <span>
+                  <MapPin size={12} />
+                  {person.location}
+                </span>
+              )}
+              {person.followsYou && (
+                <span className={styles.relationshipPill}>Follows you</span>
+              )}
+              {isFollowing && (
+                <span className={styles.relationshipPill}>You follow</span>
+              )}
+            </div>
+            <div className={styles.personStats}>
+              <span>{person._count.followers} followers</span>
+              <span>{person._count.posts} posts</span>
+            </div>
+          </div>
+        </div>
+      </button>
+      <div className={styles.personActions}>
+        <button
+          type="button"
+          className={styles.personAction}
+          onClick={() => router.push(`/profile/${person.id}`)}
+        >
+          View profile
+        </button>
+        <button
+          type="button"
+          className={styles.personActionPrimary}
+          onClick={() => {
+            const previous = isFollowing;
+            setIsFollowing(!previous);
+            followUser(undefined, {
+              onError: () => setIsFollowing(previous),
+            });
+          }}
+          disabled={isPending}
+        >
+          {isFollowing ? "Unfollow" : "Follow"}
+        </button>
+        {canMessage && (
+          <button
+            type="button"
+            className={styles.personActionSecondary}
+            onClick={() => router.push(`/messages?userId=${person.id}`)}
+          >
+            Message
+          </button>
+        )}
+      </div>
+    </article>
   );
 }

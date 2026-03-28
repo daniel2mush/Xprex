@@ -149,16 +149,28 @@
 }
 
 .mediaItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   background: var(--bg-elevated);
   aspect-ratio: 16 / 9;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .mediaImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.mediaItem[data-count="1"] .mediaImg {
+  height: auto;
+  max-height: 520px;
 }
 
 // ── Post meta ──────────────────────────────
@@ -221,6 +233,10 @@
 }
 .bookmarked {
   color: #fbbf24;
+}
+
+.reposted {
+  color: #34d399;
 }
 
 // ── Right: comments ────────────────────────

@@ -1,6 +1,7 @@
 interface count {
   likes: number;
   comments: number;
+  reposts: number;
 }
 
 interface pagination {
@@ -23,6 +24,7 @@ export interface PostTypes {
   _count: count;
   isLiked: boolean;
   isBookmarked: boolean;
+  isReposted: boolean;
 }
 
 export interface PostResponse {
@@ -30,8 +32,8 @@ export interface PostResponse {
   message: string;
   data: {
     posts: PostTypes[];
+    pagination: pagination;
   };
-  pagination: pagination;
 }
 
 export interface SinglePostResponse {
@@ -47,6 +49,25 @@ export interface ToggleLikeResponse {
     postId: string;
     liked: boolean;
     likesCount: number;
+  };
+}
+
+export interface ToggleBookmarkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: string;
+    bookmarked: boolean;
+  };
+}
+
+export interface ToggleRepostResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: string;
+    reposted: boolean;
+    repostsCount: number;
   };
 }
 

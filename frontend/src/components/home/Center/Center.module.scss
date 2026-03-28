@@ -320,6 +320,11 @@
   }
 }
 
+.loadMoreTrigger {
+  width: 100%;
+  height: 1px;
+}
+
 @media (max-width: 1024px) {
   .feedHero {
     flex-direction: column;

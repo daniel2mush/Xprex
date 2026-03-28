@@ -2,14 +2,14 @@
 import Card from "@/components/card/Card";
 import styles from "./Center.module.scss";
 import {
-  useGetAllPost,
   useCreatePost,
+  useInfinitePosts,
   useUploadMedia,
 } from "@/query/HomeQuery";
 import { useUserStore } from "@/store/userStore";
 import { ImageIcon, X } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import Feed from "../Feed/Feed";
 import { z } from "zod";
 
@@ -44,7 +44,13 @@ interface PreviewFile {
 }
 
 export default function Center() {
-  const { data, isLoading } = useGetAllPost();
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfinitePosts();
   const { user } = useUserStore();
   const { mutateAsync: uploadMedia } = useUploadMedia();
   const { mutate: createPost, isPending } = useCreatePost();
@@ -52,13 +58,32 @@ export default function Center() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const [content, setContent] = useState("");
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
 
-  const posts = data?.data.posts;
+  const posts = data?.pages.flatMap((page) => page.data.posts) ?? [];
   const postCount = posts?.length ?? 0;
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // ── File selection ──────────────────────
   const handleFileChange = useCallback(
@@ -115,6 +140,7 @@ export default function Center() {
 
     if (!validation.success) {
       setErrors(validation.error.issues.map((i) => i.message));
+      setIsSubmitting(false);
       return;
     }
 
@@ -309,13 +335,23 @@ export default function Center() {
           </div>
         )}
 
-        {!isLoading && posts?.length === 0 && (
+        {!isLoading && posts.length === 0 && (
           <div className={styles.empty}>
             <p>Nothing here yet. Be the first to post.</p>
           </div>
         )}
 
-        {!isLoading && posts?.map((post) => <Feed key={post.id} data={post} />)}
+        {!isLoading && posts.map((post) => <Feed key={post.id} data={post} />)}
+
+        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
+        {isFetchingNextPage && (
+          <div className={styles.loadingStack}>
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className={styles.skeleton} />
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );

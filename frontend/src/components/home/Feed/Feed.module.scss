@@ -151,13 +151,21 @@
 }
 
 .mediaItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   background: var(--bg-elevated);
   aspect-ratio: 16 / 9;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 
   // Single image taller
   [data-count="1"] & {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: auto;
+    max-height: 520px;
   }
   // 3-grid first item full height
   [data-count="3"] &[data-index="0"] {
@@ -169,13 +177,34 @@
 .mediaVideo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transition: transform 0.2s ease;
+  background: rgba(0, 0, 0, 0.6);
 
   &:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
+}
+
+.mediaItem[data-count="1"] .mediaImg,
+.mediaItem[data-count="1"] .mediaVideo {
+  height: auto;
+  max-height: 520px;
+}
+
+.mediaHint {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.75rem;
 }
 
 // ── Actions ────────────────────────────────
@@ -224,6 +253,10 @@
 // Repost hover
 .repostBtn:hover {
   background: color-mix(in srgb, #34d399 10%, transparent);
+  color: #34d399;
+}
+
+.reposted {
   color: #34d399;
 }
 

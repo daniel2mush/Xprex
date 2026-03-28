@@ -75,6 +75,7 @@ const postInclude = (userId: string) => ({
     select: {
       likes: true,
       comments: true,
+      reposts: true,
     },
   },
   likes: {
@@ -87,6 +88,11 @@ const postInclude = (userId: string) => ({
     select: { id: true },
     take: 1,
   },
+  reposts: {
+    where: { userId },
+    select: { id: true },
+    take: 1,
+  },
 });
 
 // Flatten isLiked / isBookmarked into booleans for the client
@@ -94,9 +100,25 @@ const normalizePost = (post: any) => ({
   ...post,
   isLiked: post.likes?.length > 0,
   isBookmarked: post.bookmarks?.length > 0,
+  isReposted: post.reposts?.length > 0,
   likes: undefined,
   bookmarks: undefined,
+  reposts: undefined,
 });
+
+const buildPagination = (page: number, limit: number, total: number) => ({
+  page,
+  limit,
+  total,
+  totalPages: Math.ceil(total / limit),
+  hasMore: page * limit < total,
+});
+
+const parsePage = (value: unknown) =>
+  Math.max(1, parseInt(value as string, 10) || 1);
+
+const parseLimit = (value: unknown, max = 20, fallback = 10) =>
+  Math.min(max, Math.max(1, parseInt(value as string, 10) || fallback));
 
 const profileUserSelect = {
   id: true,
@@ -200,11 +222,8 @@ export const CreatePost = async (req: Request, res: Response) => {
 // ==========================================
 export const GetAllPosts = async (req: Request, res: Response) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(
-      50,
-      Math.max(1, parseInt(req.query.limit as string) || 10),
-    );
+    const page = parsePage(req.query.page);
+    const limit = parseLimit(req.query.limit, 50, 10);
     const skip = (page - 1) * limit;
 
     const cacheKey = `posts:${req.user.userId}:${page}:${limit}`;
@@ -236,13 +255,7 @@ export const GetAllPosts = async (req: Request, res: Response) => {
 
     const responseData = {
       posts,
-      pagination: {
-        page,
-        limit,
-        total: totalPosts,
-        totalPages: Math.ceil(totalPosts / limit),
-        hasMore: page * limit < totalPosts,
-      },
+      pagination: buildPagination(page, limit, totalPosts),
     };
 
     await req.redisClient.set(
@@ -261,6 +274,72 @@ export const GetAllPosts = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     logger.error("Failed to fetch posts", { error: err.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// GET BOOKMARKED POSTS
+// ==========================================
+export const GetBookmarkedPosts = async (req: Request, res: Response) => {
+  try {
+    const page = parsePage(req.query.page);
+    const limit = parseLimit(req.query.limit, 50, 10);
+    const skip = (page - 1) * limit;
+    const userId = req.user.userId;
+
+    const cacheKey = `posts:bookmarks:${userId}:${page}:${limit}`;
+    const cached = await req.redisClient.get(cacheKey);
+
+    if (cached) {
+      logger.info(`Cache hit → ${cacheKey}`);
+      return sendJson(
+        res,
+        200,
+        true,
+        "Bookmarked posts retrieved successfully",
+        JSON.parse(cached),
+      );
+    }
+
+    const [bookmarkEntries, totalBookmarks] = await Promise.all([
+      prisma.bookmark.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
+        include: {
+          post: {
+            include: postInclude(userId),
+          },
+        },
+      }),
+      prisma.bookmark.count({
+        where: { userId },
+      }),
+    ]);
+
+    const responseData = {
+      posts: bookmarkEntries.map((entry) => normalizePost(entry.post)),
+      pagination: buildPagination(page, limit, totalBookmarks),
+    };
+
+    await req.redisClient.set(
+      cacheKey,
+      JSON.stringify(responseData),
+      "EX",
+      POST_CACHE_TTL,
+    );
+
+    return sendJson(
+      res,
+      200,
+      true,
+      "Bookmarked posts retrieved successfully",
+      responseData,
+    );
+  } catch (err: any) {
+    logger.error("Failed to fetch bookmarked posts", { error: err.message });
     return sendJson(res, 500, false, "Internal server error");
   }
 };
@@ -689,6 +768,145 @@ export const TogglePostLike = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     logger.error("Failed to toggle like", { error: err.message, postId });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// TOGGLE POST BOOKMARK
+// ==========================================
+export const TogglePostBookmark = async (req: Request, res: Response) => {
+  const { id: postId } = req.params;
+  const userId = req.user.userId;
+
+  if (!postId) return sendJson(res, 400, false, "Post ID is required");
+  if (Array.isArray(postId)) {
+    return sendJson(res, 400, false, "Invalid post ID");
+  }
+  if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    if (!post) return sendJson(res, 404, false, "Post not found");
+
+    const existingBookmark = await prisma.bookmark.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+      select: { id: true },
+    });
+
+    let bookmarked = false;
+
+    if (existingBookmark) {
+      await prisma.bookmark.delete({
+        where: { id: existingBookmark.id },
+      });
+    } else {
+      await prisma.bookmark.create({
+        data: {
+          userId,
+          postId,
+        },
+      });
+
+      bookmarked = true;
+    }
+
+    await invalidatePostCache(req, postId);
+
+    return sendJson(
+      res,
+      200,
+      true,
+      bookmarked
+        ? "Post bookmarked successfully"
+        : "Bookmark removed successfully",
+      {
+        postId,
+        bookmarked,
+      },
+    );
+  } catch (err: any) {
+    logger.error("Failed to toggle bookmark", { error: err.message, postId });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// TOGGLE POST REPOST
+// ==========================================
+export const TogglePostRepost = async (req: Request, res: Response) => {
+  const { id: postId } = req.params;
+  const userId = req.user.userId;
+
+  if (!postId) return sendJson(res, 400, false, "Post ID is required");
+  if (Array.isArray(postId)) {
+    return sendJson(res, 400, false, "Invalid post ID");
+  }
+  if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true, userId: true },
+    });
+
+    if (!post) return sendJson(res, 404, false, "Post not found");
+
+    const existingRepost = await prisma.repost.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+      select: { id: true },
+    });
+
+    let reposted = false;
+
+    if (existingRepost) {
+      await prisma.repost.delete({
+        where: { id: existingRepost.id },
+      });
+    } else {
+      await prisma.repost.create({
+        data: {
+          userId,
+          postId,
+        },
+      });
+
+      reposted = true;
+    }
+
+    const repostsCount = await prisma.repost.count({
+      where: { postId },
+    });
+
+    await invalidatePostCache(req, postId);
+
+    return sendJson(
+      res,
+      200,
+      true,
+      reposted ? "Post reposted successfully" : "Repost removed successfully",
+      {
+        postId,
+        reposted,
+        repostsCount,
+      },
+    );
+  } catch (err: any) {
+    logger.error("Failed to toggle repost", { error: err.message, postId });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

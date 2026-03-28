@@ -1,20 +1,71 @@
 import {
   PostResponse,
   CreatePostTypes,
+  ToggleBookmarkResponse,
   ToggleLikeResponse,
+  ToggleRepostResponse,
 } from "@/types/Types";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+const FEED_LIMIT = 10;
+
+const fetchPostsPage = async (pageParam: number, endpoint = "/api/posts") => {
+  const response = await fetch(`${endpoint}?page=${pageParam}&limit=${FEED_LIMIT}`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch posts");
+  }
+
+  return response.json() as Promise<PostResponse>;
+};
 
 export const useGetAllPost = () => {
   return useQuery({
     queryKey: ["get-all-posts"],
     queryFn: async () => {
-      const response = await fetch("/api/posts", { credentials: "include" });
+      const response = await fetch("/api/posts?page=1&limit=12", {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json() as Promise<PostResponse>;
     },
     staleTime: 1000 * 60 * 5,
     retry: 1,
+  });
+};
+
+export const useInfinitePosts = () => {
+  return useInfiniteQuery({
+    queryKey: ["posts", "feed"],
+    initialPageParam: 1,
+    queryFn: ({ pageParam = 1 }) => fetchPostsPage(pageParam),
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.data.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    staleTime: 1000 * 30,
+  });
+};
+
+export const useInfiniteBookmarkedPosts = () => {
+  return useInfiniteQuery({
+    queryKey: ["posts", "bookmarks"],
+    initialPageParam: 1,
+    queryFn: ({ pageParam = 1 }) =>
+      fetchPostsPage(pageParam, "/api/posts/bookmarks"),
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.data.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    staleTime: 1000 * 30,
   });
 };
 
@@ -36,6 +87,8 @@ export const useCreatePost = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 };
@@ -58,6 +111,55 @@ export const useTogglePostLike = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+};
+
+export const useTogglePostBookmark = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await fetch(`/api/posts/${postId}/bookmark`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Failed to toggle bookmark");
+      }
+
+      return response.json() as Promise<ToggleBookmarkResponse>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+};
+
+export const useTogglePostRepost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await fetch(`/api/posts/${postId}/repost`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Failed to toggle repost");
+      }
+
+      return response.json() as Promise<ToggleRepostResponse>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-all-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
@@ -72,7 +174,6 @@ export const useUploadMedia = () => {
       const response = await fetch("/api/media/upload", {
         method: "POST",
         body: formData,
-        // No Content-Type header — browser sets multipart boundary automatically
       });
 
       if (!response.ok) {

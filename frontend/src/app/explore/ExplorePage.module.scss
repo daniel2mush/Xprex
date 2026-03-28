@@ -100,6 +100,28 @@
   font-weight: var(--font-weight-bold);
 }
 
+.tabRow {
+  display: flex;
+  gap: 10px;
+  margin: 0 22px 18px;
+}
+
+.tabButton {
+  padding: 10px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.tabButtonActive {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--text-main);
+  border-color: rgba(14, 165, 233, 0.24);
+}
+
 .panel,
 .resultsSection {
   margin: 0 22px 18px;
@@ -340,6 +362,7 @@
 }
 
 .personAction,
+.personActionPrimary,
 .personActionSecondary {
   flex: 1;
   padding: 10px 12px;
@@ -353,6 +376,12 @@
 .personAction {
   background: var(--bg-elevated);
   color: var(--text-main);
+}
+
+.personActionPrimary {
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  border-color: transparent;
+  color: #fff;
 }
 
 .personActionSecondary {
@@ -377,6 +406,7 @@
 @media (max-width: 768px) {
   .hero,
   .searchBar,
+  .tabRow,
   .panel,
   .resultsSection {
     margin-inline: 12px;

@@ -3,12 +3,15 @@ import { cookies } from "next/headers";
 import { PostResponse } from "@/types/Types";
 import api from "@/lib/Axios";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
+  const page = req.nextUrl.searchParams.get("page") ?? "1";
+  const limit = req.nextUrl.searchParams.get("limit") ?? "10";
 
   try {
     const { data } = await api.get("/posts/all", {
+      params: { page, limit },
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
 
