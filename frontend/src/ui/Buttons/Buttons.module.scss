@@ -17,6 +17,7 @@
     background-color 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease,
+    box-shadow 0.15s ease,
     transform 0.15s ease;
 
   &:disabled {
@@ -69,22 +70,24 @@
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
   color: var(--text-on-brand);
   border-color: transparent;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--brand-primary) 20%, transparent);
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    opacity: 0.95;
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--brand-primary) 24%, transparent);
   }
 }
 
 // Outline
 .outline {
-  background: transparent;
+  background: var(--surface-card);
   border-color: var(--border-subtle);
   color: var(--text-main);
 
   &:hover:not(:disabled) {
-    border-color: var(--brand-primary);
-    color: var(--brand-primary);
-    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+    border-color: var(--border-accent);
+    color: var(--text-main);
+    background: var(--surface-accent);
   }
 }
 
@@ -94,9 +97,10 @@
   color: var(--text-on-brand);
   border-color: transparent;
   padding-inline: 28px;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--brand-primary) 22%, transparent);
 
   &:hover:not(:disabled) {
-    opacity: 0.88;
+    opacity: 0.94;
   }
 }
 
@@ -107,7 +111,7 @@
   color: var(--text-muted);
 
   &:hover:not(:disabled) {
-    background: var(--bg-hover);
+    background: var(--surface-accent);
     color: var(--text-main);
   }
 }
@@ -117,9 +121,10 @@
   background: var(--color-error);
   color: var(--text-on-brand);
   border-color: transparent;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-error) 16%, transparent);
 
   &:hover:not(:disabled) {
-    opacity: 0.88;
+    opacity: 0.92;
   }
 }
 

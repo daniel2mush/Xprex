@@ -171,7 +171,7 @@ export default function LeftSideBar() {
             </div>
           </div>
           <Link href="/explore" className={styles.summaryLink}>
-            Explore what's happening
+            Explore what&apos;s happening
             <ArrowUpRight size={14} />
           </Link>
         </div>

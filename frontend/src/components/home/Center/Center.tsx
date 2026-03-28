@@ -167,9 +167,11 @@ export default function Center() {
           },
         },
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
       setIsSubmitting(false);
-      setErrors([err.message ?? "Something went wrong"]);
+      setErrors([message]);
     } finally {
       setIsSubmitting(false);
     }
@@ -202,19 +204,29 @@ export default function Center() {
           <div className={styles.feedHighlights}>
             <div className={styles.feedStat}>
               <strong>{postCount}</strong>
-              <span>recent posts</span>
+              <span>posts in view</span>
             </div>
             <div className={styles.feedStat}>
               <strong>{user?.location || "Global"}</strong>
-              <span>current location</span>
+              <span>posting from</span>
             </div>
           </div>
         </header>
 
-        {/* Compose card */}
         <Card className={styles.composeCard}>
+          <div className={styles.composeHeader}>
+            <div>
+              <p className={styles.composeEyebrow}>Create update</p>
+              <h2 className={styles.composeTitle}>
+                Publish something your network can react to quickly
+              </h2>
+            </div>
+            <span className={styles.composeHint}>
+              Add up to 4 images or a short clip.
+            </span>
+          </div>
+
           <div className={styles.compose}>
-            {/* Avatar */}
             <div className={styles.composeAvatar}>
               {user?.avatar ? (
                 <img
@@ -230,7 +242,9 @@ export default function Center() {
             </div>
 
             <div className={styles.composeBody}>
-              {/* Textarea */}
+              <p className={styles.composePrompt}>
+                Posting as <span>@{user?.username}</span>
+              </p>
               <textarea
                 ref={textareaRef}
                 className={styles.input}
@@ -240,7 +254,6 @@ export default function Center() {
                 rows={3}
               />
 
-              {/* Image previews */}
               {previews.length > 0 && (
                 <div className={styles.previews} data-count={previews.length}>
                   {previews.map((p, i) => (
@@ -262,7 +275,6 @@ export default function Center() {
                 </div>
               )}
 
-              {/* Errors */}
               {errors.length > 0 && (
                 <ul className={styles.errorList}>
                   {errors.map((e, i) => (
@@ -271,20 +283,17 @@ export default function Center() {
                 </ul>
               )}
 
-              {/* Actions */}
               <div className={styles.composeActions}>
                 <div className={styles.composeLeft}>
-                  {/* Hidden real file input */}
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp,image/avif video/mp4"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,video/mp4"
                     multiple
                     onChange={handleFileChange}
                     className={styles.hiddenInput}
                     aria-hidden="true"
                   />
-                  {/* Visible button triggers it */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -302,7 +311,6 @@ export default function Center() {
                 </div>
 
                 <div className={styles.composeRight}>
-                  {/* Character counter */}
                   <span
                     className={`${styles.charCount} ${isOverLimit ? styles.charOver : ""}`}
                   >
@@ -316,7 +324,7 @@ export default function Center() {
                     isLoading={isPending}
                     disabled={!canSubmit || isSubmmiting}
                   >
-                    Post
+                    Post update
                   </Button>
                 </div>
               </div>
@@ -326,7 +334,6 @@ export default function Center() {
 
         <div className={styles.divider} />
 
-        {/* Feed */}
         {isLoading && (
           <div className={styles.loadingStack}>
             {[...Array(4)].map((_, i) => (

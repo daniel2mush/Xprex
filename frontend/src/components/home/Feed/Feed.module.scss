@@ -1,30 +1,42 @@
-// ── Container ──────────────────────────────
 .container {
-  padding: 18px 16px;
-  border: 0.5px solid var(--border-subtle);
-  border-radius: 24px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 26px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 40%),
-    var(--bg-surface);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand-primary) 5%, transparent),
+      transparent 34%
+    ),
+    var(--surface-card);
+  box-shadow: var(--shadow-soft);
   transition:
     background-color 0.1s ease,
+    box-shadow 0.18s ease,
     transform 0.18s ease,
     border-color 0.18s ease;
   margin-bottom: 12px;
+  cursor: pointer;
 
   &:hover {
-    background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--brand-primary) 7%, transparent),
+        transparent 34%
+      ),
+      var(--surface-card-strong);
     transform: translateY(-1px);
-    border-color: rgba(14, 165, 233, 0.12);
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-strong);
   }
 }
 
-// ── Header ─────────────────────────────────
 .header {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .avatarLink {
@@ -32,17 +44,18 @@
   text-decoration: none;
 }
 
-.avatarImg {
-  width: 40px;
-  height: 40px;
+.avatarImg,
+.avatarFallback {
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-full);
+}
+
+.avatarImg {
   object-fit: cover;
 }
 
 .avatarFallback {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
   display: flex;
   align-items: center;
@@ -63,13 +76,13 @@
 .nameLink {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   text-decoration: none;
 }
 
 .username {
-  font-size: var(--text-fluid-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
   color: var(--text-main);
 
   &:hover {
@@ -78,12 +91,19 @@
 }
 
 .verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
   font-size: 11px;
   color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
 }
 
 .meta {
-  font-size: 12px;
+  font-size: 0.78rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -91,9 +111,9 @@
 }
 
 .moreBtn {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -107,28 +127,26 @@
   flex-shrink: 0;
 
   &:hover {
-    background: var(--bg-hover);
+    background: var(--surface-accent);
     color: var(--text-main);
   }
 }
 
-// ── Body ───────────────────────────────────
 .body {
-  font-size: var(--text-fluid-sm);
+  margin: 0 0 14px;
+  font-size: 0.97rem;
   color: var(--text-main);
-  line-height: 1.72;
-  margin-bottom: 12px;
+  line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-// ── Media grid ─────────────────────────────
 .mediaGrid {
   display: grid;
-  gap: 2px;
-  border-radius: var(--radius-md);
+  gap: 6px;
+  border-radius: 22px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 
   &[data-count="1"] {
     grid-template-columns: 1fr;
@@ -156,7 +174,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, var(--bg-surface));
   aspect-ratio: 16 / 9;
   border: none;
   padding: 0;
@@ -177,10 +195,10 @@
 .mediaVideo {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   transition: transform 0.2s ease;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-scrim);
 
   &:hover {
     transform: scale(1.01);
@@ -202,30 +220,30 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  background: var(--overlay-scrim);
+  color: var(--text-on-brand);
   font-size: 0.75rem;
 }
 
-// ── Actions ────────────────────────────────
 .actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 0.5px solid rgba(255, 255, 255, 0.05);
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .actionGroup {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .actionBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: var(--radius-full);
   border: none;
   background: transparent;
@@ -237,40 +255,35 @@
     background 0.15s,
     color 0.15s;
 
-  // Like hover
   &:first-child:hover {
-    background: color-mix(in srgb, #e879a0 10%, transparent);
-    color: #e879a0;
+    background: color-mix(in srgb, var(--color-error) 12%, transparent);
+    color: var(--color-error);
   }
 }
 
-// Comment hover
 .commentBtn:hover {
   background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
   color: var(--brand-primary);
 }
 
-// Repost hover
 .repostBtn:hover {
-  background: color-mix(in srgb, #34d399 10%, transparent);
-  color: #34d399;
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
 }
 
 .reposted {
-  color: #34d399;
+  color: var(--color-success);
 }
 
-// Liked state
 .liked {
-  color: #e879a0;
+  color: var(--color-error);
 }
 
 .heartFilled {
-  fill: #e879a0;
+  fill: var(--color-error);
   stroke: none;
 }
 
-// Bookmark
 .bookmarkBtn {
   padding: 6px 8px;
   border-radius: var(--radius-full);
@@ -283,24 +296,24 @@
     color 0.15s;
 
   &:hover {
-    background: color-mix(in srgb, #fbbf24 10%, transparent);
-    color: #fbbf24;
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    color: var(--color-warning);
   }
 }
 
 .bookmarked {
-  color: #fbbf24;
+  color: var(--color-warning);
 }
 
 .bookmarkFilled {
-  fill: #fbbf24;
+  fill: var(--color-warning);
   stroke: none;
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 14px 12px;
-    border-radius: 20px;
+    padding: 14px 13px;
+    border-radius: 22px;
     margin-bottom: 10px;
   }
 

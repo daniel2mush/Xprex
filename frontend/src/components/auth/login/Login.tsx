@@ -27,7 +27,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading, isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<loginTypes>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -50,38 +50,46 @@ export default function LoginPage() {
     router.push("/");
   };
   return (
-    <div className="container">
-      <div className={style.loginContent}>
-        <form className={style.form} onSubmit={handleSubmit(Login)}>
-          <div>
-            <Input
-              label="Email"
-              placeholder="Enter your email"
-              type="email"
-              isError={errors.email ? true : false}
-              error={errors.email?.message}
-              {...register("email")}
-            />
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              type="password"
-              isError={errors.password ? true : false}
-              error={errors.password?.message}
-              {...register("password")}
-            />
-          </div>
-          <Button fullWidth={true} className={style.btn} size="sm">
-            Login
-          </Button>
-        </form>
-
-        <div className={style.forgetPassword}>
-          <p>
-            Forgot your password? <span>Forgot password</span>{" "}
-          </p>
-        </div>
+    <div className={style.panel}>
+      <div className={style.header}>
+        <p className={style.eyebrow}>Sign in with email</p>
+        <p className={style.description}>
+          Use the account tied to your posts, messages, and saved activity.
+        </p>
       </div>
+
+      <form className={style.form} onSubmit={handleSubmit(Login)} noValidate>
+        <Input
+          label="Email"
+          placeholder="Enter your email"
+          type="email"
+          isError={errors.email ? true : false}
+          error={errors.email?.message}
+          {...register("email")}
+        />
+        <Input
+          label="Password"
+          placeholder="Enter your password"
+          type="password"
+          isError={errors.password ? true : false}
+          error={errors.password?.message}
+          {...register("password")}
+        />
+
+        <div className={style.metaRow}>
+          <span>Secure session for your account</span>
+          <span>Fast access to feed and settings</span>
+        </div>
+
+        <Button
+          isLoading={isSubmitting}
+          fullWidth={true}
+          className={style.btn}
+          size="md"
+        >
+          Log in
+        </Button>
+      </form>
     </div>
   );
 }

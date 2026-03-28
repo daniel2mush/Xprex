@@ -11,6 +11,26 @@ body {
   font-family: var(--font-family);
   font-size: var(--text-fluid-base); // Proper base size (not sm)
   line-height: 1.65; // Perfect readability
+  background-image:
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--brand-primary) 12%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      color-mix(in srgb, var(--brand-hover) 10%, transparent),
+      transparent 24%
+    );
+  background-attachment: fixed;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  color: var(--text-main);
 }
 
 h1,

@@ -1,4 +1,49 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  margin-bottom: 6px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--brand-primary);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.description {
+  margin: 0;
+  color: var(--text-body);
+  font-size: 0.9rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
 .btn {
-  margin-top: 20px;
+  margin-top: 18px;
   width: 100%;
+}
+
+@media (max-width: 640px) {
+  .metaRow {
+    flex-direction: column;
+    gap: 4px;
+  }
 }

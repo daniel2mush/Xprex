@@ -16,23 +16,23 @@ $bp-desktop: map.get($breakpoints, desktop) !default;
 $bp-wide: map.get($breakpoints, wide) !default;
 
 // ==========================================
-// 🎨 RAW COLORS — AMOLED Social Dark
+// 🎨 RAW COLORS — Modern editorial dark
 // ==========================================
-$void-black: #000000 !default; // True AMOLED black
-$surface-dark: #111111 !default; // Cards
-$surface-elevated: #1a1a1f !default; // Nested elements / inputs
-$border-dark: #2a2a2e !default; // Structural lines
+$void-black: #08111f !default; // App canvas
+$surface-dark: #111c2d !default; // Cards
+$surface-elevated: #18253a !default; // Nested elements / inputs
+$border-dark: #27364b !default; // Structural lines
 
-// Brand — Violet → Rose
-$violet-core: #7c3aed !default; // Primary
-$rose-accent: #ec4899 !default; // Accent / CTA
-$violet-soft: #a78bfa !default; // Ghost buttons, links
+// Brand — Cobalt → Teal
+$violet-core: #3b82f6 !default; // Primary
+$rose-accent: #14b8a6 !default; // Accent / CTA
+$violet-soft: #7dd3fc !default; // Soft highlight / links
 
 // Text
 $pure-white: #ffffff !default;
-$text-primary: #f0f0f0 !default;
-$text-secondary: #a1a1aa !default;
-$text-muted: #52525b !default;
+$text-primary: #f4f7fb !default;
+$text-secondary: #c1cad9 !default;
+$text-muted: #7b8ba5 !default;
 
 // ==========================================
 // 🏗️ SEMANTIC TOKENS
@@ -40,7 +40,7 @@ $text-muted: #52525b !default;
 $bg-app: $void-black !default;
 $bg-surface: $surface-dark !default;
 $bg-header: $void-black !default;
-$bg-input: #0d0d0d !default; // Slightly recessed inputs
+$bg-input: #0c1627 !default; // Slightly recessed inputs
 
 $brand-primary: $violet-core !default;
 $brand-hover: $rose-accent !default;

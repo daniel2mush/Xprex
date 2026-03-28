@@ -9,7 +9,7 @@ import {
   MoreHorizontal,
   Repeat2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useOptimistic, useState } from "react";
 import Link from "next/link";
 import { PostTypes } from "@/types/Types";
 import PostModal from "@/components/postModal/PostModal";
@@ -32,25 +32,27 @@ export default function Feed({ data }: { data: PostTypes }) {
   const { mutate: toggleRepost, isPending: isTogglingRepost } =
     useTogglePostRepost();
 
-  const [liked, setLiked] = useState(data.isLiked ?? false);
-  const [bookmarked, setBookmarked] = useState(data.isBookmarked ?? false);
-  const [reposted, setReposted] = useState(data.isReposted ?? false);
-  const [likeCount, setLikeCount] = useState(data._count?.likes ?? 0);
-  const [repostCount, setRepostCount] = useState(data._count?.reposts ?? 0);
+  const baseState = {
+    liked: data.isLiked ?? false,
+    bookmarked: data.isBookmarked ?? false,
+    reposted: data.isReposted ?? false,
+    likeCount: data._count?.likes ?? 0,
+    repostCount: data._count?.reposts ?? 0,
+  };
 
-  useEffect(() => {
-    setLiked(data.isLiked ?? false);
-    setBookmarked(data.isBookmarked ?? false);
-    setReposted(data.isReposted ?? false);
-    setLikeCount(data._count?.likes ?? 0);
-    setRepostCount(data._count?.reposts ?? 0);
-  }, [
-    data._count?.likes,
-    data._count?.reposts,
-    data.isBookmarked,
-    data.isLiked,
-    data.isReposted,
-  ]);
+  const [optimisticState, setOptimisticState] = useOptimistic(
+    baseState,
+    (
+      currentState,
+      patch: Partial<typeof baseState>,
+    ) => ({
+      ...currentState,
+      ...patch,
+    }),
+  );
+
+  const { liked, bookmarked, reposted, likeCount, repostCount } =
+    optimisticState;
 
   const mediaItems = data.media ?? [];
   const mediaCount = Math.min(mediaItems.length, 4);
@@ -59,21 +61,23 @@ export default function Feed({ data }: { data: PostTypes }) {
     event?.stopPropagation();
     if (isTogglingLike) return;
 
-    const previousLiked = liked;
-    const previousCount = likeCount;
+    const previousState = optimisticState;
     const nextLiked = !liked;
 
-    setLiked(nextLiked);
-    setLikeCount((prev) => Math.max(0, prev + (nextLiked ? 1 : -1)));
+    setOptimisticState({
+      liked: nextLiked,
+      likeCount: Math.max(0, likeCount + (nextLiked ? 1 : -1)),
+    });
 
     toggleLike(data.id, {
       onSuccess: (response) => {
-        setLiked(response.data.liked);
-        setLikeCount(response.data.likesCount);
+        setOptimisticState({
+          liked: response.data.liked,
+          likeCount: response.data.likesCount,
+        });
       },
       onError: () => {
-        setLiked(previousLiked);
-        setLikeCount(previousCount);
+        setOptimisticState(previousState);
       },
     });
   };
@@ -82,16 +86,16 @@ export default function Feed({ data }: { data: PostTypes }) {
     event?.stopPropagation();
     if (isTogglingBookmark) return;
 
-    const previousBookmarked = bookmarked;
+    const previousState = optimisticState;
     const nextBookmarked = !bookmarked;
-    setBookmarked(nextBookmarked);
+    setOptimisticState({ bookmarked: nextBookmarked });
 
     toggleBookmark(data.id, {
       onSuccess: (response) => {
-        setBookmarked(response.data.bookmarked);
+        setOptimisticState({ bookmarked: response.data.bookmarked });
       },
       onError: () => {
-        setBookmarked(previousBookmarked);
+        setOptimisticState(previousState);
       },
     });
   };
@@ -99,22 +103,24 @@ export default function Feed({ data }: { data: PostTypes }) {
   const handleConfirmRepost = () => {
     if (isTogglingRepost) return;
 
-    const previousReposted = reposted;
-    const previousCount = repostCount;
+    const previousState = optimisticState;
     const nextReposted = !reposted;
 
-    setReposted(nextReposted);
-    setRepostCount((prev) => Math.max(0, prev + (nextReposted ? 1 : -1)));
+    setOptimisticState({
+      reposted: nextReposted,
+      repostCount: Math.max(0, repostCount + (nextReposted ? 1 : -1)),
+    });
 
     toggleRepost(data.id, {
       onSuccess: (response) => {
-        setReposted(response.data.reposted);
-        setRepostCount(response.data.repostsCount);
+        setOptimisticState({
+          reposted: response.data.reposted,
+          repostCount: response.data.repostsCount,
+        });
         setShowRepostDialog(false);
       },
       onError: () => {
-        setReposted(previousReposted);
-        setRepostCount(previousCount);
+        setOptimisticState(previousState);
       },
     });
   };

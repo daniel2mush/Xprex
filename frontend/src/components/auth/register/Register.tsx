@@ -39,7 +39,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isLoading, isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<registerTypes>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
@@ -67,53 +67,62 @@ export default function RegisterPage() {
     return;
   };
   return (
-    <div className="container">
-      <div className={style.loginContent}>
-        <form className={style.form} onSubmit={handleSubmit(Register)}>
-          <div>
-            <Input
-              label="Email"
-              placeholder="Enter your email"
-              type="email"
-              isError={errors.email ? true : false}
-              error={errors.email?.message}
-              {...register("email")}
-            />
-            <Input
-              label="Username"
-              placeholder="Enter your username"
-              type="text"
-              isError={errors.username ? true : false}
-              error={errors.username?.message}
-              {...register("username")}
-            />
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              type="password"
-              isError={errors.password ? true : false}
-              error={errors.password?.message}
-              {...register("password")}
-            />
-            <Input
-              label="Confirm password"
-              placeholder="Confirm your password"
-              type="password"
-              isError={errors.confirmPassword ? true : false}
-              error={errors.confirmPassword?.message}
-              {...register("confirmPassword")}
-            />
-          </div>
-          <Button
-            isLoading={isSubmitting}
-            fullWidth={true}
-            className={style.btn}
-            size="sm"
-          >
-            Register
-          </Button>
-        </form>
+    <div className={style.panel}>
+      <div className={style.header}>
+        <p className={style.eyebrow}>Create your account</p>
+        <p className={style.description}>
+          Set up your identity once and keep it synced across the app.
+        </p>
       </div>
+
+      <form className={style.form} onSubmit={handleSubmit(Register)} noValidate>
+        <Input
+          label="Email"
+          placeholder="Enter your email"
+          type="email"
+          isError={errors.email ? true : false}
+          error={errors.email?.message}
+          {...register("email")}
+        />
+        <Input
+          label="Username"
+          placeholder="Choose a username"
+          type="text"
+          isError={errors.username ? true : false}
+          error={errors.username?.message}
+          {...register("username")}
+        />
+        <Input
+          label="Password"
+          placeholder="Create a password"
+          type="password"
+          isError={errors.password ? true : false}
+          error={errors.password?.message}
+          {...register("password")}
+        />
+        <Input
+          label="Confirm password"
+          placeholder="Confirm your password"
+          type="password"
+          isError={errors.confirmPassword ? true : false}
+          error={errors.confirmPassword?.message}
+          {...register("confirmPassword")}
+        />
+
+        <div className={style.metaRow}>
+          <span>Username: 3 to 20 characters</span>
+          <span>Password: 8 to 20 characters</span>
+        </div>
+
+        <Button
+          isLoading={isSubmitting}
+          fullWidth={true}
+          className={style.btn}
+          size="md"
+        >
+          Create account
+        </Button>
+      </form>
     </div>
   );
 }
