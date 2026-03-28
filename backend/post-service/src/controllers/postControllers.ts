@@ -33,6 +33,13 @@ interface FollowCreatedEvent {
   followingId: string;
 }
 
+const feedUserSelect = {
+  id: true,
+  username: true,
+  avatar: true,
+  isVerified: true,
+} as const;
+
 // ==========================================
 // HELPERS
 // ==========================================
@@ -57,12 +64,7 @@ const invalidatePostCache = async (req: Request, postId?: string) => {
 // Consistent post shape used in all read operations
 const postInclude = (userId: string) => ({
   user: {
-    select: {
-      id: true,
-      username: true,
-      avatar: true,
-      isVerified: true,
-    },
+    select: feedUserSelect,
   },
   media: {
     select: {
@@ -96,8 +98,9 @@ const postInclude = (userId: string) => ({
 });
 
 // Flatten isLiked / isBookmarked into booleans for the client
-const normalizePost = (post: any) => ({
+const normalizePost = (post: any, extra: Record<string, unknown> = {}) => ({
   ...post,
+  ...extra,
   isLiked: post.likes?.length > 0,
   isBookmarked: post.bookmarks?.length > 0,
   isReposted: post.reposts?.length > 0,
@@ -105,6 +108,21 @@ const normalizePost = (post: any) => ({
   bookmarks: undefined,
   reposts: undefined,
 });
+
+const getFeedEventTimestamp = (post: {
+  feedCreatedAt?: Date | string;
+  createdAt: Date | string;
+}) => new Date(post.feedCreatedAt ?? post.createdAt).getTime();
+
+const sortFeedEvents = (
+  a: { feedEventId?: string; feedCreatedAt?: Date | string; createdAt: Date | string },
+  b: { feedEventId?: string; feedCreatedAt?: Date | string; createdAt: Date | string },
+) => {
+  const timeDiff = getFeedEventTimestamp(b) - getFeedEventTimestamp(a);
+  if (timeDiff !== 0) return timeDiff;
+
+  return (b.feedEventId ?? "").localeCompare(a.feedEventId ?? "");
+};
 
 const buildPagination = (page: number, limit: number, total: number) => ({
   page,
@@ -225,6 +243,7 @@ export const GetAllPosts = async (req: Request, res: Response) => {
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, 50, 10);
     const skip = (page - 1) * limit;
+    const expandedTake = page * limit;
 
     const cacheKey = `posts:${req.user.userId}:${page}:${limit}`;
 
@@ -241,21 +260,50 @@ export const GetAllPosts = async (req: Request, res: Response) => {
       );
     }
 
-    const [rawPosts, totalPosts] = await Promise.all([
+    const [rawPosts, rawReposts, totalPosts, totalReposts] = await Promise.all([
       prisma.post.findMany({
-        take: limit,
-        skip,
-        orderBy: { createdAt: "desc" },
+        take: expandedTake,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         include: postInclude(req.user.userId!),
       }),
+      prisma.repost.findMany({
+        take: expandedTake,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          user: {
+            select: feedUserSelect,
+          },
+          post: {
+            include: postInclude(req.user.userId!),
+          },
+        },
+      }),
       prisma.post.count(),
+      prisma.repost.count(),
     ]);
 
-    const posts = rawPosts.map(normalizePost);
+    const feedEvents = [
+      ...rawPosts.map((post) =>
+        normalizePost(post, {
+          feedEventId: `post:${post.id}`,
+          feedCreatedAt: post.createdAt,
+        }),
+      ),
+      ...rawReposts.map((repost) =>
+        normalizePost(repost.post, {
+          feedEventId: `repost:${repost.id}`,
+          feedCreatedAt: repost.createdAt,
+          repostedAt: repost.createdAt,
+          repostedBy: repost.user,
+        }),
+      ),
+    ]
+      .sort(sortFeedEvents)
+      .slice(skip, skip + limit);
 
     const responseData = {
-      posts,
-      pagination: buildPagination(page, limit, totalPosts),
+      posts: feedEvents,
+      pagination: buildPagination(page, limit, totalPosts + totalReposts),
     };
 
     await req.redisClient.set(
@@ -409,7 +457,7 @@ export const GetUserProfile = async (req: Request, res: Response) => {
   }
 
   try {
-    const [user, rawPosts, likedEntries, replies, isFollowing, followsYou] =
+    const [user, rawPosts, rawReposts, likedEntries, replies, isFollowing, followsYou] =
       await Promise.all([
       prisma.user.findUnique({
         where: { id: profileId },
@@ -417,8 +465,20 @@ export const GetUserProfile = async (req: Request, res: Response) => {
       }),
         prisma.post.findMany({
           where: { userId: profileId },
-          orderBy: { createdAt: "desc" },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           include: postInclude(viewerId!),
+        }),
+        prisma.repost.findMany({
+          where: { userId: profileId },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          include: {
+            user: {
+              select: feedUserSelect,
+            },
+            post: {
+              include: postInclude(viewerId!),
+            },
+          },
         }),
         prisma.like.findMany({
           where: { userId: profileId },
@@ -491,13 +551,30 @@ export const GetUserProfile = async (req: Request, res: Response) => {
 
     if (!user) return sendJson(res, 404, false, "User not found");
 
+    const profileFeed = [
+      ...rawPosts.map((post) =>
+        normalizePost(post, {
+          feedEventId: `post:${post.id}`,
+          feedCreatedAt: post.createdAt,
+        }),
+      ),
+      ...rawReposts.map((repost) =>
+        normalizePost(repost.post, {
+          feedEventId: `repost:${repost.id}`,
+          feedCreatedAt: repost.createdAt,
+          repostedAt: repost.createdAt,
+          repostedBy: repost.user,
+        }),
+      ),
+    ].sort(sortFeedEvents);
+
     return sendJson(res, 200, true, "Profile retrieved successfully", {
       user: {
         ...user,
         isFollowing,
         followsYou,
       },
-      posts: rawPosts.map(normalizePost),
+      posts: profileFeed,
       likedPosts: likedEntries.map((entry) => normalizePost(entry.post)),
       replies,
     });

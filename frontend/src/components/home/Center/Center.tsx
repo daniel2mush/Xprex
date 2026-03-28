@@ -44,13 +44,8 @@ interface PreviewFile {
 }
 
 export default function Center() {
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfinitePosts();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfinitePosts();
   const { user } = useUserStore();
   const { mutateAsync: uploadMedia } = useUploadMedia();
   const { mutate: createPost, isPending } = useCreatePost();
@@ -65,7 +60,14 @@ export default function Center() {
   const [errors, setErrors] = useState<string[]>([]);
   const [showMobileComposer, setShowMobileComposer] = useState(false);
 
-  const posts = data?.pages.flatMap((page) => page.data.posts) ?? [];
+  const posts = Array.from(
+    new Map(
+      (data?.pages.flatMap((page) => page.data.posts) ?? []).map((post) => [
+        post.feedEventId ?? `post:${post.id}`,
+        post,
+      ]),
+    ).values(),
+  );
   const postCount = posts?.length ?? 0;
 
   useEffect(() => {
@@ -203,7 +205,7 @@ export default function Center() {
               conversation moving.
             </p>
           </div>
-          <div className={styles.feedHighlights}>
+          {/* <div className={styles.feedHighlights}>
             <div className={styles.feedStat}>
               <strong>{postCount}</strong>
               <span>posts in view</span>
@@ -212,7 +214,7 @@ export default function Center() {
               <strong>{user?.location || "Global"}</strong>
               <span>posting from</span>
             </div>
-          </div>
+          </div> */}
         </header>
 
         {showMobileComposer && (
@@ -230,9 +232,6 @@ export default function Center() {
           <div className={styles.composeHeader}>
             <div>
               <p className={styles.composeEyebrow}>Create update</p>
-              <h2 className={styles.composeTitle}>
-                Publish something your network can react to quickly
-              </h2>
             </div>
             <div className={styles.composeHeaderActions}>
               <span className={styles.composeHint}>
@@ -371,7 +370,10 @@ export default function Center() {
           </div>
         )}
 
-        {!isLoading && posts.map((post) => <Feed key={post.id} data={post} />)}
+        {!isLoading &&
+          posts.map((post) => (
+            <Feed key={post.feedEventId ?? post.id} data={post} />
+          ))}
 
         <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 

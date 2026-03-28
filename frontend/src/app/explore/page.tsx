@@ -306,7 +306,7 @@ export default function ExplorePage() {
 
           {activeTab !== "people" &&
             activePosts.map((post) => (
-              <Feed key={`${post.id}-${query}`} data={post} />
+              <Feed key={`${post.feedEventId ?? post.id}-${query}`} data={post} />
             ))}
         </section>
       </main>

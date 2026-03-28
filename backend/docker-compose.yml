@@ -55,10 +55,12 @@ services:
       - ./messaging-service/.env
     volumes:
       - ./messaging-service:/app/messaging-service
+      - ./database:/app/database
       - /app/node_modules
     environment:
       - PORT=4007
       - CORS_ORIGINS=http://localhost:3000,http://api-service:4000
+      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
 
   # ← keep your redis + rabbitmq services exactly as they were
 

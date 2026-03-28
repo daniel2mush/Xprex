@@ -69,7 +69,10 @@ export default function BookmarksPage() {
           </div>
         )}
 
-        {!isLoading && posts.map((post) => <Feed key={post.id} data={post} />)}
+        {!isLoading &&
+          posts.map((post) => (
+            <Feed key={post.feedEventId ?? post.id} data={post} />
+          ))}
 
         <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
 

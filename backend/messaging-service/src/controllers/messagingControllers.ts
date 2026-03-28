@@ -59,7 +59,7 @@ export const getConversationById = async (req: Request, res: Response) => {
     });
   }
 
-  markConversationRead(userId, id);
+  await markConversationRead(userId, id);
 
   return res.status(200).json({
     success: true,

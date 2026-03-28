@@ -42,7 +42,7 @@ export const createSocketServer = (httpServer: HttpServer) => {
       const conversation = await getConversationMessages(userId, conversationId);
       if (!conversation) return;
 
-      markConversationRead(userId, conversationId);
+      await markConversationRead(userId, conversationId);
       socket.join(conversationId);
       logger.info("Socket joined conversation", {
         socketId: socket.id,

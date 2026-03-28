@@ -2,14 +2,18 @@
 import styles from "./Feed.module.scss";
 import { timeAgoShort } from "@/lib/ParseDate";
 import {
+  Check,
+  Pencil,
   Bookmark,
   Heart,
   Image as ImageIcon,
   MessageCircle,
   MoreHorizontal,
   Repeat2,
+  Trash2,
+  X,
 } from "lucide-react";
-import { useOptimistic, useState } from "react";
+import { useEffect, useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
 import { PostTypes } from "@/types/Types";
 import PostModal from "@/components/postModal/PostModal";
@@ -17,20 +21,37 @@ import MediaViewer from "@/components/mediaViewer/MediaViewer";
 import RepostDialog from "@/components/repostDialog/RepostDialog";
 import {
   useTogglePostBookmark,
+  useDeletePost,
+  useUpdatePost,
   useTogglePostLike,
   useTogglePostRepost,
 } from "@/query/HomeQuery";
+import { useUserStore } from "@/store/userStore";
+import { toast } from "sonner";
 
-export default function Feed({ data }: { data: PostTypes }) {
+export default function Feed({
+  data,
+  showAuthorActions = false,
+}: {
+  data: PostTypes;
+  showAuthorActions?: boolean;
+}) {
+  const { user } = useUserStore();
   const [showModal, setShowModal] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [showRepostDialog, setShowRepostDialog] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(data.content ?? "");
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const { mutate: toggleLike, isPending: isTogglingLike } = useTogglePostLike();
   const { mutate: toggleBookmark, isPending: isTogglingBookmark } =
     useTogglePostBookmark();
   const { mutate: toggleRepost, isPending: isTogglingRepost } =
     useTogglePostRepost();
+  const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
+  const { mutate: updatePost, isPending: isUpdatingPost } = useUpdatePost();
 
   const baseState = {
     liked: data.isLiked ?? false,
@@ -53,9 +74,24 @@ export default function Feed({ data }: { data: PostTypes }) {
 
   const { liked, bookmarked, reposted, likeCount, repostCount } =
     optimisticState;
+  const canManagePost = showAuthorActions && user?.id === data.user.id;
 
   const mediaItems = data.media ?? [];
   const mediaCount = Math.min(mediaItems.length, 4);
+  const displayTimestamp = data.feedCreatedAt ?? data.createdAt;
+
+  useEffect(() => {
+    if (!showActionsMenu) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setShowActionsMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showActionsMenu]);
 
   const handleLike = (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.stopPropagation();
@@ -133,9 +169,57 @@ export default function Feed({ data }: { data: PostTypes }) {
     setShowModal(true);
   };
 
+  const handleDeletePost = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (!window.confirm("Delete this post? This action cannot be undone.")) {
+      return;
+    }
+
+    deletePost(data.id, {
+      onSuccess: (response) => {
+        toast.success(response.message ?? "Post deleted");
+        setShowActionsMenu(false);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
+  };
+
+  const handleSaveEdit = () => {
+    const nextContent = editContent.trim();
+
+    if (nextContent.length < 1) {
+      toast.error("Post content cannot be empty");
+      return;
+    }
+
+    updatePost(
+      { postId: data.id, content: nextContent },
+      {
+        onSuccess: (response) => {
+          toast.success(response.message ?? "Post updated");
+          setIsEditing(false);
+          setShowActionsMenu(false);
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        },
+      },
+    );
+  };
+
   return (
     <>
       <article className={styles.container} onClick={handleArticleClick}>
+        {data.repostedBy && (
+          <div className={styles.repostBanner}>
+            <Repeat2 size={14} />
+            <span>{data.repostedBy.username} reposted</span>
+          </div>
+        )}
+
         <div className={styles.header}>
           <Link
             href={`/profile/${data.user.id}`}
@@ -169,13 +253,54 @@ export default function Feed({ data }: { data: PostTypes }) {
               )}
             </Link>
             <span className={styles.meta}>
-              @{data.user.username} · {timeAgoShort(data.createdAt as Date)}
+              @{data.user.username} · {timeAgoShort(displayTimestamp as Date)}
             </span>
           </div>
 
-          <button className={styles.moreBtn} aria-label="More options" type="button">
-            <MoreHorizontal size={16} />
-          </button>
+          {canManagePost && (
+            <div className={styles.moreWrap} ref={menuRef}>
+              <button
+                className={styles.moreBtn}
+                aria-label="Post options"
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowActionsMenu((current) => !current);
+                }}
+              >
+                <MoreHorizontal size={16} />
+              </button>
+
+              {showActionsMenu && (
+                <div
+                  className={styles.actionsMenu}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={() => {
+                      setEditContent(data.content ?? "");
+                      setIsEditing(true);
+                      setShowActionsMenu(false);
+                    }}
+                  >
+                    <Pencil size={14} />
+                    Edit post
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                    onClick={handleDeletePost}
+                    disabled={isDeletingPost}
+                  >
+                    <Trash2 size={14} />
+                    Delete post
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {data.content && <p className={styles.body}>{data.content}</p>}
@@ -294,6 +419,60 @@ export default function Feed({ data }: { data: PostTypes }) {
           onConfirm={handleConfirmRepost}
           isPending={isTogglingRepost}
         />
+      )}
+
+      {isEditing && (
+        <div
+          className={styles.editOverlay}
+          onClick={() => setIsEditing(false)}
+          role="presentation"
+        >
+          <div
+            className={styles.editDialog}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.editHeader}>
+              <div>
+                <p className={styles.editEyebrow}>Edit post</p>
+                <h3 className={styles.editTitle}>Update your post</h3>
+              </div>
+              <button
+                type="button"
+                className={styles.editClose}
+                aria-label="Close edit dialog"
+                onClick={() => setIsEditing(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <textarea
+              className={styles.editTextarea}
+              value={editContent}
+              onChange={(event) => setEditContent(event.target.value)}
+              rows={6}
+            />
+
+            <div className={styles.editActions}>
+              <button
+                type="button"
+                className={styles.editSecondary}
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.editPrimary}
+                onClick={handleSaveEdit}
+                disabled={isUpdatingPost}
+              >
+                <Check size={14} />
+                {isUpdatingPost ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

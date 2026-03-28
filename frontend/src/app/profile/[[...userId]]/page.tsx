@@ -356,7 +356,13 @@ export default function ProfilePage() {
         {!isLoading &&
           !error &&
           activeTab !== "replies" &&
-          activePosts.map((post) => <Feed key={post.id} data={post} />)}
+          activePosts.map((post) => (
+            <Feed
+              key={post.feedEventId ?? post.id}
+              data={post}
+              showAuthorActions={isOwnProfile}
+            />
+          ))}
       </main>
 
       <RightSideBar />

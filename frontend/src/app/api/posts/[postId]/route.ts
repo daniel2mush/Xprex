@@ -23,3 +23,47 @@ export async function GET(
     return NextResponse.json({ success: false, message }, { status });
   }
 }
+
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ postId: string }> },
+) {
+  const { postId } = await params;
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  try {
+    const body = await req.json();
+
+    const { data } = await api.put(`/posts/update/${postId}`, body, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    const status = error.response?.status ?? 500;
+    const message = error.response?.data?.message ?? "Failed to update post";
+    return NextResponse.json({ success: false, message }, { status });
+  }
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ postId: string }> },
+) {
+  const { postId } = await params;
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  try {
+    const { data } = await api.delete(`/posts/delete/${postId}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    const status = error.response?.status ?? 500;
+    const message = error.response?.data?.message ?? "Failed to delete post";
+    return NextResponse.json({ success: false, message }, { status });
+  }
+}

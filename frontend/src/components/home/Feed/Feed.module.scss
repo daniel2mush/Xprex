@@ -39,6 +39,16 @@
   margin-bottom: 12px;
 }
 
+.repostBanner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--color-success);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-semibold);
+}
+
 .avatarLink {
   flex-shrink: 0;
   text-decoration: none;
@@ -130,6 +140,49 @@
     background: var(--surface-accent);
     color: var(--text-main);
   }
+}
+
+.moreWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.actionsMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-strong);
+  z-index: 8;
+}
+
+.menuItem {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-accent);
+  }
+}
+
+.menuItemDanger {
+  color: var(--color-error);
 }
 
 .body {
@@ -310,6 +363,101 @@
   stroke: none;
 }
 
+.editOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--overlay-scrim);
+}
+
+.editDialog {
+  width: min(560px, 100%);
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-strong);
+}
+
+.editHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editEyebrow {
+  margin: 0 0 6px;
+  color: var(--brand-light);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.editTitle {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.1rem;
+}
+
+.editClose {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.editTextarea {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+  color: var(--text-main);
+  resize: vertical;
+  outline: none;
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.editSecondary,
+.editPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.editSecondary {
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-main);
+}
+
+.editPrimary {
+  border: none;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 14px 13px;
@@ -339,5 +487,24 @@
   .actionBtn,
   .bookmarkBtn {
     min-height: 36px;
+  }
+
+  .actionsMenu {
+    min-width: 148px;
+  }
+
+  .editDialog {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .editActions {
+    flex-direction: column-reverse;
+  }
+
+  .editSecondary,
+  .editPrimary {
+    justify-content: center;
+    width: 100%;
   }
 }

@@ -14,12 +14,21 @@ interface pagination {
 
 export interface PostTypes {
   id: string;
+  feedEventId?: string;
   userId: string;
   content: string;
   mediaIds: string[];
   createdAt: Date;
+  feedCreatedAt?: Date | string;
+  repostedAt?: Date | string;
   updatedAt: Date;
   user: User;
+  repostedBy?: {
+    id: string;
+    username: string;
+    avatar?: string;
+    isVerified?: boolean;
+  };
   media: MediaItem[];
   _count: count;
   isLiked: boolean;

@@ -186,6 +186,29 @@ exports.Prisma.RepostScalarFieldEnum = {
   postId: 'postId'
 };
 
+exports.Prisma.ConversationScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastMessageAt: 'lastMessageAt'
+};
+
+exports.Prisma.ConversationParticipantScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  userId: 'userId',
+  lastReadAt: 'lastReadAt',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.FollowScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -256,6 +279,9 @@ exports.Prisma.ModelName = {
   Comment: 'Comment',
   Bookmark: 'Bookmark',
   Repost: 'Repost',
+  Conversation: 'Conversation',
+  ConversationParticipant: 'ConversationParticipant',
+  Message: 'Message',
   Follow: 'Follow',
   RefreshToken: 'RefreshToken',
   Search: 'Search',
