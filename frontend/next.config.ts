@@ -4,6 +4,18 @@ import path from "path";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
+  },
   sassOptions: {
     includPaths: [path.join(__dirname, "styles")],
     additionalData: `@use "@/styles/_mixins.scss" as *;

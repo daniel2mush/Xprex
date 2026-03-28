@@ -4,7 +4,7 @@
 }
 
 .header {
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
 .eyebrow {
@@ -27,23 +27,7 @@
   flex-direction: column;
 }
 
-.metaRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  color: var(--text-muted);
-  font-size: 0.76rem;
-}
-
 .btn {
-  margin-top: 18px;
+  margin-top: 20px;
   width: 100%;
-}
-
-@media (max-width: 640px) {
-  .metaRow {
-    flex-direction: column;
-    gap: 4px;
-  }
 }

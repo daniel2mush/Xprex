@@ -69,6 +69,41 @@
   margin-bottom: 24px;
 }
 
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  color: var(--text-muted);
+  background: var(--surface-card);
+}
+
+.searchBox input {
+  width: 100%;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  background: transparent;
+}
+
+.reasonSelect {
+  min-width: 180px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  color: var(--text-main);
+  background: var(--surface-card);
+}
+
 .filterChip {
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
@@ -221,6 +256,7 @@
   }
 
   .hero,
+  .toolbar,
   .actions {
     flex-direction: column;
   }

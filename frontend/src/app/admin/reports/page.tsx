@@ -2,19 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Flag, MessageSquareWarning, ShieldAlert, UserRound } from "lucide-react";
+import {
+  Flag,
+  MessageSquareWarning,
+  Search,
+  ShieldAlert,
+  UserRound,
+} from "lucide-react";
 import { useAdminReports, useUpdateAdminReportStatus } from "@/query/AdminQuery";
-import { ReportStatus } from "@/types/Types";
+import { ReportReason, ReportStatus } from "@/types/Types";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/ui/Buttons/Buttons";
 import { timeAgoShort } from "@/lib/ParseDate";
+import { toast } from "sonner";
 import styles from "./ReportsPage.module.scss";
 
 const filters: Array<ReportStatus | "ALL"> = ["ALL", "OPEN", "REVIEWED", "DISMISSED"];
+const reasonFilters: Array<ReportReason | "ALL"> = [
+  "ALL",
+  "SPAM",
+  "ABUSE",
+  "HARASSMENT",
+  "MISINFORMATION",
+  "IMPERSONATION",
+  "OTHER",
+];
 
 export default function AdminReportsPage() {
   const { user } = useUserStore();
   const [activeFilter, setActiveFilter] = useState<ReportStatus | "ALL">("ALL");
+  const [reasonFilter, setReasonFilter] = useState<ReportReason | "ALL">("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
   const { data, isLoading, error } = useAdminReports(activeFilter);
   const { mutate: updateStatus, isPending } = useUpdateAdminReportStatus();
 
@@ -29,6 +47,30 @@ export default function AdminReportsPage() {
   }
 
   const reports = data?.data.reports ?? [];
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredReports = reports.filter((report) => {
+    if (reasonFilter !== "ALL" && report.reason !== reasonFilter) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    const haystacks = [
+      report.reporter.username,
+      report.targetUser?.username,
+      report.targetPost?.user.username,
+      report.targetPost?.content,
+      report.details,
+      report.reason,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return haystacks.includes(normalizedSearch);
+  });
 
   return (
     <section className={styles.page}>
@@ -42,8 +84,8 @@ export default function AdminReportsPage() {
           </p>
         </div>
         <div className={styles.heroCard}>
-          <span className={styles.heroMetric}>{reports.length}</span>
-          <span className={styles.heroLabel}>Visible reports</span>
+          <span className={styles.heroMetric}>{filteredReports.length}</span>
+          <span className={styles.heroLabel}>Filtered reports</span>
         </div>
       </div>
 
@@ -62,6 +104,29 @@ export default function AdminReportsPage() {
         ))}
       </div>
 
+      <div className={styles.toolbar}>
+        <label className={styles.searchBox}>
+          <Search size={15} />
+          <input
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search by reporter, target, reason, or details"
+          />
+        </label>
+
+        <select
+          className={styles.reasonSelect}
+          value={reasonFilter}
+          onChange={(event) => setReasonFilter(event.target.value as ReportReason | "ALL")}
+        >
+          {reasonFilters.map((reason) => (
+            <option key={reason} value={reason}>
+              {reason === "ALL" ? "All reasons" : reason}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {isLoading && (
         <div className={styles.emptyState}>
           <p>Loading reports...</p>
@@ -74,16 +139,16 @@ export default function AdminReportsPage() {
         </div>
       )}
 
-      {!isLoading && !error && reports.length === 0 && (
+      {!isLoading && !error && filteredReports.length === 0 && (
         <div className={styles.emptyState}>
           <Flag size={30} />
           <h2>No reports in this view</h2>
-          <p>Once people flag posts or accounts, they will show up here.</p>
+          <p>Try changing the status or reason filters, or clear your search.</p>
         </div>
       )}
 
       <div className={styles.reportList}>
-        {reports.map((report) => {
+        {filteredReports.map((report) => {
           const isUserReport = Boolean(report.targetUser);
           const reportTarget = isUserReport ? report.targetUser : report.targetPost;
 
@@ -152,6 +217,9 @@ export default function AdminReportsPage() {
                     updateStatus({
                       reportId: report.id,
                       status: "REVIEWED",
+                    }, {
+                      onSuccess: () => toast.success("Report marked as reviewed"),
+                      onError: (updateError) => toast.error(updateError.message),
                     })
                   }
                 >
@@ -165,6 +233,9 @@ export default function AdminReportsPage() {
                     updateStatus({
                       reportId: report.id,
                       status: "DISMISSED",
+                    }, {
+                      onSuccess: () => toast.success("Report dismissed"),
+                      onError: (updateError) => toast.error(updateError.message),
                     })
                   }
                 >

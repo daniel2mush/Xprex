@@ -23,8 +23,16 @@
   gap: 16px;
   padding: 28px 22px 18px;
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 35%),
-    linear-gradient(180deg, rgba(16, 185, 129, 0.08), transparent),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--brand-primary) 18%, transparent),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand-hover) 8%, transparent),
+      transparent
+    ),
     var(--bg-app);
 }
 
@@ -35,7 +43,7 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #0ea5e9;
+  color: var(--brand-light);
 }
 
 .title {
@@ -59,8 +67,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 18px;
-  background: rgba(14, 165, 233, 0.12);
+  background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
   color: var(--text-main);
+  border: 1px solid var(--border-accent);
 }
 
 .searchBar {
@@ -70,9 +79,10 @@
   gap: 12px;
   margin: 0 22px 18px;
   padding: 12px 14px;
-  border: 1px solid rgba(14, 165, 233, 0.12);
+  border: 1px solid var(--border-accent);
   border-radius: 20px;
-  background: var(--bg-surface);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .searchBar input {
@@ -95,8 +105,8 @@
   padding: 10px 14px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
-  color: #fff;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
   font-weight: var(--font-weight-bold);
 }
 
@@ -110,16 +120,16 @@
   padding: 10px 14px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
-  background: transparent;
+  background: var(--surface-card);
   color: var(--text-body);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
 }
 
 .tabButtonActive {
-  background: rgba(14, 165, 233, 0.1);
+  background: var(--surface-accent);
   color: var(--text-main);
-  border-color: rgba(14, 165, 233, 0.24);
+  border-color: var(--border-accent);
 }
 
 .panel,
@@ -128,7 +138,8 @@
   padding: 16px;
   border: 0.5px solid var(--border-subtle);
   border-radius: 22px;
-  background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .panelHeader {
@@ -174,7 +185,7 @@
   padding: 10px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--bg-elevated) 84%, transparent);
 }
 
 .chip,
@@ -190,6 +201,17 @@
   gap: 10px;
   color: inherit;
   text-align: left;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.topicCard:hover,
+.creatorCard:hover {
+  border-color: var(--border-accent);
+  background: var(--surface-accent);
+  transform: translateY(-1px);
 }
 
 .topicCard strong,
@@ -223,8 +245,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
-  color: #fff;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
   font-weight: var(--font-weight-black);
 }
 
@@ -261,8 +283,13 @@
   border: 1px solid var(--border-subtle);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(14, 165, 233, 0.05), transparent 38%),
-    var(--bg-surface);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand-primary) 9%, transparent),
+      transparent 38%
+    ),
+    var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .personCardLink {
@@ -278,8 +305,16 @@
 .personBanner {
   height: 86px;
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 36%),
-    linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(14, 165, 233, 0.1));
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--brand-primary) 24%, transparent),
+      transparent 36%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--brand-hover) 18%, transparent),
+      color-mix(in srgb, var(--brand-primary) 14%, transparent)
+    );
   background-size: cover;
   background-position: center;
 }
@@ -308,8 +343,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
-  color: #fff;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  color: var(--text-on-brand);
   font-weight: var(--font-weight-black);
 }
 
@@ -351,7 +386,7 @@
 .relationshipPill {
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.1);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
   color: var(--text-main);
 }
 
@@ -374,19 +409,19 @@
 }
 
 .personAction {
-  background: var(--bg-elevated);
+  background: var(--surface-card-strong);
   color: var(--text-main);
 }
 
 .personActionPrimary {
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
   border-color: transparent;
-  color: #fff;
+  color: var(--text-on-brand);
 }
 
 .personActionSecondary {
   background: transparent;
-  color: #0ea5e9;
+  color: var(--brand-primary);
 }
 
 @media (max-width: 1024px) {

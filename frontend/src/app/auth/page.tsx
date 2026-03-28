@@ -1,66 +1,71 @@
 import RegisterPage from "@/components/auth/register/Register";
 import LoginPage from "@/components/auth/login/Login";
 import { Tabs } from "radix-ui";
-import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles, Waves } from "lucide-react";
 import style from "./auth.module.scss";
 
 export default function AuthPage() {
-  const highlights = [
-    {
-      icon: <Sparkles size={16} />,
-      title: "Cleaner conversations",
-      copy: "Catch up on live posts, media, and replies in one focused feed.",
-    },
-    {
-      icon: <ShieldCheck size={16} />,
-      title: "Private by default",
-      copy: "Account controls and theme preferences stay available from anywhere.",
-    },
-    {
-      icon: <CheckCircle2 size={16} />,
-      title: "Ready to publish",
-      copy: "Sign in, share updates, and keep your profile current without friction.",
-    },
-  ];
-
   return (
     <section className={style.page}>
       <div className={style.shell}>
         <aside className={style.brandPanel}>
-          <div className={style.logoRow}>
-            <div className={style.logo} aria-hidden="true" />
-            <div>
+          <div className={style.brandTopRow}>
+            <div className={style.logoRow}>
+              <div className={style.logo} aria-hidden="true" />
               <p className={style.brandEyebrow}>Xprex</p>
-              <h1 className={style.heroTitle}>A sharper home for the social layer of your app.</h1>
             </div>
+            <span className={style.brandBadge}>
+              <Sparkles size={13} />
+              Live social
+            </span>
           </div>
 
-          <p className={style.heroCopy}>
-            Jump back into your timeline, publish updates with confidence, and
-            keep your profile and preferences synced across the experience.
-          </p>
-
-          <div className={style.metricGrid}>
-            <div className={style.metricCard}>
-              <strong>Live feed</strong>
-              <span>Posts, replies, and media built for quick scanning.</span>
-            </div>
-            <div className={style.metricCard}>
-              <strong>Theme-aware UI</strong>
-              <span>Light and dark modes that now share the same design language.</span>
-            </div>
+          <div className={style.heroStack}>
+            <h1 className={style.heroTitle}>Social, but sharper.</h1>
+            <p className={style.heroCopy}>
+              A cleaner place to post, chat, and keep up with what matters.
+            </p>
           </div>
 
-          <div className={style.featureList}>
-            {highlights.map((item) => (
-              <div key={item.title} className={style.featureItem}>
-                <span className={style.featureIcon}>{item.icon}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.copy}</p>
-                </div>
+          <div className={style.showcaseCard}>
+            <div className={style.showcaseOrb} aria-hidden="true" />
+            <div className={style.showcaseHeader}>
+              <div>
+                <p className={style.showcaseEyebrow}>Tonight on your feed</p>
+                <strong className={style.showcaseTitle}>
+                  Fast conversations, clean focus
+                </strong>
               </div>
-            ))}
+              <Waves size={16} />
+            </div>
+
+            <div className={style.showcaseRail}>
+              <span className={style.showcaseChip}>Timeline</span>
+              <span className={style.showcaseChip}>Messages</span>
+              <span className={style.showcaseChip}>Profile</span>
+            </div>
+
+            <div className={style.showcaseMetrics}>
+              <div className={style.metricCard}>
+                <strong>Real-time</strong>
+                <span>Posts and chats without the clutter.</span>
+              </div>
+              <div className={style.metricCard}>
+                <strong>Theme-first</strong>
+                <span>Dark and light that feel intentionally designed.</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={style.inlineHighlights}>
+            <div className={style.inlineHighlight}>
+              <span>Minimal UI</span>
+              <ArrowUpRight size={14} />
+            </div>
+            <div className={style.inlineHighlight}>
+              <span>Better focus</span>
+              <ArrowUpRight size={14} />
+            </div>
           </div>
         </aside>
 
@@ -69,8 +74,7 @@ export default function AuthPage() {
             <p className={style.formEyebrow}>Account access</p>
             <h2 className={style.heading}>Welcome back</h2>
             <p className={style.subheading}>
-              Sign in or create an account to keep your conversations and
-              profile moving.
+              Sign in or create an account to get back in instantly.
             </p>
           </div>
 
@@ -90,11 +94,6 @@ export default function AuthPage() {
               <RegisterPage />
             </Tabs.Content>
           </Tabs.Root>
-
-          <p className={style.footerNote}>
-            Themes, account preferences, and profile updates stay available
-            after sign-in from the settings page.
-          </p>
         </div>
       </div>
     </section>

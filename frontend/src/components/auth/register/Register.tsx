@@ -70,9 +70,7 @@ export default function RegisterPage() {
     <div className={style.panel}>
       <div className={style.header}>
         <p className={style.eyebrow}>Create your account</p>
-        <p className={style.description}>
-          Set up your identity once and keep it synced across the app.
-        </p>
+        <p className={style.description}>Join in and start posting fast.</p>
       </div>
 
       <form className={style.form} onSubmit={handleSubmit(Register)} noValidate>
@@ -108,11 +106,6 @@ export default function RegisterPage() {
           error={errors.confirmPassword?.message}
           {...register("confirmPassword")}
         />
-
-        <div className={style.metaRow}>
-          <span>Username: 3 to 20 characters</span>
-          <span>Password: 8 to 20 characters</span>
-        </div>
 
         <Button
           isLoading={isSubmitting}

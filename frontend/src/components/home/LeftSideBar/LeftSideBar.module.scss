@@ -159,6 +159,11 @@
   gap: 8px;
   overflow-y: auto;
   padding-right: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .nav {

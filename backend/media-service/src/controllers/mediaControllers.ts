@@ -74,7 +74,14 @@ export const deleteMedia = async (req: Request, res: Response) => {
   try {
     const media = await prisma.media.findUnique({
       where: { id: mediaId },
-      select: { id: true, url: true, type: true, userId: true, postId: true },
+      select: {
+        id: true,
+        url: true,
+        type: true,
+        userId: true,
+        postId: true,
+        messageId: true,
+      },
     });
 
     if (!media) return sendJson(res, 404, false, "Media not found");
@@ -83,13 +90,13 @@ export const deleteMedia = async (req: Request, res: Response) => {
       return sendJson(res, 403, false, "Unauthorized");
     }
 
-    // Can't delete media that's already attached to a published post
-    if (media.postId) {
+    // Can't delete media that's already attached to a published post or sent message
+    if (media.postId || media.messageId) {
       return sendJson(
         res,
         400,
         false,
-        "Cannot delete media attached to a post",
+        "Cannot delete media attached to published content",
       );
     }
 

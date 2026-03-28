@@ -1,7 +1,8 @@
 "use client";
 import styles from "./ProfilePage.module.scss";
 import ConnectionsModal from "./ConnectionsModal";
-import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import {
   useGetProfile,
@@ -31,11 +32,14 @@ type ActiveTab = "posts" | "replies" | "media" | "likes";
 
 export default function ProfilePage() {
   const params = useParams<{ userId?: string[] }>();
+  const pathname = usePathname();
   const router = useRouter();
   const routeUserId = params?.userId?.[0];
   const { user: currentUser } = useUserStore();
-  const resolvedUserId = routeUserId ?? currentUser?.id;
-  const isOwnProfile = !routeUserId || routeUserId === currentUser?.id;
+  const isProfileRoot = pathname === "/profile";
+  const resolvedUserId = isProfileRoot ? currentUser?.id : routeUserId;
+  const isOwnProfile = isProfileRoot || routeUserId === currentUser?.id;
+  const isProfilePending = !resolvedUserId;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("posts");
   const [showEditModal, setShowEditModal] = useState(false);
@@ -59,12 +63,13 @@ export default function ProfilePage() {
   );
 
   const profile = data?.data.user;
+  const displayProfile = isProfileRoot ? (profile ?? currentUser ?? undefined) : profile;
   const posts = data?.data.posts ?? [];
   const likedPosts = data?.data.likedPosts ?? [];
   const replies = data?.data.replies ?? [];
   const mediaPosts = posts.filter((post) => post.media.length > 0);
-  const joinedDate = profile?.createdAt
-    ? new Date(profile.createdAt).toLocaleDateString("en-US", {
+  const joinedDate = displayProfile?.createdAt
+    ? new Date(displayProfile.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
@@ -107,8 +112,8 @@ export default function ProfilePage() {
         <div
           className={styles.cover}
           style={
-            profile?.headerPhoto
-              ? { backgroundImage: `url(${profile.headerPhoto})` }
+            displayProfile?.headerPhoto
+              ? { backgroundImage: `url(${displayProfile.headerPhoto})` }
               : undefined
           }
         >
@@ -129,17 +134,18 @@ export default function ProfilePage() {
           <div className={styles.topRow}>
             {/* Avatar */}
             <div className={styles.avatarWrap}>
-              {profile?.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt={profile.username}
+              {displayProfile?.avatar ? (
+                <Image
+                  src={displayProfile.avatar}
+                  alt={displayProfile.username}
                   className={styles.avatar}
+                  width={84}
+                  height={84}
+                  unoptimized
                 />
               ) : (
                 <div className={styles.avatarFallback}>
-                  {profile?.username?.[0]?.toUpperCase() ??
-                    currentUser?.username?.[0]?.toUpperCase() ??
-                    "U"}
+                  {displayProfile?.username?.[0]?.toUpperCase() ?? "U"}
                 </div>
               )}
               {isOwnProfile && (
@@ -201,20 +207,20 @@ export default function ProfilePage() {
           {/* Name + handle */}
           <div className={styles.nameRow}>
             <h1 className={styles.name}>
-              {profile?.username ?? currentUser?.username ?? "Profile"}
+              {displayProfile?.username ?? "Profile"}
             </h1>
-            {profile?.isVerified && (
+            {displayProfile?.isVerified && (
               <span className={styles.verified} aria-label="Verified">
                 <CheckCircle2 size={14} />
               </span>
             )}
           </div>
           <p className={styles.handle}>
-            @{profile?.username ?? currentUser?.username ?? "user"}
+            @{displayProfile?.username ?? "user"}
           </p>
 
           {/* Bio */}
-          {profile?.bio && <p className={styles.bio}>{profile.bio}</p>}
+          {displayProfile?.bio && <p className={styles.bio}>{displayProfile.bio}</p>}
 
           {/* Meta */}
           <div className={styles.metaRow}>
@@ -224,10 +230,10 @@ export default function ProfilePage() {
                 Joined {joinedDate}
               </span>
             )}
-            {profile?.location && (
+            {displayProfile?.location && (
               <span className={styles.metaItem}>
                 <MapPin size={13} />
-                {profile.location}
+                {displayProfile.location}
               </span>
             )}
             {isOwnProfile && !profile?.location && (
@@ -250,7 +256,7 @@ export default function ProfilePage() {
           {/* Stats */}
           <div className={styles.stats}>
             <div className={styles.stat}>
-              <strong>{formatCount(profile?._count?.posts ?? 0)}</strong>
+              <strong>{formatCount(displayProfile?._count?.posts ?? 0)}</strong>
               <span>Posts</span>
             </div>
             <button
@@ -258,7 +264,7 @@ export default function ProfilePage() {
               className={styles.stat}
               onClick={() => setConnectionsModal("followers")}
             >
-              <strong>{formatCount(profile?._count?.followers ?? 0)}</strong>
+              <strong>{formatCount(displayProfile?._count?.followers ?? 0)}</strong>
               <span>Followers</span>
             </button>
             <button
@@ -266,7 +272,7 @@ export default function ProfilePage() {
               className={styles.stat}
               onClick={() => setConnectionsModal("following")}
             >
-              <strong>{formatCount(profile?._count?.following ?? 0)}</strong>
+              <strong>{formatCount(displayProfile?._count?.following ?? 0)}</strong>
               <span>Following</span>
             </button>
           </div>
@@ -291,7 +297,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Feed */}
-        {isLoading && (
+        {(isLoading || isProfilePending) && (
           <div className={styles.skeletonStack}>
             {[...Array(3)].map((_, i) => (
               <div key={i} className={styles.skeleton} />
@@ -299,13 +305,14 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {!isLoading && error && (
+        {!isLoading && !isProfilePending && error && (
           <div className={styles.empty}>
             <p>{error.message}</p>
           </div>
         )}
 
         {!isLoading &&
+          !isProfilePending &&
           !error &&
           activeTab !== "replies" &&
           activePosts.length === 0 && (
@@ -315,6 +322,7 @@ export default function ProfilePage() {
           )}
 
         {!isLoading &&
+          !isProfilePending &&
           !error &&
           activeTab === "replies" &&
           replies.length === 0 && (
@@ -324,6 +332,7 @@ export default function ProfilePage() {
           )}
 
         {!isLoading &&
+          !isProfilePending &&
           !error &&
           activeTab === "replies" &&
           replies.map((reply) => (
@@ -334,10 +343,13 @@ export default function ProfilePage() {
                   className={styles.replyAuthorLink}
                 >
                   {reply.user.avatar ? (
-                    <img
+                    <Image
                       src={reply.user.avatar}
                       alt={reply.user.username}
                       className={styles.replyAvatar}
+                      width={42}
+                      height={42}
+                      unoptimized
                     />
                   ) : (
                     <div className={styles.replyAvatarFallback}>
@@ -381,6 +393,7 @@ export default function ProfilePage() {
           ))}
 
         {!isLoading &&
+          !isProfilePending &&
           !error &&
           activeTab !== "replies" &&
           activePosts.map((post) => (

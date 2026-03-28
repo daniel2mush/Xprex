@@ -1,6 +1,7 @@
 "use client";
 
 import { useOptimistic, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Compass, MapPin, Search, Sparkles, Trash2 } from "lucide-react";
 import Feed from "@/components/home/Feed/Feed";
@@ -172,7 +173,14 @@ export default function ExplorePage() {
               {topCreators.map((creator) => (
                 <button key={creator.id} type="button" className={styles.creatorCard} onClick={() => router.push(`/profile/${creator.id}`)}>
                   {creator.avatar ? (
-                    <img src={creator.avatar} alt={creator.username} className={styles.creatorAvatar} />
+                    <Image
+                      src={creator.avatar}
+                      alt={creator.username}
+                      className={styles.creatorAvatar}
+                      width={42}
+                      height={42}
+                      unoptimized
+                    />
                   ) : (
                     <div className={styles.creatorFallback}>{creator.username[0].toUpperCase()}</div>
                   )}
@@ -272,10 +280,13 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
         />
         <div className={styles.personBody}>
           {person.avatar ? (
-            <img
+            <Image
               src={person.avatar}
               alt={person.username}
               className={styles.personAvatar}
+              width={58}
+              height={58}
+              unoptimized
             />
           ) : (
             <div className={styles.personAvatarFallback}>

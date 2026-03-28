@@ -2,6 +2,7 @@
 
 import styles from "./Messages.module.scss";
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { io, Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -59,6 +60,7 @@ export default function MessagesPage() {
   const activeMessagesRef = useRef<MessageItem[]>([]);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachmentsRef = useRef<MediaItem[]>([]);
 
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null | undefined
@@ -204,6 +206,10 @@ export default function MessagesPage() {
   useEffect(() => {
     activeMessagesRef.current = activeConversation?.messages ?? [];
   }, [activeConversation?.messages]);
+
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -373,6 +379,31 @@ export default function MessagesPage() {
     setAttachments([]);
   }, [activeConversationId]);
 
+  const cleanupUploadedAttachments = async (items: MediaItem[]) => {
+    if (items.length === 0) return;
+
+    await Promise.allSettled(
+      items.map((item) =>
+        fetch(`/api/media/${item.id}`, {
+          method: "DELETE",
+          credentials: "include",
+        }),
+      ),
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      void cleanupUploadedAttachments(attachmentsRef.current);
+    };
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    return () => {
+      void cleanupUploadedAttachments(attachmentsRef.current);
+    };
+  }, []);
+
   const handleAttachmentSelection = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -515,10 +546,13 @@ export default function MessagesPage() {
                 }}
               >
                 {conversation.participant.avatar ? (
-                  <img
+                  <Image
                     src={conversation.participant.avatar}
                     alt={conversation.participant.username}
                     className={styles.avatar}
+                    width={48}
+                    height={48}
+                    unoptimized
                   />
                 ) : (
                   <div className={styles.avatarFallback}>
@@ -575,10 +609,13 @@ export default function MessagesPage() {
                   </button>
                 )}
                 {activeParticipant?.avatar ? (
-                  <img
+                  <Image
                     src={activeParticipant.avatar}
                     alt={activeParticipant.username}
                     className={styles.chatAvatar}
+                    width={48}
+                    height={48}
+                    unoptimized
                   />
                 ) : (
                   <div className={styles.chatAvatarFallback}>
@@ -641,10 +678,13 @@ export default function MessagesPage() {
                                     className={styles.messageMedia}
                                   />
                                 ) : (
-                                  <img
+                                  <Image
                                     src={media.url}
                                     alt=""
                                     className={styles.messageMedia}
+                                    width={320}
+                                    height={220}
+                                    unoptimized
                                   />
                                 )}
                               </div>
@@ -691,21 +731,25 @@ export default function MessagesPage() {
                           preload="metadata"
                         />
                       ) : (
-                        <img
+                        <Image
                           src={attachment.url}
                           alt=""
                           className={styles.attachmentPreview}
+                          width={72}
+                          height={72}
+                          unoptimized
                         />
                       )}
                       <button
                         type="button"
                         className={styles.removeAttachment}
                         aria-label="Remove attachment"
-                        onClick={() =>
+                        onClick={() => {
                           setAttachments((current) =>
                             current.filter((item) => item.id !== attachment.id),
-                          )
-                        }
+                          );
+                          void cleanupUploadedAttachments([attachment]);
+                        }}
                       >
                         <X size={12} />
                       </button>

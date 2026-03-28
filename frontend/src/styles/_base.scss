@@ -13,14 +13,19 @@ body {
   line-height: 1.65; // Perfect readability
   background-image:
     radial-gradient(
-      circle at top,
-      color-mix(in srgb, var(--brand-primary) 12%, transparent),
-      transparent 34%
+      circle at top center,
+      color-mix(in srgb, var(--brand-primary) 10%, transparent),
+      transparent 28%
     ),
     radial-gradient(
-      circle at bottom right,
-      color-mix(in srgb, var(--brand-hover) 10%, transparent),
-      transparent 24%
+      circle at 85% 15%,
+      color-mix(in srgb, var(--brand-hover) 7%, transparent),
+      transparent 22%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #07090c 92%, var(--bg-app)),
+      var(--bg-app) 28%
     );
   background-attachment: fixed;
   transition:
@@ -29,7 +34,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 28%, transparent);
   color: var(--text-main);
 }
 

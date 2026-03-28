@@ -53,9 +53,7 @@ export default function LoginPage() {
     <div className={style.panel}>
       <div className={style.header}>
         <p className={style.eyebrow}>Sign in with email</p>
-        <p className={style.description}>
-          Use the account tied to your posts, messages, and saved activity.
-        </p>
+        <p className={style.description}>Pick up where you left off.</p>
       </div>
 
       <form className={style.form} onSubmit={handleSubmit(Login)} noValidate>
@@ -75,11 +73,6 @@ export default function LoginPage() {
           error={errors.password?.message}
           {...register("password")}
         />
-
-        <div className={style.metaRow}>
-          <span>Secure session for your account</span>
-          <span>Fast access to feed and settings</span>
-        </div>
 
         <Button
           isLoading={isSubmitting}

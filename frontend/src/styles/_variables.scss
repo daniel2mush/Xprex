@@ -16,23 +16,23 @@ $bp-desktop: map.get($breakpoints, desktop) !default;
 $bp-wide: map.get($breakpoints, wide) !default;
 
 // ==========================================
-// 🎨 RAW COLORS — Modern editorial dark
+// 🎨 RAW COLORS — Social dark, true black canvas
 // ==========================================
-$void-black: #08111f !default; // App canvas
-$surface-dark: #111c2d !default; // Cards
-$surface-elevated: #18253a !default; // Nested elements / inputs
-$border-dark: #27364b !default; // Structural lines
+$void-black: #000000 !default; // App canvas
+$surface-dark: #0a0c0f !default; // Cards
+$surface-elevated: #12161c !default; // Nested elements / inputs
+$border-dark: #20262f !default; // Structural lines
 
-// Brand — Cobalt → Teal
-$violet-core: #3b82f6 !default; // Primary
-$rose-accent: #14b8a6 !default; // Accent / CTA
+// Brand — Social blue with warm energy
+$violet-core: #1d9bf0 !default; // Primary
+$rose-accent: #ff6b3d !default; // Accent / CTA
 $violet-soft: #7dd3fc !default; // Soft highlight / links
 
 // Text
 $pure-white: #ffffff !default;
-$text-primary: #f4f7fb !default;
-$text-secondary: #c1cad9 !default;
-$text-muted: #7b8ba5 !default;
+$text-primary: #f7f9fb !default;
+$text-secondary: #b9c1cc !default;
+$text-muted: #7a8596 !default;
 
 // ==========================================
 // 🏗️ SEMANTIC TOKENS
@@ -40,7 +40,7 @@ $text-muted: #7b8ba5 !default;
 $bg-app: $void-black !default;
 $bg-surface: $surface-dark !default;
 $bg-header: $void-black !default;
-$bg-input: #0c1627 !default; // Slightly recessed inputs
+$bg-input: #090b0e !default; // Slightly recessed inputs
 
 $brand-primary: $violet-core !default;
 $brand-hover: $rose-accent !default;

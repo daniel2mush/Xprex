@@ -18,6 +18,7 @@ import {
 import styles from "./LeftSideBar.module.scss";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { useCollapsedStore } from "@/store/sideBarStore";
@@ -246,7 +247,14 @@ export default function LeftSideBar() {
             <Link href={profileLink} className={styles.profileLink}>
               <div className={styles.avatar}>
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.username} className={styles.avatarImg} />
+                  <Image
+                    src={user.avatar}
+                    alt={user.username}
+                    className={styles.avatarImg}
+                    width={42}
+                    height={42}
+                    unoptimized
+                  />
                 ) : (
                   <div className={styles.avatarFallback}>
                     {user.username?.[0]?.toUpperCase()}
