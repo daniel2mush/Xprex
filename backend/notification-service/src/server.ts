@@ -3,6 +3,8 @@ import { consumeEvent, initRabbitMQ } from "@social/rabbitmq";
 import { handleCommentCreated } from "./handlers/commentHandler";
 import { handleLikeCreated } from "./handlers/likeHandler";
 import { handleFollowCreated } from "./handlers/followHandler";
+import { handleMessageCreated } from "./handlers/messageHandler";
+import { handleRepostCreated } from "./handlers/repostHandler";
 import logger from "./utils/logger";
 import express, { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
@@ -55,6 +57,8 @@ const start = async () => {
   await consumeEvent("social:comment-created", handleCommentCreated);
   await consumeEvent("social:like-created", handleLikeCreated);
   await consumeEvent("social:follow-created", handleFollowCreated);
+  await consumeEvent("social:repost-created", handleRepostCreated);
+  await consumeEvent("social:message-created", handleMessageCreated);
 
   logger.info("Notification service listening for events");
   app.listen(env.PORT, () => {

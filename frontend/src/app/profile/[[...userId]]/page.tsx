@@ -3,7 +3,13 @@ import styles from "./ProfilePage.module.scss";
 import ConnectionsModal from "./ConnectionsModal";
 import { useParams, useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
-import { useGetProfile, useFollowUser } from "@/query/ProfileQuery";
+import {
+  useGetProfile,
+  useFollowUser,
+  useReportUser,
+  useToggleBlockUser,
+  useToggleMuteUser,
+} from "@/query/ProfileQuery";
 import Feed from "@/components/home/Feed/Feed";
 import RightSideBar from "@/components/home/RightSideBar/RightSideBar";
 import EditProfileModal from "@/components/editProfileModal/EditProfileModal";
@@ -18,6 +24,8 @@ import { useState } from "react";
 import { Button } from "@/ui/Buttons/Buttons";
 import { timeAgoShort } from "@/lib/ParseDate";
 import Link from "next/link";
+import { toast } from "sonner";
+import SafetyToolsModal from "@/components/moderation/SafetyToolsModal";
 
 type ActiveTab = "posts" | "replies" | "media" | "likes";
 
@@ -31,12 +39,22 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("posts");
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSafetyTools, setShowSafetyTools] = useState(false);
   const [connectionsModal, setConnectionsModal] = useState<
     "followers" | "following" | null
   >(null);
 
   const { data, isLoading, error } = useGetProfile(resolvedUserId);
   const { mutate: followUser, isPending: isFollowing } = useFollowUser(
+    resolvedUserId ?? "",
+  );
+  const { mutate: toggleBlockUser, isPending: isBlocking } = useToggleBlockUser(
+    resolvedUserId ?? "",
+  );
+  const { mutate: toggleMuteUser, isPending: isMuting } = useToggleMuteUser(
+    resolvedUserId ?? "",
+  );
+  const { mutate: reportUser, isPending: isReporting } = useReportUser(
     resolvedUserId ?? "",
   );
 
@@ -151,7 +169,7 @@ export default function ProfilePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!canMessage}
+                    disabled={!canMessage || profile?.isBlocked}
                     onClick={() => {
                       if (!profile || !canMessage) return;
                       router.push(`/messages?userId=${profile.id}`);
@@ -161,6 +179,7 @@ export default function ProfilePage() {
                   </Button>
                   <Button
                     size="sm"
+                    disabled={profile?.isBlocked}
                     onClick={() => followUser()}
                     isLoading={isFollowing}
                   >
@@ -170,6 +189,14 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+
+          {!isOwnProfile && profile && (
+            <div className={styles.moderationRow}>
+              <Button variant="outline" size="sm" onClick={() => setShowSafetyTools(true)}>
+                Safety tools
+              </Button>
+            </div>
+          )}
 
           {/* Name + handle */}
           <div className={styles.nameRow}>
@@ -379,6 +406,41 @@ export default function ProfilePage() {
           userId={resolvedUserId}
           type={connectionsModal}
           onClose={() => setConnectionsModal(null)}
+        />
+      )}
+
+      {showSafetyTools && profile && (
+        <SafetyToolsModal
+          username={profile.username}
+          isBlocked={Boolean(profile.isBlocked)}
+          isMuted={Boolean(profile.isMuted)}
+          isBlocking={isBlocking}
+          isMuting={isMuting}
+          isReporting={isReporting}
+          onClose={() => setShowSafetyTools(false)}
+          onToggleMute={() =>
+            toggleMuteUser(undefined, {
+              onSuccess: (result) =>
+                toast.success(result.message ?? "Mute updated"),
+              onError: (error) => toast.error(error.message),
+            })
+          }
+          onToggleBlock={() =>
+            toggleBlockUser(undefined, {
+              onSuccess: (result) =>
+                toast.success(result.message ?? "Block updated"),
+              onError: (error) => toast.error(error.message),
+            })
+          }
+          onSubmitReport={(payload) =>
+            reportUser(payload, {
+              onSuccess: () => {
+                toast.success("Report submitted. Thanks for flagging it.");
+                setShowSafetyTools(false);
+              },
+              onError: (error) => toast.error(error.message),
+            })
+          }
         />
       )}
     </div>

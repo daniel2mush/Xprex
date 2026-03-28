@@ -101,6 +101,7 @@ export interface User {
   bio?: string | undefined;
   location?: string | undefined;
   isVerified: boolean;
+  isAdmin?: boolean;
   createdAt?: string;
   _count?: postCounts;
 }
@@ -173,7 +174,13 @@ export interface CommentResponse {
   };
 }
 
-export type NotificationType = "LIKE" | "COMMENT" | "REPLY" | "FOLLOW";
+export type NotificationType =
+  | "LIKE"
+  | "COMMENT"
+  | "REPLY"
+  | "FOLLOW"
+  | "REPOST"
+  | "MESSAGE";
 
 export interface NotificationTypes {
   id: string;
@@ -203,6 +210,7 @@ export interface NotificationResponse {
 export interface ProfileUser {
   id: string;
   username: string;
+  email?: string;
   avatar?: string;
   headerPhoto?: string;
   bio?: string;
@@ -211,6 +219,8 @@ export interface ProfileUser {
   createdAt: string;
   isFollowing?: boolean;
   followsYou?: boolean;
+  isBlocked?: boolean;
+  isMuted?: boolean;
   _count: {
     posts: number;
     followers: number;
@@ -282,6 +292,7 @@ export interface MessageItem {
   senderId: string;
   content: string;
   createdAt: string;
+  media: MediaItem[];
 }
 
 export interface ConversationPreview {
@@ -305,6 +316,99 @@ export interface ConversationResponse {
     messages: MessageItem[];
     updatedAt: string;
     unreadCount?: number;
+    currentUserLastReadAt?: string;
+    otherParticipantLastReadAt?: string;
+  };
+}
+
+export interface TrendingTopic {
+  label: string;
+  searchValue: string;
+  count: number;
+}
+
+export interface TrendingCreator {
+  id: string;
+  username: string;
+  avatar?: string;
+  count: number;
+}
+
+export interface TrendingDiscoveryResponse {
+  success: boolean;
+  data: {
+    topics: TrendingTopic[];
+    creators: TrendingCreator[];
+  };
+}
+
+export interface AccountSecurityResponse {
+  success: boolean;
+  message: string;
+  data?: User;
+}
+
+export type ReportReason =
+  | "SPAM"
+  | "ABUSE"
+  | "HARASSMENT"
+  | "MISINFORMATION"
+  | "IMPERSONATION"
+  | "OTHER";
+
+export type ReportStatus = "OPEN" | "REVIEWED" | "DISMISSED";
+
+export interface AdminReportItem {
+  id: string;
+  reason: ReportReason;
+  details?: string | null;
+  status: ReportStatus;
+  createdAt: string;
+  updatedAt: string;
+  reporter: {
+    id: string;
+    username: string;
+    avatar?: string;
+  };
+  targetUser?: {
+    id: string;
+    username: string;
+    avatar?: string;
+    isVerified?: boolean;
+  } | null;
+  targetPost?: {
+    id: string;
+    content: string;
+    createdAt: string;
+    user: CommentUser;
+  } | null;
+}
+
+export interface AdminReportsResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    reports: AdminReportItem[];
+    pagination: pagination;
+  };
+}
+
+export interface UpdateReportStatusResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    status: ReportStatus;
+    updatedAt: string;
+  };
+}
+
+export interface MediaUploadResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    media: MediaItem[];
+    urls: string[];
   };
 }
 

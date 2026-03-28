@@ -5,6 +5,7 @@ import {
   Bell,
   Bookmark,
   Compass,
+  Flag,
   HomeIcon,
   LogOut,
   MessageCircle,
@@ -103,7 +104,21 @@ export default function LeftSideBar() {
 
   const navigationItems = useMemo(
     () =>
-      sideNav.map(({ icon, name, link, match }) => {
+      [
+        ...sideNav,
+        ...(user?.isAdmin
+          ? [
+              {
+                icon: <Flag size={20} />,
+                name: "Reports",
+                link: "/admin/reports",
+                match: (currentPath: string) =>
+                  currentPath === "/admin/reports" ||
+                  currentPath.startsWith("/admin/reports/"),
+              },
+            ]
+          : []),
+      ].map(({ icon, name, link, match }) => {
         const href = name === "Profile" ? profileLink : link;
         const isActive = match ? match(pathname) : pathname === href;
         const badgeCount =
@@ -115,7 +130,7 @@ export default function LeftSideBar() {
 
         return { icon, name, href, isActive, badgeCount };
       }),
-    [pathname, profileLink, unreadMessages, unreadNotifications],
+    [pathname, profileLink, unreadMessages, unreadNotifications, user?.isAdmin],
   );
 
   if (!user || pathname === "/auth") return null;
@@ -214,6 +229,8 @@ export default function LeftSideBar() {
                         ? "Search and discover"
                         : name === "Profile"
                           ? "Your public identity"
+                          : name === "Reports"
+                            ? "Moderation inbox"
                           : name === "Settings"
                             ? "Account and preferences"
                             : "Main timeline"}

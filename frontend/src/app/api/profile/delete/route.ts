@@ -1,0 +1,22 @@
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import api from "@/lib/Axios";
+
+export async function DELETE(req: NextRequest) {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  try {
+    const body = await req.json();
+    const { data } = await api.delete("profile/delete", {
+      data: body,
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    const status = error.response?.status ?? 500;
+    const message = error.response?.data?.message ?? "Failed to delete account";
+    return NextResponse.json({ success: false, message }, { status });
+  }
+}

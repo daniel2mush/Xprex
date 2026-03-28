@@ -19,3 +19,18 @@ export interface FollowCreatedEvent {
   followerId: string;
   followingId: string;
 }
+
+export interface RepostCreatedEvent {
+  repostId: string;
+  postId: string;
+  postOwnerId: string;
+  repostedById: string;
+}
+
+export interface MessageCreatedEvent {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+}

@@ -21,6 +21,7 @@ model User {
   bio         String?  @db.Text
   location    String?
   isVerified  Boolean  @default(false)
+  isAdmin     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -34,6 +35,12 @@ model User {
   media                    Media[]
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("SentMessages")
+  blocksInitiated          Block[]                   @relation("UserBlocksInitiated")
+  blocksReceived           Block[]                   @relation("UserBlocksReceived")
+  mutesInitiated           Mute[]                    @relation("UserMutesInitiated")
+  mutesReceived            Mute[]                    @relation("UserMutesReceived")
+  reportsMade              Report[]                  @relation("ReportsMade")
+  reportsReceived          Report[]                  @relation("ReportTargetUser")
 
   // Follow graph
   following Follow[] @relation("UserFollowing")
@@ -68,6 +75,7 @@ model Post {
   bookmarks     Bookmark[]
   reposts       Repost[]
   notifications Notification[]
+  reports       Report[]
 
   @@index([userId])
   @@index([createdAt(sort: Desc)]) // fast feed queries
@@ -86,13 +94,16 @@ model Media {
   createdAt DateTime  @default(now())
 
   // Relations — media can belong to a post or a user (avatar upload flow)
-  postId String?
-  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId String
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String?
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([userId])
+  @@index([messageId])
 }
 
 enum MediaType {
@@ -211,9 +222,73 @@ model Message {
   sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   content        String       @db.Text
   createdAt      DateTime     @default(now())
+  media          Media[]
 
   @@index([conversationId, createdAt(sort: Asc)])
   @@index([senderId, createdAt(sort: Desc)])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  blockerId String
+  blocker   User   @relation("UserBlocksInitiated", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User   @relation("UserBlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model Mute {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  muterId String
+  muter   User   @relation("UserMutesInitiated", fields: [muterId], references: [id], onDelete: Cascade)
+  mutedId String
+  muted   User   @relation("UserMutesReceived", fields: [mutedId], references: [id], onDelete: Cascade)
+
+  @@unique([muterId, mutedId])
+  @@index([muterId])
+  @@index([mutedId])
+}
+
+enum ReportReason {
+  SPAM
+  ABUSE
+  HARASSMENT
+  MISINFORMATION
+  IMPERSONATION
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  reason    ReportReason
+  details   String?      @db.Text
+  status    ReportStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  reporterId   String
+  reporter     User    @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUserId String?
+  targetUser   User?   @relation("ReportTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetPostId String?
+  targetPost   Post?   @relation(fields: [targetPostId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId, createdAt(sort: Desc)])
+  @@index([targetUserId, createdAt(sort: Desc)])
+  @@index([targetPostId, createdAt(sort: Desc)])
 }
 
 // ==========================================
@@ -276,6 +351,8 @@ enum NotificationType {
   COMMENT
   REPLY
   FOLLOW
+  REPOST
+  MESSAGE
 }
 
 model Notification {

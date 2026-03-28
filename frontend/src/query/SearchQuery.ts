@@ -2,6 +2,7 @@ import {
   SearchHistoryResponse,
   SearchResponse,
   SearchUsersResponse,
+  TrendingDiscoveryResponse,
 } from "@/types/Types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -94,5 +95,24 @@ export const useClearSearchHistory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search", "history"] });
     },
+  });
+};
+
+export const useTrendingDiscovery = () => {
+  return useQuery({
+    queryKey: ["search", "trending"],
+    queryFn: async () => {
+      const response = await fetch("/api/search/trending", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to load trending discovery");
+      }
+
+      return response.json() as Promise<TrendingDiscoveryResponse>;
+    },
+    staleTime: 1000 * 60,
   });
 };

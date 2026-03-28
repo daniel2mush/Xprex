@@ -1,5 +1,6 @@
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
+import { publishEvent } from "@social/rabbitmq";
 import { env } from "../env";
 import logger from "../utils/logger";
 import {
@@ -42,8 +43,15 @@ export const createSocketServer = (httpServer: HttpServer) => {
       const conversation = await getConversationMessages(userId, conversationId);
       if (!conversation) return;
 
-      await markConversationRead(userId, conversationId);
+      const readAt = await markConversationRead(userId, conversationId);
       socket.join(conversationId);
+      if (readAt) {
+        messagingNamespace.to(conversationId).emit("message:read", {
+          conversationId,
+          userId,
+          readAt,
+        });
+      }
       logger.info("Socket joined conversation", {
         socketId: socket.id,
         userId,
@@ -52,18 +60,42 @@ export const createSocketServer = (httpServer: HttpServer) => {
     });
 
     socket.on(
+      "message:typing",
+      (payload: { conversationId: string }) => {
+        socket.to(payload.conversationId).emit("message:typing", {
+          conversationId: payload.conversationId,
+          userId,
+        });
+      },
+    );
+
+    socket.on(
+      "message:typing-stop",
+      (payload: { conversationId: string }) => {
+        socket.to(payload.conversationId).emit("message:typing-stop", {
+          conversationId: payload.conversationId,
+          userId,
+        });
+      },
+    );
+
+    socket.on(
       "message:send",
       async (
-        payload: { conversationId: string; content: string },
+        payload: { conversationId: string; content?: string; mediaIds?: string[] },
         ack?: (response: {
           success: boolean;
           message?: string;
           data?: unknown;
         }) => void,
       ) => {
-        const content = payload.content.trim();
-        if (!content) {
-          ack?.({ success: false, message: "Message content is required" });
+        const content = payload.content?.trim() ?? "";
+        const hasMedia = Array.isArray(payload.mediaIds) && payload.mediaIds.length > 0;
+        if (!content && !hasMedia) {
+          ack?.({
+            success: false,
+            message: "Message content or attachment is required",
+          });
           return;
         }
 
@@ -71,6 +103,7 @@ export const createSocketServer = (httpServer: HttpServer) => {
           conversationId: payload.conversationId,
           senderId: userId,
           content,
+          mediaIds: payload.mediaIds,
         });
 
         if (!saved) {
@@ -82,6 +115,22 @@ export const createSocketServer = (httpServer: HttpServer) => {
           conversationId: payload.conversationId,
           message: saved.message,
         });
+
+        const recipient = saved.conversation.participants.find(
+          (participant) => participant.id !== userId,
+        );
+
+        if (recipient) {
+          publishEvent("social:message-created", {
+            messageId: saved.message.id,
+            conversationId: payload.conversationId,
+            senderId: userId,
+            recipientId: recipient.id,
+            content,
+          }).catch((error: unknown) =>
+            logger.warn("Failed to publish message notification event", error),
+          );
+        }
 
         ack?.({
           success: true,

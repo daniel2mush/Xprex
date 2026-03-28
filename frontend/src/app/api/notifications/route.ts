@@ -11,8 +11,6 @@ export async function GET(req: NextRequest) {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
 
-    console.log(data, "Notifications");
-
     return NextResponse.json(data);
   } catch (error: any) {
     const status = error.response?.status ?? 500;

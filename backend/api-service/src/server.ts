@@ -48,6 +48,7 @@ const baseProxyOptions = {
 // Injects userId for authenticated routes
 const withUserId = (proxyReqOptions: any, srcReq: Request) => {
   proxyReqOptions.headers["x-user-id"] = srcReq.user.userId;
+  proxyReqOptions.headers["x-user-is-admin"] = String(srcReq.user.isAdmin);
   proxyReqOptions.headers["content-type"] = "application/json";
   return proxyReqOptions;
 };
@@ -120,6 +121,7 @@ app.use(
     parseReqBody: false, // must be false for multipart — don't let the gateway buffer it
     proxyReqOptDecorator: (proxyReqOptions, srcReq) => {
       proxyReqOptions.headers["x-user-id"] = srcReq.user.userId;
+      proxyReqOptions.headers["x-user-is-admin"] = String(srcReq.user.isAdmin);
 
       // Only set JSON content-type for non-multipart requests
       // For file uploads the original content-type must pass through untouched

@@ -131,6 +131,7 @@ exports.Prisma.UserScalarFieldEnum = {
   bio: 'bio',
   location: 'location',
   isVerified: 'isVerified',
+  isAdmin: 'isAdmin',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -152,7 +153,8 @@ exports.Prisma.MediaScalarFieldEnum = {
   size: 'size',
   createdAt: 'createdAt',
   postId: 'postId',
-  userId: 'userId'
+  userId: 'userId',
+  messageId: 'messageId'
 };
 
 exports.Prisma.LikeScalarFieldEnum = {
@@ -207,6 +209,32 @@ exports.Prisma.MessageScalarFieldEnum = {
   senderId: 'senderId',
   content: 'content',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.BlockScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  blockerId: 'blockerId',
+  blockedId: 'blockedId'
+};
+
+exports.Prisma.MuteScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  muterId: 'muterId',
+  mutedId: 'mutedId'
+};
+
+exports.Prisma.ReportScalarFieldEnum = {
+  id: 'id',
+  reason: 'reason',
+  details: 'details',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  reporterId: 'reporterId',
+  targetUserId: 'targetUserId',
+  targetPostId: 'targetPostId'
 };
 
 exports.Prisma.FollowScalarFieldEnum = {
@@ -264,11 +292,28 @@ exports.MediaType = exports.$Enums.MediaType = {
   GIF: 'GIF'
 };
 
+exports.ReportReason = exports.$Enums.ReportReason = {
+  SPAM: 'SPAM',
+  ABUSE: 'ABUSE',
+  HARASSMENT: 'HARASSMENT',
+  MISINFORMATION: 'MISINFORMATION',
+  IMPERSONATION: 'IMPERSONATION',
+  OTHER: 'OTHER'
+};
+
+exports.ReportStatus = exports.$Enums.ReportStatus = {
+  OPEN: 'OPEN',
+  REVIEWED: 'REVIEWED',
+  DISMISSED: 'DISMISSED'
+};
+
 exports.NotificationType = exports.$Enums.NotificationType = {
   LIKE: 'LIKE',
   COMMENT: 'COMMENT',
   REPLY: 'REPLY',
-  FOLLOW: 'FOLLOW'
+  FOLLOW: 'FOLLOW',
+  REPOST: 'REPOST',
+  MESSAGE: 'MESSAGE'
 };
 
 exports.Prisma.ModelName = {
@@ -282,6 +327,9 @@ exports.Prisma.ModelName = {
   Conversation: 'Conversation',
   ConversationParticipant: 'ConversationParticipant',
   Message: 'Message',
+  Block: 'Block',
+  Mute: 'Mute',
+  Report: 'Report',
   Follow: 'Follow',
   RefreshToken: 'RefreshToken',
   Search: 'Search',

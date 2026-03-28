@@ -1,8 +1,9 @@
 import {
   ConversationResponse,
   ConversationsResponse,
+  MediaUploadResponse,
 } from "@/types/Types";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useGetConversations = () => {
   return useQuery({
@@ -41,5 +42,27 @@ export const useGetConversation = (conversationId?: string) => {
       return response.json() as Promise<ConversationResponse>;
     },
     staleTime: 1000 * 10,
+  });
+};
+
+export const useUploadMessageAttachments = () => {
+  return useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("media", file));
+
+      const response = await fetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Upload failed");
+      }
+
+      const result = (await response.json()) as MediaUploadResponse;
+      return result.data.media;
+    },
   });
 };

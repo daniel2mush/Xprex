@@ -2,7 +2,7 @@
 import { NotificationTypes, PostTypes } from "@/types/Types";
 import styles from "./Notifications.module.scss";
 import { timeAgoShort } from "@/lib/ParseDate";
-import { Bell, Heart, MessageCircle, UserPlus } from "lucide-react";
+import { Bell, Heart, MessageCircle, Repeat2, UserPlus } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
 import Link from "next/link";
 import { useState } from "react";
@@ -19,6 +19,8 @@ const NotificationIcon = ({ type }: { type: NotificationTypes["type"] }) => {
     COMMENT: <MessageCircle size={14} className={styles.iconComment} />,
     REPLY: <MessageCircle size={14} className={styles.iconReply} />,
     FOLLOW: <UserPlus size={14} className={styles.iconFollow} />,
+    REPOST: <Repeat2 size={14} className={styles.iconReply} />,
+    MESSAGE: <MessageCircle size={14} className={styles.iconComment} />,
   };
   return <span className={styles.iconWrap}>{icons[type]}</span>;
 };
@@ -33,6 +35,10 @@ const notificationText = (n: NotificationTypes): string => {
       return `replied to your comment`;
     case "FOLLOW":
       return `started following you`;
+    case "REPOST":
+      return `reposted your post`;
+    case "MESSAGE":
+      return `sent you a message`;
   }
 };
 

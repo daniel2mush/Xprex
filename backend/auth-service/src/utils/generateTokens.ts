@@ -1,4 +1,3 @@
-import { type User } from "@social/db";
 import jwt from "jsonwebtoken";
 import { env } from "../env";
 import crypto from "crypto";
@@ -6,6 +5,7 @@ import crypto from "crypto";
 interface TokenPayload {
   userId: string;
   username: string;
+  isAdmin: boolean;
 }
 
 interface GeneratedTokens {
@@ -14,11 +14,12 @@ interface GeneratedTokens {
 }
 
 export const generateTokens = (
-  user: Pick<User, "id" | "username">,
+  user: { id: string; username: string; isAdmin?: boolean },
 ): GeneratedTokens => {
   const payload: TokenPayload = {
     userId: user.id,
     username: user.username,
+    isAdmin: Boolean(user.isAdmin),
   };
 
   const accessToken = jwt.sign(payload, env.JWT_SECRET, {

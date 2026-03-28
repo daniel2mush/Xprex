@@ -11,6 +11,11 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   createdAt: string;
+  media: {
+    id: string;
+    url: string;
+    type: "IMAGE" | "VIDEO" | "GIF";
+  }[];
 }
 
 export interface ChatConversation {
@@ -18,6 +23,8 @@ export interface ChatConversation {
   participants: ChatParticipant[];
   messages: ChatMessage[];
   updatedAt: string;
+  currentUserLastReadAt?: string;
+  otherParticipantLastReadAt?: string;
 }
 
 export interface ConversationPreview {

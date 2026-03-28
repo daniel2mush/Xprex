@@ -7,21 +7,28 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   MessageSquare,
-  Phone,
+  Paperclip,
   Search,
   Send,
   Sparkles,
+  X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ConversationsResponse,
   ConversationResponse,
+  MediaItem,
   MessageItem,
 } from "@/types/Types";
-import { useGetConversation, useGetConversations } from "@/query/MessagingQuery";
+import {
+  useGetConversation,
+  useGetConversations,
+  useUploadMessageAttachments,
+} from "@/query/MessagingQuery";
 import { useUserStore } from "@/store/userStore";
 import { timeAgoShort } from "@/lib/ParseDate";
 import { Button } from "@/ui/Buttons/Buttons";
+import { toast } from "sonner";
 
 const MESSAGING_URL =
   process.env.NEXT_PUBLIC_MESSAGING_URL ?? "http://localhost:4007";
@@ -29,6 +36,17 @@ const MESSAGING_URL =
 type IncomingMessagePayload = {
   conversationId: string;
   message: MessageItem;
+};
+
+type ReadReceiptPayload = {
+  conversationId: string;
+  userId: string;
+  readAt: string;
+};
+
+type TypingPayload = {
+  conversationId: string;
+  userId: string;
 };
 
 export default function MessagesPage() {
@@ -40,14 +58,20 @@ export default function MessagesPage() {
   const activeConversationRef = useRef<string | undefined>(undefined);
   const activeMessagesRef = useRef<MessageItem[]>([]);
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null | undefined
   >(undefined);
   const [draft, setDraft] = useState("");
+  const [conversationSearch, setConversationSearch] = useState("");
   const [liveMessagesByConversation, setLiveMessagesByConversation] = useState<
     Record<string, MessageItem[]>
   >({});
+  const [typingByConversation, setTypingByConversation] = useState<
+    Record<string, boolean>
+  >({});
+  const [attachments, setAttachments] = useState<MediaItem[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(() =>
@@ -57,6 +81,8 @@ export default function MessagesPage() {
   );
   const requestedUserId = searchParams.get("userId");
   const requestedConversationId = searchParams.get("conversationId");
+  const { mutateAsync: uploadAttachments, isPending: isUploadingAttachments } =
+    useUploadMessageAttachments();
 
   const { data: conversationsData, isLoading: loadingConversations } =
     useGetConversations();
@@ -128,6 +154,15 @@ export default function MessagesPage() {
       : undefined) ??
     activeConversation?.messages ??
     [];
+  const filteredConversations = conversations.filter((conversation) =>
+    conversation.participant.username
+      .toLowerCase()
+      .includes(conversationSearch.trim().toLowerCase()),
+  );
+  const otherParticipantReadAt = activeConversation?.otherParticipantLastReadAt;
+  const isOtherParticipantTyping = Boolean(
+    activeConversationId && typingByConversation[activeConversationId],
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 960px)");
@@ -263,6 +298,42 @@ export default function MessagesPage() {
       );
     });
 
+    socket.on("message:read", (payload: ReadReceiptPayload) => {
+      if (payload.userId === user?.id) return;
+
+      queryClient.setQueryData<ConversationResponse | undefined>(
+        ["messages", "conversation", payload.conversationId],
+        (current) =>
+          current
+            ? {
+                ...current,
+                data: {
+                  ...current.data,
+                  otherParticipantLastReadAt: payload.readAt,
+                },
+              }
+            : current,
+      );
+    });
+
+    socket.on("message:typing", (payload: TypingPayload) => {
+      if (payload.userId === user?.id) return;
+
+      setTypingByConversation((current) => ({
+        ...current,
+        [payload.conversationId]: true,
+      }));
+    });
+
+    socket.on("message:typing-stop", (payload: TypingPayload) => {
+      if (payload.userId === user?.id) return;
+
+      setTypingByConversation((current) => ({
+        ...current,
+        [payload.conversationId]: false,
+      }));
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -274,11 +345,65 @@ export default function MessagesPage() {
     socketRef.current.emit("message:join", activeConversationId);
   }, [activeConversationId]);
 
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !activeConversationId) return;
+
+    if (!draft.trim()) {
+      socket.emit("message:typing-stop", {
+        conversationId: activeConversationId,
+      });
+      return;
+    }
+
+    socket.emit("message:typing", {
+      conversationId: activeConversationId,
+    });
+
+    const timeout = window.setTimeout(() => {
+      socket.emit("message:typing-stop", {
+        conversationId: activeConversationId,
+      });
+    }, 900);
+
+    return () => window.clearTimeout(timeout);
+  }, [activeConversationId, draft]);
+
+  useEffect(() => {
+    setAttachments([]);
+  }, [activeConversationId]);
+
+  const handleAttachmentSelection = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) return;
+
+    try {
+      const uploaded = await uploadAttachments(files);
+      setAttachments((current) => [...current, ...uploaded].slice(0, 4));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Attachment upload failed",
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   const handleSend = () => {
     const socket = socketRef.current;
     const content = draft.trim();
+    const mediaIds = attachments.map((attachment) => attachment.id);
 
-    if (!socket || !activeConversationId || !content || !user?.id) return;
+    if (
+      !socket ||
+      !activeConversationId ||
+      (!content && mediaIds.length === 0) ||
+      !user?.id
+    ) {
+      return;
+    }
 
     setIsSending(true);
 
@@ -287,6 +412,7 @@ export default function MessagesPage() {
       {
         conversationId: activeConversationId,
         content,
+        mediaIds,
       },
       (response: {
         success: boolean;
@@ -299,10 +425,14 @@ export default function MessagesPage() {
           return;
         }
 
+        socket.emit("message:typing-stop", {
+          conversationId: activeConversationId,
+        });
         setDraft("");
         if (composerRef.current) {
           composerRef.current.style.height = "auto";
         }
+        setAttachments([]);
       },
     );
   };
@@ -346,7 +476,11 @@ export default function MessagesPage() {
 
         <div className={styles.searchBox}>
           <Search size={15} />
-          <input placeholder="Search conversations" disabled />
+          <input
+            placeholder="Search conversations"
+            value={conversationSearch}
+            onChange={(event) => setConversationSearch(event.target.value)}
+          />
         </div>
 
         <div className={styles.conversationList}>
@@ -364,7 +498,7 @@ export default function MessagesPage() {
           )}
 
           {!loadingConversations &&
-            conversations.map((conversation) => (
+            filteredConversations.map((conversation) => (
               <button
                 key={conversation.id}
                 type="button"
@@ -456,14 +590,14 @@ export default function MessagesPage() {
                     {activeParticipant?.username ?? "Conversation"}
                   </h2>
                   <p className={styles.chatStatus}>
-                    {activeParticipant?.isOnline ? "Online now" : "Offline"}
+                    {isOtherParticipantTyping
+                      ? "Typing..."
+                      : activeParticipant?.isOnline
+                        ? "Online now"
+                        : "Offline"}
                   </p>
                 </div>
               </div>
-
-              <button className={styles.callButton} type="button">
-                <Phone size={16} />
-              </button>
             </header>
 
             <div className={styles.messageStream}>
@@ -476,6 +610,11 @@ export default function MessagesPage() {
               {!loadingConversation &&
                 liveMessages.map((message) => {
                   const ownMessage = message.senderId === user?.id;
+                  const seen =
+                    ownMessage &&
+                    otherParticipantReadAt &&
+                    new Date(otherParticipantReadAt).getTime() >=
+                      new Date(message.createdAt).getTime();
 
                   return (
                     <div
@@ -489,8 +628,33 @@ export default function MessagesPage() {
                           ownMessage ? styles.ownMessageBubble : ""
                         }`}
                       >
-                        <p>{message.content}</p>
+                        {message.content && <p>{message.content}</p>}
+                        {message.media.length > 0 && (
+                          <div className={styles.messageMediaGrid}>
+                            {message.media.map((media) => (
+                              <div key={media.id} className={styles.messageMediaCard}>
+                                {media.type === "VIDEO" ? (
+                                  <video
+                                    src={media.url}
+                                    controls
+                                    preload="metadata"
+                                    className={styles.messageMedia}
+                                  />
+                                ) : (
+                                  <img
+                                    src={media.url}
+                                    alt=""
+                                    className={styles.messageMedia}
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <span>{timeAgoShort(new Date(message.createdAt))}</span>
+                        {seen && (
+                          <span className={styles.messageSeen}>Seen</span>
+                        )}
                       </div>
                     </div>
                   );
@@ -498,6 +662,58 @@ export default function MessagesPage() {
             </div>
 
             <footer className={styles.composer}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className={styles.fileInput}
+                onChange={handleAttachmentSelection}
+              />
+              <button
+                type="button"
+                className={styles.attachButton}
+                aria-label="Add attachment"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAttachments || attachments.length >= 4}
+              >
+                <Paperclip size={16} />
+              </button>
+
+              {attachments.length > 0 && (
+                <div className={styles.attachmentTray}>
+                  {attachments.map((attachment) => (
+                    <div key={attachment.id} className={styles.attachmentChip}>
+                      {attachment.type === "VIDEO" ? (
+                        <video
+                          src={attachment.url}
+                          className={styles.attachmentPreview}
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img
+                          src={attachment.url}
+                          alt=""
+                          className={styles.attachmentPreview}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        className={styles.removeAttachment}
+                        aria-label="Remove attachment"
+                        onClick={() =>
+                          setAttachments((current) =>
+                            current.filter((item) => item.id !== attachment.id),
+                          )
+                        }
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <textarea
                 ref={composerRef}
                 value={draft}
@@ -511,7 +727,11 @@ export default function MessagesPage() {
                 }}
               />
 
-              <Button onClick={handleSend} isLoading={isSending} disabled={!draft.trim()}>
+              <Button
+                onClick={handleSend}
+                isLoading={isSending}
+                disabled={(!draft.trim() && attachments.length === 0) || isUploadingAttachments}
+              >
                 <Send size={14} />
                 Send
               </Button>

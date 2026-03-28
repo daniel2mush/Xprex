@@ -7,6 +7,7 @@ export const authenticateRequest = (
   next: NextFunction,
 ) => {
   const userId = req.headers["x-user-id"];
+  const isAdminHeader = req.headers["x-user-is-admin"];
 
   if (!userId || Array.isArray(userId)) {
     logger.warn("Messaging access attempted without user ID", { url: req.url });
@@ -16,6 +17,10 @@ export const authenticateRequest = (
     });
   }
 
-  req.user = { userId, username: "" };
+  req.user = {
+    userId,
+    username: "",
+    isAdmin: !Array.isArray(isAdminHeader) && isAdminHeader === "true",
+  };
   next();
 };

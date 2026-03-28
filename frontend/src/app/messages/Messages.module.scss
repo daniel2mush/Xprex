@@ -285,14 +285,41 @@
   white-space: pre-wrap;
 }
 
+.messageMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.messageMediaCard {
+  overflow: hidden;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+}
+
+.messageMedia {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+
 .messageBubble span {
   display: block;
   color: var(--text-muted);
   font-size: 0.72rem;
 }
 
+.messageSeen {
+  margin-top: 0.2rem;
+  color: var(--brand-primary) !important;
+  font-weight: var(--font-weight-medium);
+}
+
 .composer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.8rem;
   padding: 1rem 1.4rem 1.2rem;
@@ -301,6 +328,7 @@
 }
 
 .composerInput {
+  flex: 1 1 220px;
   width: 100%;
   max-height: 150px;
   padding: 0.95rem 1rem;
@@ -310,6 +338,63 @@
   resize: none;
   color: var(--text-main);
   background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+}
+
+.fileInput {
+  display: none;
+}
+
+.attachButton {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  color: var(--text-main);
+  background: var(--surface-card);
+  cursor: pointer;
+}
+
+.attachmentTray {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.attachmentChip {
+  position: relative;
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+.attachmentPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeAttachment {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  color: var(--text-on-brand);
+  background: rgba(4, 10, 22, 0.72);
+  cursor: pointer;
 }
 
 .emptyState {
@@ -411,6 +496,10 @@
     min-height: 48px;
     padding-top: 0.8rem;
     padding-bottom: 0.8rem;
+  }
+
+  .attachmentTray {
+    order: 3;
   }
 
   .backButton {

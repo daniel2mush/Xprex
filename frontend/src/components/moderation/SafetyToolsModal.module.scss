@@ -1,0 +1,179 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 10, 22, 0.72);
+}
+
+.dialog {
+  position: relative;
+  width: min(560px, 100%);
+  padding: 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand-primary) 8%, transparent),
+      transparent 30%
+    ),
+    var(--bg-surface);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--brand-light);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.2rem;
+}
+
+.body {
+  margin: 16px 0 0;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+.actionGrid {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.actionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
+}
+
+.actionCopy {
+  min-width: 0;
+}
+
+.actionHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-weight: var(--font-weight-bold);
+}
+
+.actionCopy p {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.reportPanel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--bg-app) 42%, var(--bg-surface));
+}
+
+.reportHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-weight: var(--font-weight-bold);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.field span {
+  color: var(--text-main);
+  font-size: 0.86rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  color: var(--text-main);
+  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 768px) {
+  .dialog {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .actionCard,
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -5,6 +5,10 @@ import {
   ChatParticipant,
   ConversationPreview,
 } from "../types/messaging";
+import {
+  getMessagePreview,
+  normalizeMessageMediaIds,
+} from "../utils/messageAttachments";
 
 type ConnectedUser = {
   id: string;
@@ -19,6 +23,11 @@ type StoredMessage = {
   senderId: string;
   content: string;
   createdAt: Date;
+  media: {
+    id: string;
+    url: string;
+    type: "IMAGE" | "VIDEO" | "GIF";
+  }[];
 };
 
 const connectedUsers = new Map<string, number>();
@@ -61,34 +70,52 @@ const toChatMessage = (message: StoredMessage): ChatMessage => ({
   senderId: message.senderId,
   content: message.content,
   createdAt: message.createdAt.toISOString(),
+  media: message.media,
 });
 
 const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> => {
-  const follows = await prisma.follow.findMany({
-    where: {
-      OR: [{ followerId: userId }, { followingId: userId }],
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      createdAt: true,
-      followerId: true,
-      followingId: true,
-      follower: {
-        select: {
-          id: true,
-          username: true,
-          avatar: true,
+  const [follows, blocks] = await Promise.all([
+    prisma.follow.findMany({
+      where: {
+        OR: [{ followerId: userId }, { followingId: userId }],
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        createdAt: true,
+        followerId: true,
+        followingId: true,
+        follower: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        following: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
         },
       },
-      following: {
-        select: {
-          id: true,
-          username: true,
-          avatar: true,
-        },
+    }),
+    prisma.block.findMany({
+      where: {
+        OR: [{ blockerId: userId }, { blockedId: userId }],
       },
-    },
-  });
+      select: {
+        blockerId: true,
+        blockedId: true,
+      },
+    }),
+  ]);
+
+  const blockedIds = new Set(
+    blocks.flatMap((block) =>
+      block.blockerId === userId ? [block.blockedId] : [block.blockerId],
+    ),
+  );
 
   const deduped = new Map<string, ConnectedUser>();
 
@@ -96,7 +123,12 @@ const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> =>
     const target =
       follow.followerId === userId ? follow.following : follow.follower;
 
-    if (!target || target.id === userId || deduped.has(target.id)) {
+    if (
+      !target ||
+      target.id === userId ||
+      deduped.has(target.id) ||
+      blockedIds.has(target.id)
+    ) {
       continue;
     }
 
@@ -109,6 +141,19 @@ const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> =>
   }
 
   return [...deduped.values()];
+};
+
+const hasBlockingRelationship = async (firstUserId: string, secondUserId: string) => {
+  const block = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockerId: firstUserId, blockedId: secondUserId },
+        { blockerId: secondUserId, blockedId: firstUserId },
+      ],
+    },
+  });
+
+  return Boolean(block);
 };
 
 const getConnectedUserFor = async (userId: string, targetUserId: string) => {
@@ -224,6 +269,13 @@ export const listConversations = async (userId: string) => {
                 senderId: true,
                 content: true,
                 createdAt: true,
+                media: {
+                  select: {
+                    id: true,
+                    url: true,
+                    type: true,
+                  },
+                },
               },
             },
           },
@@ -256,7 +308,15 @@ export const listConversations = async (userId: string) => {
           avatar: contact.avatar ?? undefined,
           isOnline: isUserOnline(contact.id),
         },
-        lastMessage: lastMessage ? toChatMessage(lastMessage) : undefined,
+        lastMessage: lastMessage
+          ? {
+              ...toChatMessage(lastMessage),
+              content: getMessagePreview(
+                lastMessage.content,
+                lastMessage.media.length,
+              ),
+            }
+          : undefined,
         updatedAt:
           lastMessage?.createdAt.toISOString() ??
           conversation?.lastMessageAt.toISOString() ??
@@ -281,6 +341,10 @@ export const getConversationMessages = async (
   const contact = await getConnectedUserFor(userId, parsed.otherUserId);
   if (!contact) return null;
 
+  if (await hasBlockingRelationship(userId, parsed.otherUserId)) {
+    return null;
+  }
+
   const participants = await buildParticipants(userId, parsed.otherUserId);
   if (!participants) return null;
 
@@ -288,6 +352,17 @@ export const getConversationMessages = async (
     where: { id: conversationId },
     select: {
       lastMessageAt: true,
+      participants: {
+        where: {
+          userId: {
+            in: parsed.participantIds,
+          },
+        },
+        select: {
+          userId: true,
+          lastReadAt: true,
+        },
+      },
       messages: {
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: {
@@ -296,6 +371,13 @@ export const getConversationMessages = async (
           senderId: true,
           content: true,
           createdAt: true,
+          media: {
+            select: {
+              id: true,
+              url: true,
+              type: true,
+            },
+          },
         },
       },
     },
@@ -307,6 +389,12 @@ export const getConversationMessages = async (
     messages: storedConversation?.messages.map(toChatMessage) ?? [],
     updatedAt:
       storedConversation?.lastMessageAt.toISOString() ?? contact.relationCreatedAt,
+    currentUserLastReadAt: storedConversation?.participants
+      .find((participant) => participant.userId === userId)
+      ?.lastReadAt?.toISOString(),
+    otherParticipantLastReadAt: storedConversation?.participants
+      .find((participant) => participant.userId === parsed.otherUserId)
+      ?.lastReadAt?.toISOString(),
   };
 };
 
@@ -340,16 +428,20 @@ export const markConversationRead = async (
       lastReadAt: conversation.lastMessageAt,
     },
   });
+
+  return conversation.lastMessageAt.toISOString();
 };
 
 export const appendMessage = async ({
   conversationId,
   senderId,
   content,
+  mediaIds,
 }: {
   conversationId: string;
   senderId: string;
   content: string;
+  mediaIds?: string[];
 }) => {
   const parsed = parseConversationId(conversationId, senderId);
   if (!parsed) return null;
@@ -357,11 +449,33 @@ export const appendMessage = async ({
   const contact = await getConnectedUserFor(senderId, parsed.otherUserId);
   if (!contact) return null;
 
+  if (await hasBlockingRelationship(senderId, parsed.otherUserId)) {
+    return null;
+  }
+
   const participants = await buildParticipants(senderId, parsed.otherUserId);
   if (!participants) return null;
 
   await ensureConversation(conversationId, parsed.participantIds);
   const createdAt = new Date();
+  const normalizedMediaIds = normalizeMessageMediaIds(mediaIds);
+
+  const media =
+    normalizedMediaIds.length > 0
+      ? await prisma.media.findMany({
+          where: {
+            id: { in: normalizedMediaIds },
+            userId: senderId,
+            postId: null,
+            messageId: null,
+          },
+          select: { id: true },
+        })
+      : [];
+
+  if (media.length !== normalizedMediaIds.length) {
+    return null;
+  }
 
   const message = await prisma.$transaction(async (tx) => {
     await tx.conversation.update({
@@ -377,6 +491,11 @@ export const appendMessage = async ({
         senderId,
         content,
         createdAt,
+        media: normalizedMediaIds.length
+          ? {
+              connect: normalizedMediaIds.map((id) => ({ id })),
+            }
+          : undefined,
       },
       select: {
         id: true,
@@ -384,6 +503,13 @@ export const appendMessage = async ({
         senderId: true,
         content: true,
         createdAt: true,
+        media: {
+          select: {
+            id: true,
+            url: true,
+            type: true,
+          },
+        },
       },
     });
 

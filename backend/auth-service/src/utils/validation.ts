@@ -53,3 +53,32 @@ export const updateProfileValidation = z
       error: "At least one profile field is required",
     },
   );
+
+export const updateAccountSecurityValidation = z
+  .object({
+    email: z
+      .string()
+      .email("Invalid email format")
+      .optional(),
+    currentPassword: z
+      .string()
+      .min(8, { error: "Current password must be at least 8 characters" }),
+    newPassword: z
+      .string()
+      .min(8, { error: "New password must be at least 8 characters" })
+      .max(32, { error: "New password cannot exceed 32 characters" })
+      .optional(),
+  })
+  .refine((data) => data.email !== undefined || data.newPassword !== undefined, {
+    error: "At least one account change is required",
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    error: "New password must be different from current password",
+    path: ["newPassword"],
+  });
+
+export const deleteAccountValidation = z.object({
+  currentPassword: z
+    .string()
+    .min(8, { error: "Current password must be at least 8 characters" }),
+});

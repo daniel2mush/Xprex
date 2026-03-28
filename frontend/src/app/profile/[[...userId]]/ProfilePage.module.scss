@@ -116,6 +116,13 @@
   padding-bottom: 6px;
 }
 
+.moderationRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
 // ── Name block ─────────────────────────────
 .nameRow {
   display: flex;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useOptimistic, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Compass, MapPin, Search, Sparkles, Trash2 } from "lucide-react";
 import Feed from "@/components/home/Feed/Feed";
@@ -10,60 +10,12 @@ import {
   useClearSearchHistory,
   useSearchHistory,
   useSearchPosts,
+  useTrendingDiscovery,
   useSearchUsers,
 } from "@/query/SearchQuery";
 import { useFollowUser } from "@/query/ProfileQuery";
 import { SearchUserResult } from "@/types/Types";
 import styles from "./ExplorePage.module.scss";
-
-const buildTrendingTopics = (contents: string[]) => {
-  const ignore = new Set([
-    "this",
-    "that",
-    "with",
-    "from",
-    "have",
-    "your",
-    "about",
-    "there",
-    "their",
-    "would",
-    "could",
-    "should",
-    "what",
-    "when",
-    "where",
-    "which",
-    "while",
-    "into",
-    "just",
-    "been",
-    "being",
-    "also",
-    "them",
-  ]);
-
-  const counts = new Map<string, number>();
-
-  contents.forEach((content) => {
-    content
-      .toLowerCase()
-      .match(/#?[a-z0-9]{4,}/g)
-      ?.filter((token) => !ignore.has(token.replace(/^#/, "")))
-      .forEach((token) => {
-        counts.set(token, (counts.get(token) ?? 0) + 1);
-      });
-  });
-
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([token, count]) => ({
-      label: token.startsWith("#") ? token : `#${token}`,
-      searchValue: token.replace(/^#/, ""),
-      count,
-    }));
-};
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -74,6 +26,7 @@ export default function ExplorePage() {
     rawTab === "people" || rawTab === "posts" ? rawTab : "top";
   const { data: postsData, isLoading: loadingFeed } = useGetAllPost();
   const { data: historyData } = useSearchHistory();
+  const { data: trendingData } = useTrendingDiscovery();
   const { mutate: clearSearchHistory, isPending: clearingHistory } =
     useClearSearchHistory();
   const {
@@ -87,39 +40,18 @@ export default function ExplorePage() {
     error: peopleError,
   } = useSearchUsers(query);
 
-  useEffect(() => {
-    setQuery(searchParams.get("q") ?? "");
-  }, [searchParams]);
-
   const posts = postsData?.data?.posts ?? [];
   const history = historyData?.data ?? [];
   const searchResults = searchData?.data.posts ?? [];
   const peopleResults = peopleData?.data.users ?? [];
   const activePosts = query.trim() ? searchResults : posts;
 
-  const trendingTopics = useMemo(
-    () => buildTrendingTopics(posts.map((post) => post.content).filter(Boolean)),
-    [posts],
-  );
-
-  const topCreators = useMemo(() => {
-    const creators = new Map<string, { id: string; username: string; avatar?: string; count: number }>();
-
-    posts.forEach((post) => {
-      const existing = creators.get(post.user.id);
-      creators.set(post.user.id, {
-        id: post.user.id,
-        username: post.user.username,
-        avatar: post.user.avatar,
-        count: (existing?.count ?? 0) + 1,
-      });
-    });
-
-    return [...creators.values()].sort((a, b) => b.count - a.count).slice(0, 5);
-  }, [posts]);
+  const trendingTopics = trendingData?.data.topics ?? [];
+  const topCreators = trendingData?.data.creators ?? [];
 
   const submitQuery = (value: string, nextTab = activeTab) => {
     const trimmed = value.trim();
+    setQuery(trimmed);
     const tabParam = nextTab === "top" ? "" : `&tab=${nextTab}`;
     router.push(
       trimmed
@@ -319,11 +251,7 @@ export default function ExplorePage() {
 function PersonSearchCard({ person }: { person: SearchUserResult }) {
   const router = useRouter();
   const { mutate: followUser, isPending } = useFollowUser(person.id);
-  const [isFollowing, setIsFollowing] = useState(person.isFollowing);
-
-  useEffect(() => {
-    setIsFollowing(person.isFollowing);
-  }, [person.isFollowing]);
+  const [isFollowing, setIsFollowing] = useOptimistic(person.isFollowing);
 
   const canMessage = person.followsYou || isFollowing;
 

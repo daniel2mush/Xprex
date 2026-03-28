@@ -2,8 +2,10 @@ import { Request, Response } from "express";
 import logger from "../utils/logger";
 import { prisma } from "@social/db";
 import {
+  deleteAccountValidation,
   loginValdation,
   registrationValidation,
+  updateAccountSecurityValidation,
   updateProfileValidation,
 } from "../utils/validation";
 import { sendJson } from "../utils/responseHelper";
@@ -33,6 +35,7 @@ const selectPublicUser = {
   bio: true,
   location: true,
   isVerified: true,
+  isAdmin: true,
   createdAt: true,
   _count: {
     select: {
@@ -303,6 +306,133 @@ export const updateProfile = async (req: Request, res: Response) => {
     );
   } catch (error: any) {
     logger.error("Profile update failed", { userId, error: error.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// UPDATE ACCOUNT SECURITY
+// ==========================================
+export const updateAccountSecurity = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return sendJson(res, 401, false, "Authentication required");
+  }
+
+  try {
+    const validation = updateAccountSecurityValidation.safeParse(req.body);
+
+    if (!validation.success) {
+      const errorMsg = validation.error.issues[0]?.message ?? "Invalid input";
+      return sendJson(res, 400, false, errorMsg);
+    }
+
+    const { email, currentPassword, newPassword } = validation.data;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+      },
+    });
+
+    if (!existingUser) {
+      return sendJson(res, 404, false, "User not found");
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      existingUser.password,
+    );
+
+    if (!isPasswordValid) {
+      return sendJson(res, 401, false, "Current password is incorrect");
+    }
+
+    if (email && email !== existingUser.email) {
+      const emailInUse = await prisma.user.findFirst({
+        where: {
+          email,
+          NOT: { id: userId },
+        },
+        select: { id: true },
+      });
+
+      if (emailInUse) {
+        return sendJson(res, 409, false, "This email is already in use");
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(email ? { email } : {}),
+        ...(newPassword
+          ? { password: await bcrypt.hash(newPassword, 12) }
+          : {}),
+      },
+      select: selectPublicUser,
+    });
+
+    logger.info("Account security updated", { userId });
+    return sendJson(res, 200, true, "Account updated successfully", updatedUser);
+  } catch (error: any) {
+    logger.error("Account security update failed", {
+      userId,
+      error: error.message,
+    });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// DELETE ACCOUNT
+// ==========================================
+export const deleteAccount = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return sendJson(res, 401, false, "Authentication required");
+  }
+
+  try {
+    const validation = deleteAccountValidation.safeParse(req.body);
+
+    if (!validation.success) {
+      const errorMsg = validation.error.issues[0]?.message ?? "Invalid input";
+      return sendJson(res, 400, false, errorMsg);
+    }
+
+    const { currentPassword } = validation.data;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        password: true,
+      },
+    });
+
+    if (!user) {
+      return sendJson(res, 404, false, "User not found");
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return sendJson(res, 401, false, "Current password is incorrect");
+    }
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    logger.info("Account deleted", { userId });
+    return sendJson(res, 200, true, "Account deleted successfully");
+  } catch (error: any) {
+    logger.error("Account deletion failed", { userId, error: error.message });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

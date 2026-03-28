@@ -115,6 +115,31 @@ const normalizeUser = (user: any) => {
   };
 };
 
+const getExcludedUserIds = async (userId: string) => {
+  const [blocks, mutes] = await Promise.all([
+    prisma.block.findMany({
+      where: {
+        OR: [{ blockerId: userId }, { blockedId: userId }],
+      },
+      select: {
+        blockerId: true,
+        blockedId: true,
+      },
+    }),
+    prisma.mute.findMany({
+      where: { muterId: userId },
+      select: { mutedId: true },
+    }),
+  ]);
+
+  return new Set([
+    ...blocks.flatMap((block) =>
+      block.blockerId === userId ? [block.blockedId] : [block.blockerId],
+    ),
+    ...mutes.map((mute) => mute.mutedId),
+  ]);
+};
+
 // ==========================================
 // SEARCH POSTS
 // ==========================================
@@ -142,6 +167,8 @@ export const searchPosts = async (req: Request, res: Response) => {
     );
     const skip = (page - 1) * limit;
 
+    const excludedUserIds = [...(await getExcludedUserIds(userId))];
+
     const version = await getSearchVersion(req);
     const cacheKey = `search:v${version}:${userId}:${page}:${limit}:${query.trim()}`;
 
@@ -162,6 +189,13 @@ export const searchPosts = async (req: Request, res: Response) => {
 
     // 2. Search posts by content + username
     const whereClause = {
+      ...(excludedUserIds.length
+        ? {
+            userId: {
+              notIn: excludedUserIds,
+            },
+          }
+        : {}),
       OR: [
         {
           content: {
@@ -214,11 +248,6 @@ export const searchPosts = async (req: Request, res: Response) => {
     );
 
     // 4. Save to search history (fire and forget — don't block the response)
-    // prisma.search.create({
-    //   data:{
-
-    //   }
-    // })
     prisma.search
       .create({
         data: {
@@ -260,10 +289,11 @@ export const searchUsers = async (req: Request, res: Response) => {
       12,
       Math.max(1, parseInt(req.query.limit as string) || 8),
     );
+    const excludedUserIds = [...(await getExcludedUserIds(userId))];
 
     const rawUsers = await prisma.user.findMany({
       where: {
-        id: { not: userId },
+        id: { notIn: [userId, ...excludedUserIds] },
         OR: [
           {
             username: {
@@ -296,6 +326,117 @@ export const searchUsers = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     logger.error("User search failed", { error: err.message });
+    return sendJson(res, 500, false, "Internal server error");
+  }
+};
+
+// ==========================================
+// GET TRENDING DISCOVERY
+// ==========================================
+export const getTrendingDiscovery = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return sendJson(res, 401, false, "Unauthorized");
+
+    const excludedUserIds = [...(await getExcludedUserIds(userId))];
+
+    const [recentPosts, recentSearches] = await Promise.all([
+      prisma.post.findMany({
+        where: excludedUserIds.length
+          ? {
+              userId: {
+                notIn: excludedUserIds,
+              },
+            }
+          : undefined,
+        take: 250,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      prisma.search.findMany({
+        take: 200,
+        orderBy: { createdAt: "desc" },
+        select: { query: true },
+      }),
+    ]);
+
+    const ignore = new Set([
+      "this",
+      "that",
+      "with",
+      "from",
+      "have",
+      "your",
+      "about",
+      "there",
+      "their",
+      "would",
+      "could",
+      "should",
+      "what",
+      "when",
+      "where",
+      "which",
+      "while",
+      "into",
+      "just",
+      "been",
+      "being",
+      "also",
+      "them",
+    ]);
+
+    const tokenCounts = new Map<string, number>();
+    const creatorCounts = new Map<
+      string,
+      { id: string; username: string; avatar?: string | null; count: number }
+    >();
+
+    [...recentPosts.map((post) => post.content), ...recentSearches.map((search) => search.query)]
+      .forEach((content) => {
+        content
+          .toLowerCase()
+          .match(/#?[a-z0-9]{4,}/g)
+          ?.filter((token) => !ignore.has(token.replace(/^#/, "")))
+          .forEach((token) => {
+            const normalized = token.startsWith("#") ? token : `#${token}`;
+            tokenCounts.set(normalized, (tokenCounts.get(normalized) ?? 0) + 1);
+          });
+      });
+
+    recentPosts.forEach((post) => {
+      const existing = creatorCounts.get(post.user.id);
+      creatorCounts.set(post.user.id, {
+        id: post.user.id,
+        username: post.user.username,
+        avatar: post.user.avatar,
+        count: (existing?.count ?? 0) + 1,
+      });
+    });
+
+    return sendJson(res, 200, true, "Trending discovery retrieved", {
+      topics: [...tokenCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([label, count]) => ({
+          label,
+          searchValue: label.replace(/^#/, ""),
+          count,
+        })),
+      creators: [...creatorCounts.values()]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 6),
+    });
+  } catch (err: any) {
+    logger.error("Failed to get trending discovery", { error: err.message });
     return sendJson(res, 500, false, "Internal server error");
   }
 };

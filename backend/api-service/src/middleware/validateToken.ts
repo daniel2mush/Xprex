@@ -33,8 +33,15 @@ export const validateToken = (
     const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
 
     // 4. Attach user data to request (use lowercase 'user' – convention)
-    const user = decoded as { userId: string; username: string };
-    (req as any).user = user;
+    const user = decoded as {
+      userId: string;
+      username: string;
+      isAdmin?: boolean;
+    };
+    (req as any).user = {
+      ...user,
+      isAdmin: Boolean(user.isAdmin),
+    };
 
     // 5. Continue to next middleware/route
     next();

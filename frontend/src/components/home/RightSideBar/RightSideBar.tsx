@@ -2,84 +2,32 @@
 
 import styles from "./RightSideBar.module.scss";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ArrowRight, Bell, Flame, Search, Sparkles, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetNotifications } from "@/query/NotificationsQuery";
 import { useGetConversations } from "@/query/MessagingQuery";
-import { useGetAllPost } from "@/query/HomeQuery";
-import { useClearSearchHistory, useSearchHistory } from "@/query/SearchQuery";
+import {
+  useClearSearchHistory,
+  useSearchHistory,
+  useTrendingDiscovery,
+} from "@/query/SearchQuery";
 import { timeAgoShort } from "@/lib/ParseDate";
-
-const buildTrendingTopics = (contents: string[]) => {
-  const ignore = new Set([
-    "this",
-    "that",
-    "with",
-    "from",
-    "have",
-    "your",
-    "about",
-    "there",
-    "their",
-    "would",
-    "could",
-    "should",
-    "what",
-    "when",
-    "where",
-    "which",
-    "while",
-    "into",
-    "just",
-    "been",
-    "being",
-    "also",
-    "them",
-  ]);
-
-  const frequencies = new Map<string, number>();
-
-  for (const content of contents) {
-    const tokens = content
-      .toLowerCase()
-      .match(/#?[a-z0-9]{4,}/g)
-      ?.filter((token) => !ignore.has(token));
-
-    tokens?.forEach((token) => {
-      frequencies.set(token, (frequencies.get(token) ?? 0) + 1);
-    });
-  }
-
-  return [...frequencies.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([token, count]) => ({
-      label: token.startsWith("#") ? token : `#${token}`,
-      searchValue: token.replace(/^#/, ""),
-      count,
-    }));
-};
 
 export default function RightSideBar() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const { data: notificationsData } = useGetNotifications();
   const { data: conversationsData } = useGetConversations();
-  const { data: postsData } = useGetAllPost();
   const { data: historyData } = useSearchHistory();
+  const { data: trendingData } = useTrendingDiscovery();
   const { mutate: clearSearchHistory, isPending: clearingHistory } =
     useClearSearchHistory();
 
   const notifications = notificationsData?.data?.slice(0, 4) ?? [];
   const conversations = conversationsData?.data?.slice(0, 4) ?? [];
   const searchHistory = historyData?.data ?? [];
-  const posts = postsData?.data?.posts ?? [];
-
-  const trendingTopics = useMemo(
-    () => buildTrendingTopics(posts.map((post) => post.content).filter(Boolean)),
-    [posts],
-  );
+  const trendingTopics = trendingData?.data.topics ?? [];
 
   const submitSearch = (query: string) => {
     const trimmed = query.trim();
@@ -146,6 +94,45 @@ export default function RightSideBar() {
                   {conversation.unreadCount > 0 && (
                     <span className={styles.countBadge}>{conversation.unreadCount}</span>
                   )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.eyebrow}>Creators</p>
+              <h2 className={styles.sectionTitle}>Active voices</h2>
+            </div>
+            <Sparkles size={14} className={styles.headerIcon} />
+          </div>
+
+          <ul className={styles.list}>
+            {(trendingData?.data.creators ?? []).length === 0 && (
+              <li className={styles.empty}>Creators will surface here as activity grows.</li>
+            )}
+            {(trendingData?.data.creators ?? []).map((creator) => (
+              <li key={creator.id} className={styles.row}>
+                <Link href={`/profile/${creator.id}`} className={styles.rowLink}>
+                  <div className={styles.rowIconWrap}>
+                    {creator.avatar ? (
+                      <img
+                        src={creator.avatar}
+                        alt={creator.username}
+                        className={styles.avatar}
+                      />
+                    ) : (
+                      <div className={styles.avatarFallback}>
+                        {creator.username[0].toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.rowMeta}>
+                    <span className={styles.rowTitle}>{creator.username}</span>
+                    <span className={styles.rowSubtle}>{creator.count} recent posts</span>
+                  </div>
                 </Link>
               </li>
             ))}
