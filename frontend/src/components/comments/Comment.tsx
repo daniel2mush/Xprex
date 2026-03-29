@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/ui/Buttons/Buttons";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 import Link from "next/link";
 
 interface CommentProps {
@@ -52,7 +53,7 @@ export default function Comment({ data, postId }: CommentProps) {
     <div className={styles.container}>
       {/* Comment header */}
       <div className={styles.header}>
-        <Link href={`/profile/${data.user.id}`} className={styles.avatarLink}>
+        <Link href={getProfilePath(data.user)} className={styles.avatarLink}>
           {data.user.avatar ? (
             <img
               src={data.user.avatar}
@@ -68,7 +69,7 @@ export default function Comment({ data, postId }: CommentProps) {
 
         <div className={styles.body}>
           <div className={styles.meta}>
-            <Link href={`/profile/${data.user.id}`} className={styles.username}>
+            <Link href={getProfilePath(data.user)} className={styles.username}>
               {data.user.username}
               {data.user.isVerified && (
                 <span className={styles.verified} aria-label="Verified">
@@ -122,7 +123,7 @@ export default function Comment({ data, postId }: CommentProps) {
             <div className={styles.replyCompose}>
               <textarea
                 className={styles.replyInput}
-                placeholder={`Reply to @${data.user.username}`}
+                placeholder={`Reply to ${formatHandle(data.user.handle) || data.user.username}`}
                 value={replyContent}
                 rows={2}
                 onChange={(e) => setReplyContent(e.target.value)}
@@ -156,7 +157,7 @@ export default function Comment({ data, postId }: CommentProps) {
                 replies.map((reply: any) => (
                   <div key={reply.id} className={styles.reply}>
                     <Link
-                      href={`/profile/${reply.user.id}`}
+                      href={getProfilePath(reply.user)}
                       className={styles.avatarLink}
                     >
                       {reply.user.avatar ? (

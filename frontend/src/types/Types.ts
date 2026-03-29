@@ -26,6 +26,7 @@ export interface PostTypes {
   repostedBy?: {
     id: string;
     username: string;
+    handle?: string | null;
     avatar?: string;
     isVerified?: boolean;
   };
@@ -96,6 +97,7 @@ export interface User {
   id: string;
   email: string;
   username: string;
+  handle?: string | null;
   avatar?: string | undefined;
   headerPhoto?: string | undefined;
   bio?: string | undefined;
@@ -140,6 +142,7 @@ export interface CreatePostTypes {
 export interface CommentUser {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string;
   isVerified?: boolean;
 }
@@ -190,6 +193,7 @@ export interface NotificationTypes {
   actor: {
     id: string;
     username: string;
+    handle?: string | null;
     avatar?: string;
   };
   post?: {
@@ -210,6 +214,7 @@ export interface NotificationResponse {
 export interface ProfileUser {
   id: string;
   username: string;
+  handle?: string | null;
   email?: string;
   avatar?: string;
   headerPhoto?: string;
@@ -231,6 +236,7 @@ export interface ProfileUser {
 export interface ProfileConnectionUser {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string;
   bio?: string;
   location?: string;
@@ -282,6 +288,7 @@ export interface ProfileReply {
 export interface MessageParticipant {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string;
   isOnline: boolean;
 }
@@ -330,6 +337,7 @@ export interface TrendingTopic {
 export interface TrendingCreator {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string;
   count: number;
 }
@@ -368,11 +376,13 @@ export interface AdminReportItem {
   reporter: {
     id: string;
     username: string;
+    handle?: string | null;
     avatar?: string;
   };
   targetUser?: {
     id: string;
     username: string;
+    handle?: string | null;
     avatar?: string;
     isVerified?: boolean;
   } | null;
@@ -435,6 +445,7 @@ export interface SearchHistoryResponse {
 export interface SearchUserResult {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string;
   headerPhoto?: string;
   bio?: string;

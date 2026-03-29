@@ -21,12 +21,18 @@ import {
   CheckCircle2,
   Camera,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/ui/Buttons/Buttons";
 import { timeAgoShort } from "@/lib/ParseDate";
 import Link from "next/link";
 import { toast } from "sonner";
 import SafetyToolsModal from "@/components/moderation/SafetyToolsModal";
+import {
+  formatHandle,
+  getProfileIdentifier,
+  getProfilePath,
+  normalizeHandle,
+} from "@/lib/profile";
 
 type ActiveTab = "posts" | "replies" | "media" | "likes";
 
@@ -37,8 +43,22 @@ export default function ProfilePage() {
   const routeUserId = params?.userId?.[0];
   const { user: currentUser } = useUserStore();
   const isProfileRoot = pathname === "/profile";
-  const resolvedUserId = isProfileRoot ? currentUser?.id : routeUserId;
-  const isOwnProfile = isProfileRoot || routeUserId === currentUser?.id;
+  const currentUserHandle = normalizeHandle(currentUser?.handle);
+  const routeHandle = normalizeHandle(routeUserId);
+  const isLegacyOwnProfileRoute = Boolean(
+    currentUser?.id && currentUserHandle && routeUserId === currentUser.id,
+  );
+  const resolvedUserId = isProfileRoot
+    ? getProfileIdentifier(currentUser)
+    : isLegacyOwnProfileRoute
+      ? getProfileIdentifier(currentUser)
+      : routeUserId;
+  const isOwnProfile = Boolean(
+    currentUser &&
+      (isProfileRoot ||
+        routeUserId === currentUser.id ||
+        (routeHandle && routeHandle === currentUserHandle)),
+  );
   const isProfilePending = !resolvedUserId;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("posts");
@@ -50,20 +70,22 @@ export default function ProfilePage() {
 
   const { data, isLoading, error } = useGetProfile(resolvedUserId);
   const { mutate: followUser, isPending: isFollowing } = useFollowUser(
-    resolvedUserId ?? "",
+    data?.data.user.id ?? "",
   );
   const { mutate: toggleBlockUser, isPending: isBlocking } = useToggleBlockUser(
-    resolvedUserId ?? "",
+    data?.data.user.id ?? "",
   );
   const { mutate: toggleMuteUser, isPending: isMuting } = useToggleMuteUser(
-    resolvedUserId ?? "",
+    data?.data.user.id ?? "",
   );
   const { mutate: reportUser, isPending: isReporting } = useReportUser(
-    resolvedUserId ?? "",
+    data?.data.user.id ?? "",
   );
 
   const profile = data?.data.user;
-  const displayProfile = isProfileRoot ? (profile ?? currentUser ?? undefined) : profile;
+  const displayProfile = isOwnProfile
+    ? (profile ?? currentUser ?? undefined)
+    : profile;
   const posts = data?.data.posts ?? [];
   const likedPosts = data?.data.likedPosts ?? [];
   const replies = data?.data.replies ?? [];
@@ -75,6 +97,13 @@ export default function ProfilePage() {
       })
     : null;
   const canMessage = Boolean(profile && (profile.isFollowing || profile.followsYou));
+  const handleText = formatHandle(displayProfile?.handle);
+
+  useEffect(() => {
+    if (!isLegacyOwnProfileRoute || !currentUser) return;
+
+    router.replace(getProfilePath(currentUser));
+  }, [currentUser, isLegacyOwnProfileRoute, router]);
 
   const formatCount = (n: number) => {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -185,8 +214,11 @@ export default function ProfilePage() {
                   </Button>
                   <Button
                     size="sm"
-                    disabled={profile?.isBlocked}
-                    onClick={() => followUser()}
+                    disabled={!profile || profile.isBlocked}
+                    onClick={() => {
+                      if (!profile) return;
+                      followUser();
+                    }}
                     isLoading={isFollowing}
                   >
                     {profile?.isFollowing ? "Unfollow" : "Follow"}
@@ -216,7 +248,7 @@ export default function ProfilePage() {
             )}
           </div>
           <p className={styles.handle}>
-            @{displayProfile?.username ?? "user"}
+            {handleText}
           </p>
 
           {/* Bio */}
@@ -339,7 +371,7 @@ export default function ProfilePage() {
             <article key={reply.id} className={styles.replyCard}>
               <div className={styles.replyHeader}>
                 <Link
-                  href={`/profile/${reply.user.id}`}
+                  href={getProfilePath(reply.user)}
                   className={styles.replyAuthorLink}
                 >
                   {reply.user.avatar ? (
@@ -380,10 +412,10 @@ export default function ProfilePage() {
               <div className={styles.replyContext}>
                 <span className={styles.replyContextLabel}>In reply to</span>
                 <Link
-                  href={`/profile/${reply.post.user.id}`}
+                  href={getProfilePath(reply.post.user)}
                   className={styles.replyPostAuthor}
                 >
-                  @{reply.post.user.username}
+                  {formatHandle(reply.post.user.handle) || reply.post.user.username}
                 </Link>
                 <p className={styles.replyPostPreview}>
                   {reply.post.content || "View original post"}
@@ -424,7 +456,7 @@ export default function ProfilePage() {
 
       {showSafetyTools && profile && (
         <SafetyToolsModal
-          username={profile.username}
+          username={profile.handle ?? ""}
           isBlocked={Boolean(profile.isBlocked)}
           isMuted={Boolean(profile.isMuted)}
           isBlocking={isBlocking}

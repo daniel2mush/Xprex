@@ -5,7 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon --exec \"pnpm exec tsx\" src/server.ts",
-    "start": "node dist/server.js",
+    "start": "node -r ts-node/register/transpile-only dist/server.js",
     "build": "tsc",
     "test": "node --import tsx --test src/**/*.test.ts"
   },
@@ -34,6 +34,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
     "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3"
   }

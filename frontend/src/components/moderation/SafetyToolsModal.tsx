@@ -71,7 +71,9 @@ export default function SafetyToolsModal({
           </div>
           <div>
             <p className={styles.eyebrow}>Safety tools</p>
-            <h2 className={styles.title}>Manage @{username}</h2>
+            <h2 className={styles.title}>
+              {username ? `Manage @${username}` : "Manage account"}
+            </h2>
           </div>
         </div>
 

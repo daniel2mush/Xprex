@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Compass, MapPin, Search, Sparkles, Trash2 } from "lucide-react";
 import Feed from "@/components/home/Feed/Feed";
 import RightSideBar from "@/components/home/RightSideBar/RightSideBar";
+import { getProfilePath } from "@/lib/profile";
 import { useGetAllPost } from "@/query/HomeQuery";
 import {
   useClearSearchHistory,
@@ -171,7 +172,7 @@ export default function ExplorePage() {
             <div className={styles.creatorList}>
               {topCreators.length === 0 && <p className={styles.emptyText}>Creators will appear as posts arrive.</p>}
               {topCreators.map((creator) => (
-                <button key={creator.id} type="button" className={styles.creatorCard} onClick={() => router.push(`/profile/${creator.id}`)}>
+                <button key={creator.id} type="button" className={styles.creatorCard} onClick={() => router.push(getProfilePath(creator))}>
                   {creator.avatar ? (
                     <Image
                       src={creator.avatar}
@@ -268,7 +269,7 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
       <button
         type="button"
         className={styles.personCardLink}
-        onClick={() => router.push(`/profile/${person.id}`)}
+        onClick={() => router.push(getProfilePath(person))}
       >
         <div
           className={styles.personBanner}
@@ -324,7 +325,7 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
         <button
           type="button"
           className={styles.personAction}
-          onClick={() => router.push(`/profile/${person.id}`)}
+          onClick={() => router.push(getProfilePath(person))}
         >
           View profile
         </button>

@@ -12,6 +12,7 @@ import { Button } from "@/ui/Buttons/Buttons";
 import { useRef, useState, useCallback, useEffect } from "react";
 import Feed from "../Feed/Feed";
 import { z } from "zod";
+import { formatHandle } from "@/lib/profile";
 
 const mediaSchema = z
   .instanceof(File)
@@ -47,6 +48,7 @@ export default function Center() {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfinitePosts();
   const { user } = useUserStore();
+  const handleText = formatHandle(user?.handle);
   const { mutateAsync: uploadMedia } = useUploadMedia();
   const { mutate: createPost, isPending } = useCreatePost();
   const [isSubmmiting, setIsSubmitting] = useState<boolean>(false);
@@ -264,9 +266,11 @@ export default function Center() {
             </div>
 
             <div className={styles.composeBody}>
-              <p className={styles.composePrompt}>
-                Posting as <span>@{user?.username}</span>
-              </p>
+              {handleText && (
+                <p className={styles.composePrompt}>
+                  Posting as <span>{handleText}</span>
+                </p>
+              )}
               <textarea
                 ref={textareaRef}
                 className={styles.input}

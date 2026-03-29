@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 import { useRouter } from "next/navigation";
 import { X, CheckCircle2, MessageCircle } from "lucide-react";
 import { useGetProfileConnections } from "@/query/ProfileQuery";
@@ -67,7 +68,7 @@ export default function ConnectionsModal({
             users.map((connection) => (
               <article key={connection.id} className={styles.card}>
                 <Link
-                  href={`/profile/${connection.id}`}
+                  href={getProfilePath(connection)}
                   className={styles.identity}
                   onClick={onClose}
                 >
@@ -90,7 +91,7 @@ export default function ConnectionsModal({
                         <CheckCircle2 size={14} className={styles.verified} />
                       )}
                     </div>
-                    <span className={styles.handle}>@{connection.username}</span>
+                    <span className={styles.handle}>{formatHandle(connection.handle)}</span>
                     {connection.location && (
                       <span className={styles.location}>{connection.location}</span>
                     )}
@@ -112,7 +113,7 @@ export default function ConnectionsModal({
                     </Button>
                   )}
                   <Button size="sm" onClick={() => {
-                    router.push(`/profile/${connection.id}`);
+                    router.push(getProfilePath(connection));
                     onClose();
                   }}>
                     View Profile

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 import {
   Flag,
   MessageSquareWarning,
@@ -178,14 +179,14 @@ export default function AdminReportsPage() {
                 <div className={styles.reportMeta}>
                   <div className={styles.metaItem}>
                     <UserRound size={14} />
-                    <span>Reporter: @{report.reporter.username}</span>
+                    <span>Reporter: {formatHandle(report.reporter.handle) || report.reporter.username}</span>
                   </div>
                   <div className={styles.metaItem}>
                     {isUserReport ? <ShieldAlert size={14} /> : <MessageSquareWarning size={14} />}
                     <span>
                       {isUserReport
-                        ? `Account: @${reportTarget?.username ?? "Unknown"}`
-                        : `Post by @${reportTarget?.user.username ?? "Unknown"}`}
+                        ? `Account: ${formatHandle(reportTarget?.handle) || reportTarget?.username || "Unknown"}`
+                        : `Post by ${formatHandle(reportTarget?.user.handle) || reportTarget?.user.username || "Unknown"}`}
                     </span>
                   </div>
                 </div>
@@ -193,7 +194,7 @@ export default function AdminReportsPage() {
                 {report.details && <p className={styles.details}>{report.details}</p>}
 
                 {isUserReport && report.targetUser && (
-                  <Link href={`/profile/${report.targetUser.id}`} className={styles.targetLink}>
+                  <Link href={getProfilePath(report.targetUser)} className={styles.targetLink}>
                     Open profile
                   </Link>
                 )}
@@ -201,7 +202,7 @@ export default function AdminReportsPage() {
                 {!isUserReport && report.targetPost && (
                   <div className={styles.postPreview}>
                     <p>{report.targetPost.content}</p>
-                    <Link href={`/profile/${report.targetPost.user.id}`} className={styles.targetLink}>
+                    <Link href={getProfilePath(report.targetPost.user)} className={styles.targetLink}>
                       View author
                     </Link>
                   </div>

@@ -25,4 +25,4 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-CMD ["pnpm", "--filter", "@social/api-service", "run", "dev"]
+CMD ["pnpm", "--filter", "@social/search-service", "run", "dev"]

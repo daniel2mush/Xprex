@@ -9,6 +9,7 @@ import { Button } from "@/ui/Buttons/Buttons";
 import { useUserStore } from "@/store/userStore";
 import { useState } from "react";
 import Link from "next/link";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 import Comment from "../comments/Comment";
 import MediaViewer from "@/components/mediaViewer/MediaViewer";
 import RepostDialog from "@/components/repostDialog/RepostDialog";
@@ -183,7 +184,7 @@ export default function PostModal({ post, onClose }: PostModalProps) {
             {/* Author */}
             <div className={styles.postHeader}>
               <Link
-                href={`/profile/${post.user.id}`}
+                href={getProfilePath(post.user)}
                 className={styles.avatarLink}
                 onClick={onClose}
               >
@@ -206,7 +207,7 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                     <span className={styles.verified}>✓</span>
                   )}
                 </div>
-                <div className={styles.postHandle}>@{post.user.username}</div>
+                <div className={styles.postHandle}>{formatHandle(post.user.handle)}</div>
               </div>
             </div>
 

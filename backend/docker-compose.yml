@@ -1,77 +1,267 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-social-media-microservices}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-daniel1234}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-social-media-microservices}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-migrate:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile.dev
+    restart: "no"
+    working_dir: /app/database
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+    command: ["pnpm", "run", "prisma:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api-service:
     build:
-      context: .                          # ← root (critical)
-      dockerfile: api-service/Dockerfile.dev
-    ports:
-      - "4000:4000"
+      context: .
+      dockerfile: api-service/Dockerfile
+    restart: unless-stopped
     env_file:
       - ./api-service/.env
-    volumes:
-      - ./api-service:/app/api-service
-      - ./database:/app/database          # ← shared Prisma
-      - /app/node_modules
     environment:
-      - PORT=4000
-      - REDIS_URL=redis://redis:6379
-      - RABBITMQ_URL=amqp://rabbitmq:5672
-      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
-      - MESSAGING_SERVICE=http://messaging-service:4007
+      PORT: 4000
+      AUTH_SERVICE: http://auth-service:4001
+      POST_SERVICE: http://post-service:4002
+      SEARCH_SERVICE: http://search-service:4003
+      MEDIA_SERVICE: http://media-service:4004
+      COMMENT_SERVICE: http://comment-service:4005
+      NOTIFICATION_SERVICE: http://notification-service:4006
+      MESSAGING_SERVICE: http://messaging-service:4007
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "4000:4000"
     depends_on:
-      - redis
-      - rabbitmq
-      - messaging-service
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      post-service:
+        condition: service_started
+      search-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+      comment-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      messaging-service:
+        condition: service_started
 
   auth-service:
     build:
-      context: .                          # ← root
-      dockerfile: auth-service/Dockerfile.dev
-    ports:
-      - "4001:4001"
+      context: .
+      dockerfile: auth-service/Dockerfile
+    restart: unless-stopped
     env_file:
       - ./auth-service/.env
-    volumes:
-      - ./auth-service:/app/auth-service
-      - ./database:/app/database          # ← shared Prisma
-      - /app/node_modules
     environment:
-      - PORT=4001
-      - REDIS_URL=redis://redis:6379
-      - RABBITMQ_URL=amqp://rabbitmq:5672
-      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
+      PORT: 4001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4001:4001"
     depends_on:
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  post-service:
+    build:
+      context: .
+      dockerfile: post-service/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./post-service/.env
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4002:4002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  search-service:
+    build:
+      context: .
+      dockerfile: search-service/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./search-service/.env
+    environment:
+      PORT: 4003
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4003:4003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  media-service:
+    build:
+      context: .
+      dockerfile: media-service/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./media-service/.env
+    environment:
+      PORT: 4004
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4004:4004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  comment-service:
+    build:
+      context: .
+      dockerfile: comment-service/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./comment-service/.env
+    environment:
+      PORT: 4005
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4005:4005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./notification-service/.env
+    environment:
+      PORT: 4006
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://api-service:4000
+    ports:
+      - "4006:4006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   messaging-service:
     build:
       context: .
-      dockerfile: messaging-service/Dockerfile.dev
-    ports:
-      - "4007:4007"
+      dockerfile: messaging-service/Dockerfile
+    restart: unless-stopped
     env_file:
       - ./messaging-service/.env
-    volumes:
-      - ./messaging-service:/app/messaging-service
-      - ./database:/app/database
-      - /app/node_modules
     environment:
-      - PORT=4007
-      - CORS_ORIGINS=http://localhost:3000,http://api-service:4000
-      - DATABASE_URL=postgresql://postgres:yourpassword@host.docker.internal:5432/your_db_name?schema=public
-
-  # ← keep your redis + rabbitmq services exactly as they were
-
-  # Added the missing dependencies
-  redis:
-    image: redis:alpine
+      PORT: 4007
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-daniel1234}@postgres:5432/${POSTGRES_DB:-social-media-microservices}
+      CORS_ORIGINS: ${MESSAGING_CORS_ORIGINS:-http://localhost:3000,http://api-service:4000}
     ports:
-      - "6379:6379"
+      - "4007:4007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
 
-  rabbitmq:
-    image: rabbitmq:management-alpine
-    ports:
-      - "5672:5672" # Message broker port
-      - "15672:15672" # Management UI port
+volumes:
+  postgres-data:
+  rabbitmq-data:

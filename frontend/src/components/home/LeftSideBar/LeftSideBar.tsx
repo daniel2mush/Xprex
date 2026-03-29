@@ -24,6 +24,7 @@ import { useUserStore } from "@/store/userStore";
 import { useCollapsedStore } from "@/store/sideBarStore";
 import { useGetNotifications } from "@/query/NotificationsQuery";
 import { useGetConversations } from "@/query/MessagingQuery";
+import { getProfilePath } from "@/lib/profile";
 
 interface NavigationItem {
   icon: ReactNode;
@@ -83,7 +84,7 @@ export default function LeftSideBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const profileLink = user ? `/profile/${user.id}` : "/profile";
+  const profileLink = user ? getProfilePath(user) : "/profile";
   const unreadNotifications =
     notificationsData?.data?.filter((notification) => !notification.read).length ?? 0;
   const unreadMessages =

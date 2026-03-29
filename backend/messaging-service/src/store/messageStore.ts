@@ -13,6 +13,7 @@ import {
 type ConnectedUser = {
   id: string;
   username: string;
+  handle?: string | null;
   avatar?: string | null;
   relationCreatedAt: string;
 };
@@ -55,11 +56,12 @@ const parseConversationId = (conversationId: string, userId: string) => {
 const isUserOnline = (userId: string) => Boolean(connectedUsers.get(userId));
 
 const toParticipant = (
-  user: { id: string; username: string; avatar: string | null },
+  user: { id: string; username: string; handle?: string | null; avatar: string | null },
   currentUserId: string,
 ): ChatParticipant => ({
   id: user.id,
   username: user.username,
+  handle: user.handle ?? undefined,
   avatar: user.avatar ?? undefined,
   isOnline: user.id === currentUserId ? true : isUserOnline(user.id),
 });
@@ -88,6 +90,7 @@ const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> =>
           select: {
             id: true,
             username: true,
+            handle: true,
             avatar: true,
           },
         },
@@ -95,6 +98,7 @@ const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> =>
           select: {
             id: true,
             username: true,
+            handle: true,
             avatar: true,
           },
         },
@@ -135,6 +139,7 @@ const getConnectedUsersFor = async (userId: string): Promise<ConnectedUser[]> =>
     deduped.set(target.id, {
       id: target.id,
       username: target.username,
+      handle: target.handle,
       avatar: target.avatar,
       relationCreatedAt: follow.createdAt.toISOString(),
     });
@@ -168,6 +173,7 @@ const buildParticipants = async (currentUserId: string, otherUserId: string) => 
       select: {
         id: true,
         username: true,
+        handle: true,
         avatar: true,
       },
     }),
@@ -176,6 +182,7 @@ const buildParticipants = async (currentUserId: string, otherUserId: string) => 
       select: {
         id: true,
         username: true,
+        handle: true,
         avatar: true,
       },
     }),

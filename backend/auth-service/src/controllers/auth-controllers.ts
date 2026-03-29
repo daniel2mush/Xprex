@@ -30,6 +30,7 @@ const selectPublicUser = {
   id: true,
   email: true,
   username: true,
+  handle: true,
   avatar: true,
   headerPhoto: true,
   bio: true,
@@ -54,6 +55,18 @@ const storeRefreshToken = (userId: string, token: string) =>
       expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     },
   });
+
+const normalizeHandle = (value?: string | null) => {
+  if (value == null) return value;
+
+  const normalized = value
+    .trim()
+    .replace(/^@+/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9._]/g, "");
+
+  return normalized.length > 0 ? normalized : null;
+};
 
 // ==========================================
 // REGISTRATION
@@ -265,6 +278,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     const payload = validation.data;
     const username = payload.username?.trim();
+    const handle = normalizeHandle(payload.handle);
     const bio = payload.bio?.trim();
     const location = payload.location?.trim();
 
@@ -282,10 +296,47 @@ export const updateProfile = async (req: Request, res: Response) => {
       }
     }
 
+    if (payload.handle !== undefined) {
+      if (handle && (handle.length < 3 || handle.length > 25)) {
+        return sendJson(
+          res,
+          400,
+          false,
+          "Username must be between 3 and 25 characters",
+        );
+      }
+
+      if (handle && !/^[a-z0-9._]+$/.test(handle)) {
+        return sendJson(
+          res,
+          400,
+          false,
+          "Username can only contain lowercase letters, numbers, dots, and underscores",
+        );
+      }
+
+      if (handle) {
+        const existingHandle = await prisma.user.findFirst({
+          where: {
+            handle,
+            NOT: { id: userId },
+          },
+          select: { id: true },
+        });
+
+        if (existingHandle) {
+          return sendJson(res, 409, false, "This username is already taken");
+        }
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(payload.username !== undefined && { username: username || undefined }),
+        ...(payload.username !== undefined && {
+          username: username || undefined,
+        }),
+        ...(payload.handle !== undefined && { handle }),
         ...(payload.bio !== undefined && { bio: bio || null }),
         ...(payload.avatar !== undefined && { avatar: payload.avatar || null }),
         ...(payload.headerPhoto !== undefined && {
@@ -378,7 +429,13 @@ export const updateAccountSecurity = async (req: Request, res: Response) => {
     });
 
     logger.info("Account security updated", { userId });
-    return sendJson(res, 200, true, "Account updated successfully", updatedUser);
+    return sendJson(
+      res,
+      200,
+      true,
+      "Account updated successfully",
+      updatedUser,
+    );
   } catch (error: any) {
     logger.error("Account security update failed", {
       userId,
@@ -420,7 +477,10 @@ export const deleteAccount = async (req: Request, res: Response) => {
       return sendJson(res, 404, false, "User not found");
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       return sendJson(res, 401, false, "Current password is incorrect");
     }

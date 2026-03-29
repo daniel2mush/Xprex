@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { AxiosError } from "axios";
 import api from "@/lib/Axios";
 
 export async function PATCH(req: NextRequest) {
@@ -12,9 +13,11 @@ export async function PATCH(req: NextRequest) {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
     return NextResponse.json(data);
-  } catch (error: any) {
-    const status = error.response?.status ?? 500;
-    const message = error.response?.data?.message ?? "Failed to update profile";
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    const status = axiosError.response?.status ?? 500;
+    const message =
+      axiosError.response?.data?.message ?? "Failed to update profile";
     return NextResponse.json({ success: false, message }, { status });
   }
 }

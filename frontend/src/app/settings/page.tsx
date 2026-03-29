@@ -28,9 +28,11 @@ import {
 import { useUploadMedia } from "@/query/HomeQuery";
 import { toast } from "sonner";
 import styles from "./SettingsPage.module.scss";
+import { formatHandle, getProfileIdentifier, getProfilePath } from "@/lib/profile";
 
 type SettingsForm = {
   username: string;
+  handle: string;
   bio: string;
   location: string;
   avatar: string;
@@ -42,7 +44,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { user, clearUser } = useUserStore();
   const { collapsed, setCollapsedValue } = useCollapsedStore();
-  const { data: profileData } = useGetProfile(user?.id);
+  const { data: profileData } = useGetProfile(getProfileIdentifier(user));
   const { mutate: editProfile, isPending: isSaving } = useEditProfile();
   const { mutate: updateAccountSecurity, isPending: isUpdatingSecurity } =
     useUpdateAccountSecurity();
@@ -56,6 +58,7 @@ export default function SettingsPage() {
   const profile = profileData?.data.user;
   const [form, setForm] = useState<SettingsForm>({
     username: user?.username ?? "",
+    handle: user?.handle ?? "",
     bio: user?.bio ?? "",
     location: user?.location ?? "",
     avatar: user?.avatar ?? "",
@@ -69,12 +72,14 @@ export default function SettingsPage() {
     currentPassword: "",
     newPassword: "",
   });
+  const handlePreview = formatHandle(form.handle);
 
   useEffect(() => {
     if (!profile && !user) return;
 
     setForm({
       username: profile?.username ?? user?.username ?? "",
+      handle: profile?.handle ?? user?.handle ?? "",
       bio: profile?.bio ?? user?.bio ?? "",
       location: profile?.location ?? user?.location ?? "",
       avatar: profile?.avatar ?? user?.avatar ?? "",
@@ -125,6 +130,7 @@ export default function SettingsPage() {
     editProfile(
       {
         username: form.username,
+        handle: form.handle,
         bio: form.bio,
         location: form.location,
         avatar: form.avatar,
@@ -234,7 +240,7 @@ export default function SettingsPage() {
               )}
               <div>
                 <strong>{form.username || user.username}</strong>
-                <p>{user.email}</p>
+                <p>{handlePreview}</p>
               </div>
             </div>
           </Card>
@@ -316,7 +322,7 @@ export default function SettingsPage() {
 
             <div className={styles.formGrid}>
               <Input
-                label="Username"
+                label="Display name"
                 value={form.username}
                 onChange={(event) =>
                   setForm((current) => ({
@@ -324,6 +330,19 @@ export default function SettingsPage() {
                     username: event.target.value,
                   }))
                 }
+                maxLength={40}
+              />
+              <Input
+                label="Username"
+                value={form.handle}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    handle: event.target.value,
+                  }))
+                }
+                placeholder="@username"
+                maxLength={25}
               />
               <Input
                 label="Location"
@@ -356,7 +375,7 @@ export default function SettingsPage() {
               <Button onClick={handleSave} isLoading={isSaving}>
                 Save changes
               </Button>
-              <Link href={`/profile/${user.id}`} className={styles.inlineLink}>
+              <Link href={getProfilePath(user)} className={styles.inlineLink}>
                 View public profile
               </Link>
             </div>

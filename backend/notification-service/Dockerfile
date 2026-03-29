@@ -1,9 +1,11 @@
-FROM node:22-alpine
+FROM node:22-alpine AS base
 
 RUN corepack enable
 
 WORKDIR /app
 ENV DATABASE_URL=postgresql://postgres:postgres@postgres:5432/social-media-microservices
+
+FROM base AS deps
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY api-service/package.json ./api-service/
@@ -23,6 +25,21 @@ COPY redis-client/ ./redis-client/
 
 RUN pnpm install --frozen-lockfile
 
+FROM deps AS build
+
 COPY . .
 
-CMD ["pnpm", "--filter", "@social/api-service", "run", "dev"]
+RUN pnpm --filter @social/notification-service build
+
+FROM node:22-alpine AS runner
+
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY --from=build /app /app
+
+WORKDIR /app/notification-service
+
+EXPOSE 4006
+
+CMD ["node", "-r", "ts-node/register/transpile-only", "dist/server.js"]

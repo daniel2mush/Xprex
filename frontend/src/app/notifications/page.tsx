@@ -5,6 +5,7 @@ import { timeAgoShort } from "@/lib/ParseDate";
 import { Bell, Heart, MessageCircle, Repeat2, UserPlus } from "lucide-react";
 import { Button } from "@/ui/Buttons/Buttons";
 import Link from "next/link";
+import { getProfilePath } from "@/lib/profile";
 import { useState } from "react";
 import {
   useGetNotifications,
@@ -162,7 +163,7 @@ export default function NotificationsPage() {
         return (
           <Link
             key={n.id}
-            href={`/profile/${n.actor.id}`}
+            href={getProfilePath(n.actor)}
             className={itemClassName}
             onClick={() => markNotificationRead(n.id)}
           >

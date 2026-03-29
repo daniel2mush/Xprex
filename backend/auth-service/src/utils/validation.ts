@@ -26,7 +26,11 @@ export const updateProfileValidation = z
     username: z
       .string()
       .min(3, { error: "Username must be at least 3 characters" })
-      .max(15, { error: "Username cannot exceed 15 characters" })
+      .max(40, { error: "Name cannot exceed 40 characters" })
+      .optional(),
+    handle: z
+      .string()
+      .max(25, { error: "Username cannot exceed 25 characters" })
       .optional(),
     bio: z
       .string()
@@ -45,6 +49,7 @@ export const updateProfileValidation = z
   .refine(
     (data) =>
       data.username !== undefined ||
+      data.handle !== undefined ||
       data.bio !== undefined ||
       data.avatar !== undefined ||
       data.headerPhoto !== undefined ||

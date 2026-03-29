@@ -1,28 +1,28 @@
-# backend/auth-service/Dockerfile.dev
-# (or api-services/Dockerfile.dev)
-
 FROM node:22-alpine
 
-# Enable pnpm via corepack
 RUN corepack enable
 
 WORKDIR /app
+ENV DATABASE_URL=postgresql://postgres:postgres@postgres:5432/social-media-microservices
 
-# 1. Copy root workspace config first (for cache)
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-
-# 2. Copy workspace package.jsons so pnpm knows about @social/db
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
+COPY api-service/package.json ./api-service/
 COPY database/package.json ./database/
 COPY auth-service/package.json ./auth-service/
-
-# 3. Copy the entire database folder (schema.prisma + postinstall hook)
-#    This is what runs `prisma generate` during install
+COPY comment-service/package.json ./comment-service/
+COPY media-service/package.json ./media-service/
+COPY messaging-service/package.json ./messaging-service/
+COPY notification-service/package.json ./notification-service/
+COPY post-service/package.json ./post-service/
+COPY search-service/package.json ./search-service/
+COPY rabbitmq/package.json ./rabbitmq/
+COPY redis-client/package.json ./redis-client/
 COPY database/ ./database/
+COPY rabbitmq/ ./rabbitmq/
+COPY redis-client/ ./redis-client/
 
-# 4. Install everything (links workspace + runs postinstall = prisma generate)
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
-# 5. Hot-reload volumes (in docker-compose) will now overlay the source code
-#    while keeping node_modules + generated/client intact
+COPY . .
 
-CMD ["pnpm", "--filter", "auth-service", "run", "dev"]
+CMD ["pnpm", "--filter", "@social/auth-service", "run", "dev"]

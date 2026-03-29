@@ -11,6 +11,7 @@ const commentInclude = (userId: string) => ({
     select: {
       id: true,
       username: true,
+      handle: true,
       avatar: true,
       isVerified: true,
     },
@@ -26,6 +27,7 @@ const commentInclude = (userId: string) => ({
         select: {
           id: true,
           username: true,
+          handle: true,
           avatar: true,
           isVerified: true,
         },
@@ -187,6 +189,7 @@ export const getReplies = async (req: Request, res: Response) => {
             select: {
               id: true,
               username: true,
+              handle: true,
               avatar: true,
               isVerified: true,
             },

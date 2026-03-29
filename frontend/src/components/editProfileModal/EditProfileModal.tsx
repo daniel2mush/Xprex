@@ -24,6 +24,7 @@ export default function EditProfileModal({
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<EditProfileInput>({
     username: profile.username,
+    handle: profile.handle ?? "",
     bio: profile.bio ?? "",
     avatar: profile.avatar ?? "",
     headerPhoto: profile.headerPhoto ?? "",
@@ -172,13 +173,24 @@ export default function EditProfileModal({
         {/* Form */}
         <div className={styles.form}>
           <Input
-            label="Username"
+            label="Name"
             value={form.username}
             onChange={(e) =>
               setForm((p) => ({ ...p, username: e.target.value }))
             }
             isError={false}
-            maxLength={30}
+            maxLength={40}
+          />
+
+          <Input
+            label="Username"
+            value={form.handle ?? ""}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, handle: e.target.value }))
+            }
+            isError={false}
+            maxLength={25}
+            placeholder="@username"
           />
 
           <div className={styles.field}>

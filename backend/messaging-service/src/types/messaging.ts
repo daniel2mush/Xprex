@@ -1,6 +1,7 @@
 export interface ChatParticipant {
   id: string;
   username: string;
+  handle?: string;
   avatar?: string;
   isOnline: boolean;
 }

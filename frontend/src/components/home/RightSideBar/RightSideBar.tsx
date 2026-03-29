@@ -2,6 +2,7 @@
 
 import styles from "./RightSideBar.module.scss";
 import Link from "next/link";
+import { getProfilePath } from "@/lib/profile";
 import { useState } from "react";
 import { ArrowRight, Bell, Flame, Search, Sparkles, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -115,7 +116,7 @@ export default function RightSideBar() {
             )}
             {(trendingData?.data.creators ?? []).map((creator) => (
               <li key={creator.id} className={styles.row}>
-                <Link href={`/profile/${creator.id}`} className={styles.rowLink}>
+                <Link href={getProfilePath(creator)} className={styles.rowLink}>
                   <div className={styles.rowIconWrap}>
                     {creator.avatar ? (
                       <img

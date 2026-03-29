@@ -28,6 +28,7 @@ import {
 } from "@/query/HomeQuery";
 import { useUserStore } from "@/store/userStore";
 import { toast } from "sonner";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 
 export default function Feed({
   data,
@@ -79,6 +80,8 @@ export default function Feed({
   const mediaItems = data.media ?? [];
   const mediaCount = Math.min(mediaItems.length, 4);
   const displayTimestamp = data.feedCreatedAt ?? data.createdAt;
+  const handleText = formatHandle(data.user.handle);
+  const metaParts = [handleText, timeAgoShort(displayTimestamp as Date)].filter(Boolean);
 
   useEffect(() => {
     if (!showActionsMenu) return;
@@ -222,7 +225,7 @@ export default function Feed({
 
         <div className={styles.header}>
           <Link
-            href={`/profile/${data.user.id}`}
+            href={getProfilePath(data.user)}
             className={styles.avatarLink}
             onClick={(event) => event.stopPropagation()}
           >
@@ -241,7 +244,7 @@ export default function Feed({
 
           <div className={styles.userInfo}>
             <Link
-              href={`/profile/${data.user.id}`}
+              href={getProfilePath(data.user)}
               className={styles.nameLink}
               onClick={(event) => event.stopPropagation()}
             >
@@ -253,7 +256,7 @@ export default function Feed({
               )}
             </Link>
             <span className={styles.meta}>
-              @{data.user.username} · {timeAgoShort(displayTimestamp as Date)}
+              {metaParts.join(" · ")}
             </span>
           </div>
 

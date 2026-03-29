@@ -1,7 +1,9 @@
 .layout {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
   background:
     radial-gradient(
       circle at top left,
@@ -19,6 +21,8 @@
 .sidebar {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   border-right: 0.5px solid var(--border-subtle);
   background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
   backdrop-filter: blur(14px);
@@ -92,6 +96,7 @@
 .conversationList {
   display: flex;
   flex: 1;
+  min-height: 0;
   flex-direction: column;
   gap: 0.45rem;
   padding: 0 0.8rem 1rem;
@@ -192,9 +197,11 @@
 
 .chatPanel {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
-  min-height: 100vh;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .chatHeader {
@@ -246,10 +253,18 @@
 
 .messageStream {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  min-height: 0;
   padding: 1.25rem 1.4rem;
   overflow-y: auto;
+}
+
+.messageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 100%;
+  margin-top: auto;
 }
 
 .messageRow {
@@ -427,6 +442,7 @@
 
 @media (max-width: 960px) {
   .layout {
+    height: calc(100dvh - 72px);
     min-height: calc(100dvh - 72px);
     grid-template-columns: 1fr;
   }
@@ -451,6 +467,7 @@
     flex-direction: column;
     min-height: 0;
     height: calc(100dvh - 72px);
+    overflow: hidden;
   }
 
   .chatHeader {

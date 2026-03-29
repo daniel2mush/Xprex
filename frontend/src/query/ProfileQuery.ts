@@ -11,7 +11,7 @@ export const useGetProfile = (userId?: string) => {
     queryKey: ["profile", userId],
     enabled: Boolean(userId),
     queryFn: async () => {
-      const response = await fetch(`/api/profile/${userId}`, {
+      const response = await fetch(`/api/profile/${encodeURIComponent(userId!)}`, {
         credentials: "include",
       });
       if (!response.ok) {
@@ -27,6 +27,7 @@ export const useGetProfile = (userId?: string) => {
 
 export interface EditProfileInput {
   username?: string;
+  handle?: string;
   bio?: string;
   avatar?: string;
   headerPhoto?: string;
@@ -97,7 +98,7 @@ export const useGetProfileConnections = (
     enabled: Boolean(userId) && enabled,
     queryFn: async () => {
       const response = await fetch(
-        `/api/profile/${userId}/connections?type=${type}`,
+        `/api/profile/${encodeURIComponent(userId!)}/connections?type=${type}`,
         {
           credentials: "include",
         },

@@ -13,7 +13,7 @@ export const getNotifications = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
       take: 50,
       include: {
-        actor: { select: { id: true, username: true, avatar: true } },
+        actor: { select: { id: true, username: true, handle: true, avatar: true } },
         post: { select: { id: true, content: true } },
         comment: { select: { id: true, content: true } },
       },

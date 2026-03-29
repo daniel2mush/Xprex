@@ -58,6 +58,8 @@ export default function MessagesPage() {
   const socketRef = useRef<Socket | null>(null);
   const activeConversationRef = useRef<string | undefined>(undefined);
   const activeMessagesRef = useRef<MessageItem[]>([]);
+  const messageStreamRef = useRef<HTMLDivElement>(null);
+  const messageContentRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachmentsRef = useRef<MediaItem[]>([]);
@@ -150,12 +152,19 @@ export default function MessagesPage() {
   const activeParticipant = activeConversation?.participants.find(
     (participant) => participant.id !== user?.id,
   );
-  const liveMessages =
-    (activeConversationId
-      ? liveMessagesByConversation[activeConversationId]
-      : undefined) ??
-    activeConversation?.messages ??
-    [];
+  const liveMessages = useMemo(
+    () =>
+      (activeConversationId
+        ? liveMessagesByConversation[activeConversationId]
+        : undefined) ??
+      activeConversation?.messages ??
+      [],
+    [
+      activeConversation?.messages,
+      activeConversationId,
+      liveMessagesByConversation,
+    ],
+  );
   const filteredConversations = conversations.filter((conversation) =>
     conversation.participant.username
       .toLowerCase()
@@ -404,6 +413,39 @@ export default function MessagesPage() {
     };
   }, []);
 
+  const scrollToLatestMessage = (behavior: ScrollBehavior = "auto") => {
+    const stream = messageStreamRef.current;
+    if (!stream) return;
+
+    stream.scrollTo({
+      top: stream.scrollHeight,
+      behavior,
+    });
+  };
+
+  useEffect(() => {
+    if (!activeConversationId || loadingConversation) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      scrollToLatestMessage();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeConversationId, liveMessages, loadingConversation]);
+
+  useEffect(() => {
+    const content = messageContentRef.current;
+    if (!content) return;
+
+    const observer = new ResizeObserver(() => {
+      scrollToLatestMessage();
+    });
+
+    observer.observe(content);
+
+    return () => observer.disconnect();
+  }, [activeConversationId]);
+
   const handleAttachmentSelection = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -637,68 +679,77 @@ export default function MessagesPage() {
               </div>
             </header>
 
-            <div className={styles.messageStream}>
-              {loadingConversation && (
-                <div className={styles.emptyState}>
-                  <p>Loading conversation...</p>
-                </div>
-              )}
+            <div ref={messageStreamRef} className={styles.messageStream}>
+              <div ref={messageContentRef} className={styles.messageContent}>
+                {loadingConversation && (
+                  <div className={styles.emptyState}>
+                    <p>Loading conversation...</p>
+                  </div>
+                )}
 
-              {!loadingConversation &&
-                liveMessages.map((message) => {
-                  const ownMessage = message.senderId === user?.id;
-                  const seen =
-                    ownMessage &&
-                    otherParticipantReadAt &&
-                    new Date(otherParticipantReadAt).getTime() >=
-                      new Date(message.createdAt).getTime();
+                {!loadingConversation &&
+                  liveMessages.map((message) => {
+                    const ownMessage = message.senderId === user?.id;
+                    const seen =
+                      ownMessage &&
+                      otherParticipantReadAt &&
+                      new Date(otherParticipantReadAt).getTime() >=
+                        new Date(message.createdAt).getTime();
 
-                  return (
-                    <div
-                      key={message.id}
-                      className={`${styles.messageRow} ${
-                        ownMessage ? styles.ownMessageRow : ""
-                      }`}
-                    >
+                    return (
                       <div
-                        className={`${styles.messageBubble} ${
-                          ownMessage ? styles.ownMessageBubble : ""
+                        key={message.id}
+                        className={`${styles.messageRow} ${
+                          ownMessage ? styles.ownMessageRow : ""
                         }`}
                       >
-                        {message.content && <p>{message.content}</p>}
-                        {message.media.length > 0 && (
-                          <div className={styles.messageMediaGrid}>
-                            {message.media.map((media) => (
-                              <div key={media.id} className={styles.messageMediaCard}>
-                                {media.type === "VIDEO" ? (
-                                  <video
-                                    src={media.url}
-                                    controls
-                                    preload="metadata"
-                                    className={styles.messageMedia}
-                                  />
-                                ) : (
-                                  <Image
-                                    src={media.url}
-                                    alt=""
-                                    className={styles.messageMedia}
-                                    width={320}
-                                    height={220}
-                                    unoptimized
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <span>{timeAgoShort(new Date(message.createdAt))}</span>
-                        {seen && (
-                          <span className={styles.messageSeen}>Seen</span>
-                        )}
+                        <div
+                          className={`${styles.messageBubble} ${
+                            ownMessage ? styles.ownMessageBubble : ""
+                          }`}
+                        >
+                          {message.content && <p>{message.content}</p>}
+                          {message.media.length > 0 && (
+                            <div className={styles.messageMediaGrid}>
+                              {message.media.map((media) => (
+                                <div
+                                  key={media.id}
+                                  className={styles.messageMediaCard}
+                                >
+                                  {media.type === "VIDEO" ? (
+                                    <video
+                                      src={media.url}
+                                      controls
+                                      preload="metadata"
+                                      className={styles.messageMedia}
+                                      onLoadedMetadata={() =>
+                                        scrollToLatestMessage()
+                                      }
+                                    />
+                                  ) : (
+                                    <Image
+                                      src={media.url}
+                                      alt=""
+                                      className={styles.messageMedia}
+                                      width={320}
+                                      height={220}
+                                      unoptimized
+                                      onLoad={() => scrollToLatestMessage()}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <span>{timeAgoShort(new Date(message.createdAt))}</span>
+                          {seen && (
+                            <span className={styles.messageSeen}>Seen</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+              </div>
             </div>
 
             <footer className={styles.composer}>

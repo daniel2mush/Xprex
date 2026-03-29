@@ -79,6 +79,8 @@ app.use(
   validateToken,
   proxy(env.AUTH_SERVICE, {
     ...baseProxyOptions,
+    proxyReqPathResolver: (req: Request) =>
+      req.originalUrl.replace(/^\/v1\/profile/, "/api/auth/profile"),
     proxyReqOptDecorator: withUserId,
     userResDecorator: logResponse("auth-service"),
   }),

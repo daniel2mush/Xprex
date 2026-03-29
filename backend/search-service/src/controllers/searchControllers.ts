@@ -34,6 +34,7 @@ const searchPostInclude = (userId: string) => ({
     select: {
       id: true,
       username: true,
+      handle: true,
       avatar: true,
       isVerified: true,
     },
@@ -76,6 +77,7 @@ const normalizeQuery = (value: string) => value.trim().replace(/^#+/, "");
 const searchUserSelect = (userId: string) => ({
   id: true,
   username: true,
+  handle: true,
   avatar: true,
   headerPhoto: true,
   bio: true,
@@ -302,6 +304,12 @@ export const searchUsers = async (req: Request, res: Response) => {
             },
           },
           {
+            handle: {
+              contains: query.toLowerCase(),
+              mode: "insensitive",
+            },
+          },
+          {
             bio: {
               contains: query,
               mode: "insensitive",
@@ -356,6 +364,7 @@ export const getTrendingDiscovery = async (req: Request, res: Response) => {
             select: {
               id: true,
               username: true,
+              handle: true,
               avatar: true,
             },
           },
@@ -397,7 +406,7 @@ export const getTrendingDiscovery = async (req: Request, res: Response) => {
     const tokenCounts = new Map<string, number>();
     const creatorCounts = new Map<
       string,
-      { id: string; username: string; avatar?: string | null; count: number }
+      { id: string; username: string; handle?: string | null; avatar?: string | null; count: number }
     >();
 
     [...recentPosts.map((post) => post.content), ...recentSearches.map((search) => search.query)]
@@ -417,6 +426,7 @@ export const getTrendingDiscovery = async (req: Request, res: Response) => {
       creatorCounts.set(post.user.id, {
         id: post.user.id,
         username: post.user.username,
+        handle: post.user.handle,
         avatar: post.user.avatar,
         count: (existing?.count ?? 0) + 1,
       });

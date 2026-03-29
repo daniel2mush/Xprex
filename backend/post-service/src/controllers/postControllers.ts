@@ -48,6 +48,7 @@ interface RepostCreatedEvent {
 const feedUserSelect = {
   id: true,
   username: true,
+  handle: true,
   avatar: true,
   isVerified: true,
 } as const;
@@ -127,8 +128,16 @@ const getFeedEventTimestamp = (post: {
 }) => new Date(post.feedCreatedAt ?? post.createdAt).getTime();
 
 const sortFeedEvents = (
-  a: { feedEventId?: string; feedCreatedAt?: Date | string; createdAt: Date | string },
-  b: { feedEventId?: string; feedCreatedAt?: Date | string; createdAt: Date | string },
+  a: {
+    feedEventId?: string;
+    feedCreatedAt?: Date | string;
+    createdAt: Date | string;
+  },
+  b: {
+    feedEventId?: string;
+    feedCreatedAt?: Date | string;
+    createdAt: Date | string;
+  },
 ) => {
   const timeDiff = getFeedEventTimestamp(b) - getFeedEventTimestamp(a);
   if (timeDiff !== 0) return timeDiff;
@@ -154,6 +163,7 @@ const profileUserSelect = {
   id: true,
   email: true,
   username: true,
+  handle: true,
   avatar: true,
   headerPhoto: true,
   bio: true,
@@ -172,6 +182,7 @@ const profileUserSelect = {
 const connectionUserSelect = {
   id: true,
   username: true,
+  handle: true,
   avatar: true,
   headerPhoto: true,
   bio: true,
@@ -223,7 +234,10 @@ const getHiddenFeedUserIds = async (userId: string) => {
   return new Set<string>([...blockedUserIds, ...mutedUserIds]);
 };
 
-const hasBlockingRelationship = async (firstUserId: string, secondUserId: string) => {
+const hasBlockingRelationship = async (
+  firstUserId: string,
+  secondUserId: string,
+) => {
   const block = await prisma.block.findFirst({
     where: {
       OR: [
@@ -235,6 +249,29 @@ const hasBlockingRelationship = async (firstUserId: string, secondUserId: string
   });
 
   return Boolean(block);
+};
+
+const normalizeProfileIdentifier = (value: string) =>
+  value.trim().replace(/^@+/, "").toLowerCase();
+
+const resolveProfileUser = async (identifier: string) => {
+  const normalizedIdentifier = normalizeProfileIdentifier(identifier);
+
+  return prisma.user.findFirst({
+    where: {
+      OR: [
+        { handle: normalizedIdentifier },
+        {
+          id: identifier,
+          handle: null,
+        },
+      ],
+    },
+    select: {
+      id: true,
+      handle: true,
+    },
+  });
 };
 
 // ==========================================
@@ -544,15 +581,23 @@ export const GetSinglePost = async (req: Request, res: Response) => {
 // GET USER PROFILE
 // ==========================================
 export const GetUserProfile = async (req: Request, res: Response) => {
-  const { userId: profileId } = req.params;
+  const { userId: profileIdentifier } = req.params;
   const viewerId = req.user.userId;
 
-  if (!profileId) return sendJson(res, 400, false, "User ID is required");
-  if (Array.isArray(profileId)) {
-    return sendJson(res, 400, false, "Invalid user ID");
+  if (!profileIdentifier) {
+    return sendJson(res, 400, false, "Profile identifier is required");
+  }
+  if (Array.isArray(profileIdentifier)) {
+    return sendJson(res, 400, false, "Invalid profile identifier");
   }
 
   try {
+    const resolvedProfile = await resolveProfileUser(profileIdentifier);
+
+    if (!resolvedProfile) return sendJson(res, 404, false, "User not found");
+
+    const profileId = resolvedProfile.id;
+
     if (profileId !== viewerId) {
       const blocked = await hasBlockingRelationship(viewerId, profileId);
       if (blocked) {
@@ -560,97 +605,106 @@ export const GetUserProfile = async (req: Request, res: Response) => {
       }
     }
 
-    const [user, rawPosts, rawReposts, likedEntries, replies, isFollowing, followsYou] =
-      await Promise.all([
+    const [
+      user,
+      rawPosts,
+      rawReposts,
+      likedEntries,
+      replies,
+      isFollowing,
+      followsYou,
+    ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: profileId },
         select: profileUserSelect,
       }),
-        prisma.post.findMany({
-          where: { userId: profileId },
-          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          include: postInclude(viewerId!),
-        }),
-        prisma.repost.findMany({
-          where: { userId: profileId },
-          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          include: {
-            user: {
-              select: feedUserSelect,
-            },
-            post: {
-              include: postInclude(viewerId!),
+      prisma.post.findMany({
+        where: { userId: profileId },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: postInclude(viewerId!),
+      }),
+      prisma.repost.findMany({
+        where: { userId: profileId },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: {
+          user: {
+            select: feedUserSelect,
+          },
+          post: {
+            include: postInclude(viewerId!),
+          },
+        },
+      }),
+      prisma.like.findMany({
+        where: { userId: profileId },
+        orderBy: { createdAt: "desc" },
+        include: {
+          post: {
+            include: postInclude(viewerId!),
+          },
+        },
+      }),
+      prisma.comment.findMany({
+        where: {
+          userId: profileId,
+          parentId: { not: null },
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              handle: true,
+              avatar: true,
+              isVerified: true,
             },
           },
-        }),
-        prisma.like.findMany({
-          where: { userId: profileId },
-          orderBy: { createdAt: "desc" },
-          include: {
-            post: {
-              include: postInclude(viewerId!),
-            },
-          },
-        }),
-        prisma.comment.findMany({
-          where: {
-            userId: profileId,
-            parentId: { not: null },
-          },
-          orderBy: { createdAt: "desc" },
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-                isVerified: true,
-              },
-            },
-            post: {
-              select: {
-                id: true,
-                content: true,
-                createdAt: true,
-                user: {
-                  select: {
-                    id: true,
-                    username: true,
-                    avatar: true,
-                    isVerified: true,
-                  },
+          post: {
+            select: {
+              id: true,
+              content: true,
+              createdAt: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  handle: true,
+                  avatar: true,
+                  isVerified: true,
                 },
               },
             },
           },
-        }),
-        profileId === viewerId
-          ? Promise.resolve(false)
-          : prisma.follow
-              .findUnique({
-                where: {
-                  followerId_followingId: {
-                    followerId: viewerId,
-                    followingId: profileId,
-                  },
+        },
+      }),
+      profileId === viewerId
+        ? Promise.resolve(false)
+        : prisma.follow
+            .findUnique({
+              where: {
+                followerId_followingId: {
+                  followerId: viewerId,
+                  followingId: profileId,
                 },
-                select: { id: true },
-              })
-              .then((follow) => Boolean(follow)),
-        profileId === viewerId
-          ? Promise.resolve(false)
-          : prisma.follow
-              .findUnique({
-                where: {
-                  followerId_followingId: {
-                    followerId: profileId,
-                    followingId: viewerId,
-                  },
+              },
+              select: { id: true },
+            })
+            .then((follow) => Boolean(follow)),
+      profileId === viewerId
+        ? Promise.resolve(false)
+        : prisma.follow
+            .findUnique({
+              where: {
+                followerId_followingId: {
+                  followerId: profileId,
+                  followingId: viewerId,
                 },
-                select: { id: true },
-              })
-              .then((follow) => Boolean(follow)),
-      ]);
+              },
+              select: { id: true },
+            })
+            .then((follow) => Boolean(follow)),
+    ]);
 
     if (!user) return sendJson(res, 404, false, "User not found");
 
@@ -710,7 +764,10 @@ export const GetUserProfile = async (req: Request, res: Response) => {
       replies,
     });
   } catch (err: any) {
-    logger.error("Failed to fetch profile", { error: err.message, profileId });
+    logger.error("Failed to fetch profile", {
+      error: err.message,
+      profileIdentifier,
+    });
     return sendJson(res, 500, false, "Internal server error");
   }
 };
@@ -719,16 +776,24 @@ export const GetUserProfile = async (req: Request, res: Response) => {
 // GET USER CONNECTIONS
 // ==========================================
 export const GetUserConnections = async (req: Request, res: Response) => {
-  const { userId: profileId } = req.params;
+  const { userId: profileIdentifier } = req.params;
   const viewerId = req.user.userId;
   const type = req.query.type === "following" ? "following" : "followers";
 
-  if (!profileId) return sendJson(res, 400, false, "User ID is required");
-  if (Array.isArray(profileId)) {
-    return sendJson(res, 400, false, "Invalid user ID");
+  if (!profileIdentifier) {
+    return sendJson(res, 400, false, "Profile identifier is required");
+  }
+  if (Array.isArray(profileIdentifier)) {
+    return sendJson(res, 400, false, "Invalid profile identifier");
   }
 
   try {
+    const resolvedProfile = await resolveProfileUser(profileIdentifier);
+
+    if (!resolvedProfile) return sendJson(res, 404, false, "User not found");
+
+    const profileId = resolvedProfile.id;
+
     if (profileId !== viewerId) {
       const blocked = await hasBlockingRelationship(viewerId, profileId);
       if (blocked) {
@@ -820,15 +885,14 @@ export const GetUserConnections = async (req: Request, res: Response) => {
           ...connection,
           isFollowing,
           followsYou,
-          canMessage:
-            connection.id !== viewerId && (isFollowing || followsYou),
+          canMessage: connection.id !== viewerId && (isFollowing || followsYou),
         };
       }),
     });
   } catch (err: any) {
     logger.error("Failed to fetch connections", {
       error: err.message,
-      profileId,
+      profileIdentifier,
       type,
     });
     return sendJson(res, 500, false, "Internal server error");
@@ -1378,12 +1442,17 @@ export const GetAdminReports = async (req: Request, res: Response) => {
     return sendJson(res, 403, false, "Admin access required");
   }
 
-  const page = Math.max(1, Number.parseInt(String(req.query.page ?? "1"), 10) || 1);
+  const page = Math.max(
+    1,
+    Number.parseInt(String(req.query.page ?? "1"), 10) || 1,
+  );
   const limit = Math.min(
     50,
     Math.max(1, Number.parseInt(String(req.query.limit ?? "20"), 10) || 20),
   );
-  const statusParam = String(req.query.status ?? "").trim().toUpperCase();
+  const statusParam = String(req.query.status ?? "")
+    .trim()
+    .toUpperCase();
   const skip = (page - 1) * limit;
 
   if (statusParam && !isReportStatus(statusParam)) {
@@ -1412,6 +1481,7 @@ export const GetAdminReports = async (req: Request, res: Response) => {
             select: {
               id: true,
               username: true,
+              handle: true,
               avatar: true,
             },
           },
@@ -1419,6 +1489,7 @@ export const GetAdminReports = async (req: Request, res: Response) => {
             select: {
               id: true,
               username: true,
+              handle: true,
               avatar: true,
               isVerified: true,
             },
@@ -1480,7 +1551,13 @@ export const UpdateAdminReportStatus = async (req: Request, res: Response) => {
       },
     });
 
-    return sendJson(res, 200, true, "Report status updated successfully", report);
+    return sendJson(
+      res,
+      200,
+      true,
+      "Report status updated successfully",
+      report,
+    );
   } catch (err: any) {
     if (err.code === "P2025") {
       return sendJson(res, 404, false, "Report not found");
