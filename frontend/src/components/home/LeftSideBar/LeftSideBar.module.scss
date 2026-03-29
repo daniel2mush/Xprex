@@ -7,17 +7,18 @@
   background:
     radial-gradient(
       circle at top,
-      color-mix(in srgb, var(--brand-primary) 14%, transparent),
+      color-mix(in srgb, var(--brand-primary) 10%, transparent),
       transparent 34%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--bg-surface) 94%, transparent),
-      var(--bg-app)
+      color-mix(in srgb, var(--bg-surface) 80%, transparent),
+      color-mix(in srgb, var(--bg-app) 90%, transparent)
     );
-  border-right: 1px solid var(--border-subtle);
-  backdrop-filter: blur(18px);
-  transition: width 0.28s ease;
+  border-right: 1px solid color-mix(in srgb, var(--text-main) 6%, transparent);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  transition: width 0.28s var(--ease-spring);
 }
 
 .content {
@@ -198,6 +199,11 @@
     color-mix(in srgb, var(--brand-primary) 16%, transparent),
     color-mix(in srgb, var(--brand-hover) 10%, transparent)
   );
+
+  .navIcon {
+    color: var(--brand-primary);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand-primary) 40%, transparent));
+  }
 }
 
 .navIcon {
@@ -209,6 +215,7 @@
   justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
+  transition: color var(--duration-normal) ease, filter var(--duration-normal) ease;
 }
 
 .notificationBadge {
@@ -227,6 +234,12 @@
   color: var(--text-on-brand);
   font-size: 10px;
   font-weight: var(--font-weight-black);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-error) 40%, transparent); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
 }
 
 .navContent {
@@ -509,6 +522,16 @@
     gap: 6px;
     padding: 10px 6px;
     border-radius: 16px;
+    transition: transform 0.1s ease;
+
+    &:active {
+      transform: scale(0.92);
+    }
+  }
+
+  .active .navIcon {
+    transform: scale(1.1);
+    transition: transform 0.2s var(--ease-bounce);
   }
 
   .navIcon {

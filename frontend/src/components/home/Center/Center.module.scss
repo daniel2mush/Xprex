@@ -105,6 +105,17 @@
     ),
     var(--surface-card);
   box-shadow: var(--shadow-soft);
+  transition:
+    box-shadow var(--duration-slow) ease,
+    border-color var(--duration-normal) ease;
+
+  &:has(.input:focus) {
+    border-color: var(--border-accent);
+    box-shadow:
+      var(--shadow-soft),
+      0 0 0 1px color-mix(in srgb, var(--brand-primary) 20%, transparent),
+      0 0 40px color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  }
 }
 
 .composeHeader {
@@ -339,18 +350,26 @@
 }
 
 .skeleton {
+  position: relative;
   width: 100%;
   height: 140px;
   border-radius: 24px;
-  background:
-    linear-gradient(
-      120deg,
-      color-mix(in srgb, var(--bg-elevated) 88%, transparent) 20%,
-      color-mix(in srgb, var(--bg-surface) 80%, white) 38%,
-      color-mix(in srgb, var(--bg-elevated) 88%, transparent) 56%
+  overflow: hidden;
+  background: var(--bg-elevated);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      color-mix(in srgb, var(--text-main) 4%, transparent) 48%,
+      transparent 66%
     );
-  background-size: 200% 100%;
-  animation: shimmer 1.3s linear infinite;
+    background-size: 250% 100%;
+    animation: shimmerGlass 1.8s ease infinite;
+  }
 }
 
 .empty {
@@ -367,19 +386,42 @@
   }
 }
 
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--brand-primary) 12%, transparent),
+    color-mix(in srgb, var(--brand-hover) 8%, transparent)
+  );
+  color: var(--brand-primary);
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.emptyTitle {
+  margin: 0 auto 8px;
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
 .loadMoreTrigger {
   width: 100%;
   height: 1px;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 100% 0;
-  }
+@keyframes shimmerGlass {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
-  100% {
-    background-position: -100% 0;
-  }
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
 @media (max-width: 1024px) {
@@ -480,6 +522,22 @@
     background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
     color: var(--text-on-brand);
     box-shadow: var(--shadow-strong);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 999px;
+      border: 2px solid var(--brand-primary);
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    &:active::after {
+      opacity: 0.4;
+      transform: scale(1);
+    }
   }
 
   .compose {

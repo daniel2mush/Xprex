@@ -370,6 +370,10 @@ export default function Center() {
 
         {!isLoading && posts.length === 0 && (
           <div className={styles.empty}>
+            <div className={styles.emptyIcon}>
+              <ImageIcon size={28} />
+            </div>
+            <h3 className={styles.emptyTitle}>The stage is yours</h3>
             <p>Nothing here yet. Be the first to post.</p>
           </div>
         )}

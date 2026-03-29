@@ -11,10 +11,10 @@
     var(--surface-card);
   box-shadow: var(--shadow-soft);
   transition:
-    background-color 0.1s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease,
-    border-color 0.18s ease;
+    background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
   margin-bottom: 12px;
   cursor: pointer;
 
@@ -26,9 +26,11 @@
         transparent 34%
       ),
       var(--surface-card-strong);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     border-color: var(--border-accent);
-    box-shadow: var(--shadow-strong);
+    box-shadow:
+      var(--shadow-strong),
+      0 0 0 1px color-mix(in srgb, var(--brand-primary) 8%, transparent);
   }
 }
 
@@ -276,6 +278,19 @@
   background: var(--overlay-scrim);
   color: var(--text-on-brand);
   font-size: 0.75rem;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.mediaItem:hover .mediaHint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mediaItem:hover .mediaImg,
+.mediaItem:hover .mediaVideo {
+  transform: scale(1.04);
 }
 
 .actions {
@@ -335,6 +350,13 @@
 .heartFilled {
   fill: var(--color-error);
   stroke: none;
+  animation: heartPop 0.35s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+@keyframes heartPop {
+  0%   { transform: scale(0.6); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .bookmarkBtn {

@@ -132,10 +132,22 @@
     var(--text-main) 10%,
     var(--border-subtle)
   );
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.24);
   --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.32);
   --shadow-strong: 0 28px 68px rgba(0, 0, 0, 0.48);
+  --shadow-glow: 0 0 40px color-mix(in srgb, var(--brand-primary) 8%, transparent);
   --overlay-scrim: rgba(0, 0, 0, 0.76);
   --overlay-strong: rgba(0, 0, 0, 0.92);
+
+  /* Motion tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.17, 0.89, 0.32, 1.49);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
 }
 
 // ==========================================
@@ -164,4 +176,33 @@
   --shadow-strong: 0 28px 68px rgba(15, 23, 42, 0.12);
   --overlay-scrim: rgba(15, 23, 42, 0.48);
   --overlay-strong: rgba(15, 23, 42, 0.82);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 12px 28px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 40px color-mix(in srgb, var(--brand-primary) 6%, transparent);
+}
+
+// ==========================================
+// 📜 STYLED SCROLLBARS
+// ==========================================
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 20%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+  border-radius: 999px;
+
+  &:hover {
+    background: color-mix(in srgb, var(--text-muted) 35%, transparent);
+  }
 }

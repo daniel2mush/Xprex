@@ -184,9 +184,11 @@ export default function AdminReportsPage() {
                   <div className={styles.metaItem}>
                     {isUserReport ? <ShieldAlert size={14} /> : <MessageSquareWarning size={14} />}
                     <span>
-                      {isUserReport
-                        ? `Account: ${formatHandle(reportTarget?.handle) || reportTarget?.username || "Unknown"}`
-                        : `Post by ${formatHandle(reportTarget?.user.handle) || reportTarget?.user.username || "Unknown"}`}
+                      {isUserReport && report.targetUser
+                        ? `Account: ${formatHandle(report.targetUser.handle) || report.targetUser.username || "Unknown"}`
+                        : report.targetPost
+                          ? `Post by ${formatHandle(report.targetPost.user.handle) || report.targetPost.user.username || "Unknown"}`
+                          : "Unknown target"}
                     </span>
                   </div>
                 </div>

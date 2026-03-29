@@ -33,6 +33,59 @@ body {
     color 0.2s ease;
 }
 
+// ==========================================
+// 🌀 ANIMATED GRADIENT MESH (ambient background)
+// ==========================================
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      color-mix(in srgb, var(--brand-primary) 12%, transparent),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      color-mix(in srgb, var(--brand-hover) 8%, transparent),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 50% 80%,
+      color-mix(in srgb, var(--color-violet-soft) 6%, transparent),
+      transparent 50%
+    );
+  animation: meshDrift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes meshDrift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-2%, 1.5%) scale(1.03); }
+  100% { transform: translate(1%, -1%) scale(0.98); }
+}
+
+// ==========================================
+// 🎬 PAGE TRANSITION
+// ==========================================
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main,
+.layout {
+  animation: pageIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 ::selection {
   background: color-mix(in srgb, var(--brand-primary) 28%, transparent);
   color: var(--text-main);
@@ -45,6 +98,7 @@ h4 {
   color: var(--text-main); // Stronger contrast for headings
   line-height: 1.1;
   font-weight: var(--font-weight-bold);
+  font-family: var(--font-heading), var(--font-body), sans-serif;
 }
 
 h1 {
