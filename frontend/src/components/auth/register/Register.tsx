@@ -68,11 +68,6 @@ export default function RegisterPage() {
   };
   return (
     <div className={style.panel}>
-      <div className={style.header}>
-        <p className={style.eyebrow}>Create your account</p>
-        <p className={style.description}>Join in and start posting fast.</p>
-      </div>
-
       <form className={style.form} onSubmit={handleSubmit(Register)} noValidate>
         <Input
           label="Email"

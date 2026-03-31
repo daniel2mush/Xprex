@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const registrationValidation = z.object({
-  email: z.string({ error: "Email is required" }).email("Invalid email format"),
+  email: z.email("Invalid email format"),
 
   username: z
     .string({ error: "Username is required" })
@@ -15,7 +15,7 @@ export const registrationValidation = z.object({
 });
 
 export const loginValdation = z.object({
-  email: z.string({ error: "Email is required" }),
+  email: z.email({ error: "Email is required" }),
   password: z
     .string({ error: "password is required" })
     .min(2, { error: "Password must be at least 2 characters" }),
@@ -30,7 +30,7 @@ export const updateProfileValidation = z
       .optional(),
     handle: z
       .string()
-      .max(25, { error: "Username cannot exceed 25 characters" })
+      .max(25, { error: "handle cannot exceed 25 characters" })
       .optional(),
     bio: z
       .string()
@@ -61,9 +61,7 @@ export const updateProfileValidation = z
 
 export const updateAccountSecurityValidation = z
   .object({
-    email: z
-      .string()
-      .email("Invalid email format")
+    email: z.email("Invalid email format")
       .optional(),
     currentPassword: z
       .string()

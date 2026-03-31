@@ -11,7 +11,6 @@ import {
   Paperclip,
   Search,
   Send,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -48,6 +47,107 @@ type ReadReceiptPayload = {
 type TypingPayload = {
   conversationId: string;
   userId: string;
+};
+
+type TimelineItem =
+  | {
+      type: "date";
+      key: string;
+      label: string;
+    }
+  | {
+      type: "message";
+      key: string;
+      message: MessageItem;
+      ownMessage: boolean;
+      seen: boolean;
+      groupedWithPrevious: boolean;
+      groupedWithNext: boolean;
+    };
+
+const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  day: "numeric",
+});
+
+const longDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
+
+const getDayKey = (value: string | Date) => {
+  const date = value instanceof Date ? value : new Date(value);
+
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+};
+
+const formatDateDividerLabel = (value: string) => {
+  const date = new Date(value);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (getDayKey(date) === getDayKey(today)) {
+    return "Today";
+  }
+
+  if (getDayKey(date) === getDayKey(yesterday)) {
+    return "Yesterday";
+  }
+
+  return date.getFullYear() === today.getFullYear()
+    ? shortDateFormatter.format(date)
+    : longDateFormatter.format(date);
+};
+
+const shouldClusterMessages = (
+  current: MessageItem,
+  adjacent?: MessageItem,
+) => {
+  if (!adjacent || current.senderId !== adjacent.senderId) {
+    return false;
+  }
+
+  if (getDayKey(current.createdAt) !== getDayKey(adjacent.createdAt)) {
+    return false;
+  }
+
+  return (
+    Math.abs(
+      new Date(current.createdAt).getTime() -
+        new Date(adjacent.createdAt).getTime(),
+    ) <=
+    10 * 60 * 1000
+  );
+};
+
+const getAttachmentLabel = (type: MediaItem["type"]) => {
+  switch (type) {
+    case "VIDEO":
+      return "Video";
+    case "GIF":
+      return "GIF";
+    default:
+      return "Photo";
+  }
+};
+
+const getConversationPreview = (message?: MessageItem) => {
+  if (!message) {
+    return "Start the conversation";
+  }
+
+  const content = message.content.trim();
+  if (content) {
+    return content;
+  }
+
+  if (message.media.length === 1) {
+    return `Shared a ${getAttachmentLabel(message.media[0].type).toLowerCase()}`;
+  }
+
+  return `Shared ${message.media.length} attachments`;
 };
 
 export default function MessagesPage() {
@@ -174,6 +274,56 @@ export default function MessagesPage() {
   const isOtherParticipantTyping = Boolean(
     activeConversationId && typingByConversation[activeConversationId],
   );
+  const conversationTimeline = useMemo<TimelineItem[]>(
+    () =>
+      liveMessages.flatMap((message, index, messages) => {
+        const previousMessage = messages[index - 1];
+        const nextMessage = messages[index + 1];
+        const ownMessage = message.senderId === user?.id;
+        const seen =
+          ownMessage &&
+          otherParticipantReadAt &&
+          new Date(otherParticipantReadAt).getTime() >=
+            new Date(message.createdAt).getTime();
+        const groupedWithPrevious = shouldClusterMessages(
+          message,
+          previousMessage,
+        );
+        const groupedWithNext = shouldClusterMessages(message, nextMessage);
+        const items: TimelineItem[] = [];
+
+        if (!previousMessage || getDayKey(previousMessage.createdAt) !== getDayKey(message.createdAt)) {
+          items.push({
+            type: "date",
+            key: `date-${getDayKey(message.createdAt)}`,
+            label: formatDateDividerLabel(message.createdAt),
+          });
+        }
+
+        items.push({
+          type: "message",
+          key: message.id,
+          message,
+          ownMessage,
+          seen: Boolean(seen),
+          groupedWithPrevious,
+          groupedWithNext,
+        });
+
+        return items;
+      }),
+    [liveMessages, otherParticipantReadAt, user?.id],
+  );
+  const participantPresenceLabel = isOtherParticipantTyping
+    ? "Typing"
+    : activeParticipant?.isOnline
+      ? "Online"
+      : "Offline";
+  const participantPresenceTone = isOtherParticipantTyping
+    ? styles.presenceTyping
+    : activeParticipant?.isOnline
+      ? styles.presenceOnline
+      : styles.presenceOffline;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 960px)");
@@ -446,6 +596,16 @@ export default function MessagesPage() {
     return () => observer.disconnect();
   }, [activeConversationId]);
 
+  useEffect(() => {
+    if (!isOtherParticipantTyping) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      scrollToLatestMessage("smooth");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOtherParticipantTyping]);
+
   const handleAttachmentSelection = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -542,8 +702,8 @@ export default function MessagesPage() {
           <span
             className={`${styles.statusBadge} ${isSocketConnected ? styles.connected : ""}`}
           >
-            <Sparkles size={12} />
-            {isSocketConnected ? "Live" : "Connecting"}
+            <span className={styles.statusDot} aria-hidden="true" />
+            {isSocketConnected ? "Live chat" : "Connecting"}
           </span>
         </div>
 
@@ -612,7 +772,7 @@ export default function MessagesPage() {
                     </span>
                   </div>
                   <p className={styles.conversationPreview}>
-                    {conversation.lastMessage?.content ?? "Start the conversation"}
+                    {getConversationPreview(conversation.lastMessage)}
                   </p>
                 </div>
               </button>
@@ -664,17 +824,18 @@ export default function MessagesPage() {
                     {activeParticipant?.username?.[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
-                <div>
+                <div className={styles.chatHeading}>
                   <h2 className={styles.chatName}>
                     {activeParticipant?.username ?? "Conversation"}
                   </h2>
-                  <p className={styles.chatStatus}>
-                    {isOtherParticipantTyping
-                      ? "Typing..."
-                      : activeParticipant?.isOnline
-                        ? "Online now"
-                        : "Offline"}
-                  </p>
+                  <div className={styles.chatStatusRow}>
+                    <span
+                      className={`${styles.presenceBadge} ${participantPresenceTone}`}
+                    >
+                      <span className={styles.statusDot} aria-hidden="true" />
+                      {participantPresenceLabel}
+                    </span>
+                  </div>
                 </div>
               </div>
             </header>
@@ -687,30 +848,54 @@ export default function MessagesPage() {
                   </div>
                 )}
 
+                {!loadingConversation && conversationTimeline.length === 0 && (
+                  <div className={styles.emptyState}>
+                    <MessageSquare size={28} />
+                    <h2>Conversation ready</h2>
+                    <p>Send the first message to get things started.</p>
+                  </div>
+                )}
+
                 {!loadingConversation &&
-                  liveMessages.map((message) => {
-                    const ownMessage = message.senderId === user?.id;
-                    const seen =
-                      ownMessage &&
-                      otherParticipantReadAt &&
-                      new Date(otherParticipantReadAt).getTime() >=
-                        new Date(message.createdAt).getTime();
+                  conversationTimeline.map((item) => {
+                    if (item.type === "date") {
+                      return (
+                        <div key={item.key} className={styles.dateDivider}>
+                          <span>{item.label}</span>
+                        </div>
+                      );
+                    }
+
+                    const {
+                      groupedWithNext,
+                      groupedWithPrevious,
+                      message,
+                      ownMessage,
+                      seen,
+                    } = item;
 
                     return (
                       <div
-                        key={message.id}
+                        key={item.key}
                         className={`${styles.messageRow} ${
                           ownMessage ? styles.ownMessageRow : ""
+                        } ${
+                          groupedWithPrevious ? styles.messageRowCompact : ""
                         }`}
                       >
                         <div
                           className={`${styles.messageBubble} ${
                             ownMessage ? styles.ownMessageBubble : ""
                           }`}
+                          data-grouped-next={groupedWithNext}
+                          data-grouped-prev={groupedWithPrevious}
                         >
                           {message.content && <p>{message.content}</p>}
                           {message.media.length > 0 && (
-                            <div className={styles.messageMediaGrid}>
+                            <div
+                              className={styles.messageMediaGrid}
+                              data-count={message.media.length}
+                            >
                               {message.media.map((media) => (
                                 <div
                                   key={media.id}
@@ -741,14 +926,30 @@ export default function MessagesPage() {
                               ))}
                             </div>
                           )}
-                          <span>{timeAgoShort(new Date(message.createdAt))}</span>
-                          {seen && (
-                            <span className={styles.messageSeen}>Seen</span>
-                          )}
+                          <div className={styles.messageMeta}>
+                            <span>{timeAgoShort(new Date(message.createdAt))}</span>
+                            {seen && (
+                              <span className={styles.messageSeen}>Seen</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
                   })}
+
+                {!loadingConversation && isOtherParticipantTyping && (
+                  <div className={styles.messageRow}>
+                    <div
+                      className={styles.typingBubble}
+                      aria-live="polite"
+                      aria-label={`${activeParticipant?.username ?? "Someone"} is typing`}
+                    >
+                      <span className={styles.typingDot} />
+                      <span className={styles.typingDot} />
+                      <span className={styles.typingDot} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -791,6 +992,9 @@ export default function MessagesPage() {
                           unoptimized
                         />
                       )}
+                      <span className={styles.attachmentKind}>
+                        {getAttachmentLabel(attachment.type)}
+                      </span>
                       <button
                         type="button"
                         className={styles.removeAttachment}

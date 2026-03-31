@@ -6,16 +6,25 @@
   overflow: hidden;
   background:
     radial-gradient(
-      circle at top left,
+      circle at 12% 12%,
       color-mix(in srgb, var(--brand-primary) 16%, transparent),
-      transparent 28%
+      transparent 30%
     ),
     radial-gradient(
-      circle at bottom right,
-      color-mix(in srgb, var(--brand-hover) 14%, transparent),
+      circle at 86% 14%,
+      color-mix(in srgb, var(--brand-hover) 12%, transparent),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 78% 88%,
+      color-mix(in srgb, var(--brand-primary) 10%, transparent),
       transparent 24%
     ),
-    var(--bg-app);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-app) 94%, transparent),
+      color-mix(in srgb, var(--bg-surface) 96%, var(--bg-app))
+    );
 }
 
 .sidebar {
@@ -23,9 +32,14 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border-right: 0.5px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
-  backdrop-filter: blur(14px);
+  border-right: 0.5px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-surface) 94%, transparent),
+      color-mix(in srgb, var(--bg-surface) 82%, transparent)
+    );
+  backdrop-filter: blur(18px);
 }
 
 .sidebarHeader {
@@ -60,17 +74,34 @@
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.7rem;
-  border: 1px solid var(--border-subtle);
+  gap: 0.45rem;
+  padding: 0.45rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
   border-radius: 999px;
   color: var(--text-muted);
   font-size: 0.75rem;
+  background: color-mix(in srgb, var(--surface-card) 78%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.statusDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--text-muted) 66%, transparent);
 }
 
 .connected {
   color: var(--color-success);
-  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 24%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.connected .statusDot {
+  color: var(--color-success);
+  background: var(--color-success);
+  animation: statusPulse 1.8s infinite;
 }
 
 .searchBox {
@@ -78,11 +109,23 @@
   align-items: center;
   gap: 0.65rem;
   margin: 0 1.2rem 1rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
+  padding: 0.88rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  border-radius: 18px;
   color: var(--text-muted);
-  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 84%, transparent);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.searchBox:focus-within {
+  border-color: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--brand-primary) 16%, transparent),
+    0 16px 30px color-mix(in srgb, var(--text-main) 7%, transparent);
+  transform: translateY(-1px);
 }
 
 .searchBox input {
@@ -93,12 +136,16 @@
   background: transparent;
 }
 
+.searchBox input::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 82%, transparent);
+}
+
 .conversationList {
   display: flex;
   flex: 1;
   min-height: 0;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
   padding: 0 0.8rem 1rem;
   overflow-y: auto;
 }
@@ -108,32 +155,39 @@
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 0.8rem;
   width: 100%;
-  padding: 0.9rem;
+  padding: 0.95rem;
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 22px;
   text-align: left;
   cursor: pointer;
   color: inherit;
   background: transparent;
   transition:
-    border-color 0.16s ease,
-    background 0.16s ease,
-    transform 0.16s ease;
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .conversationItem:hover {
-  border-color: var(--border-accent);
-  background: var(--surface-accent);
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 72%, transparent);
+  box-shadow: 0 16px 28px color-mix(in srgb, var(--text-main) 6%, transparent);
   transform: translateY(-1px);
 }
 
 .conversationActive {
-  border-color: color-mix(in srgb, var(--brand-hover) 24%, var(--border-subtle));
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--brand-primary) 18%, transparent),
-    color-mix(in srgb, var(--brand-hover) 12%, transparent)
-  );
+  border-color: color-mix(in srgb, var(--brand-hover) 26%, var(--border-subtle));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--brand-primary) 18%, transparent),
+      color-mix(in srgb, var(--brand-hover) 10%, transparent)
+    ),
+    color-mix(in srgb, var(--surface-card) 80%, transparent);
+  box-shadow:
+    0 18px 34px color-mix(in srgb, var(--text-main) 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--brand-primary) 8%, transparent);
 }
 
 .avatar,
@@ -167,7 +221,7 @@
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.24rem;
 }
 
 .conversationName {
@@ -189,10 +243,17 @@
 }
 
 .conversationSkeleton {
-  height: 78px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
-  animation: pulse 1.2s infinite;
+  height: 82px;
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--surface-card) 74%, transparent),
+      color-mix(in srgb, var(--surface-card-strong) 80%, transparent),
+      color-mix(in srgb, var(--surface-card) 74%, transparent)
+    );
+  background-size: 200% 100%;
+  animation: skeletonSweep 1.3s infinite linear;
 }
 
 .chatPanel {
@@ -205,20 +266,34 @@
 }
 
 .chatHeader {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 1.4rem;
-  border-bottom: 0.5px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-app) 76%, transparent);
-  backdrop-filter: blur(10px);
+  padding: 1.1rem 1.4rem;
+  border-bottom: 0.5px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-app) 90%, transparent),
+      color-mix(in srgb, var(--bg-app) 72%, transparent)
+    );
+  backdrop-filter: blur(22px);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--text-main) 5%, transparent);
 }
 
 .chatIdentity {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+}
+
+.chatHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .backButton {
@@ -230,15 +305,58 @@
 }
 
 .chatName {
-  margin: 0 0 0.15rem;
+  margin: 0;
   color: var(--text-main);
   font-size: 1.05rem;
 }
 
-.chatStatus {
-  margin: 0;
+.chatStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.presenceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  border-radius: 999px;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-medium);
+  background: color-mix(in srgb, var(--surface-card) 70%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.presenceOnline {
+  color: var(--text-main);
+  border-color: color-mix(in srgb, var(--color-success) 28%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.presenceOnline .statusDot {
+  color: var(--color-success);
+  background: var(--color-success);
+  animation: statusPulse 1.8s infinite;
+}
+
+.presenceTyping {
+  color: var(--text-main);
+  border-color: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+.presenceTyping .statusDot {
+  color: var(--brand-primary);
+  background: var(--brand-primary);
+  animation: statusPulse 1.5s infinite;
+}
+
+.presenceOffline {
+  color: var(--text-muted);
 }
 
 .callButton {
@@ -252,107 +370,337 @@
 }
 
 .messageStream {
+  position: relative;
   display: flex;
   min-height: 0;
-  padding: 1.25rem 1.4rem;
+  padding: 1.4rem 1.5rem;
   overflow-y: auto;
+  scroll-padding-top: 4rem;
+  background:
+    radial-gradient(
+      circle at 24% 12%,
+      color-mix(in srgb, var(--brand-primary) 8%, transparent),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 82% 28%,
+      color-mix(in srgb, var(--brand-hover) 10%, transparent),
+      transparent 26%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-app) 40%, transparent),
+      color-mix(in srgb, var(--bg-surface) 14%, transparent)
+    );
+}
+
+.messageStream::before,
+.messageStream::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.messageStream::before {
+  background:
+    radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--text-main) 5%, transparent) 1px,
+      transparent 0
+    );
+  background-size: 22px 22px;
+  opacity: 0.45;
+}
+
+.messageStream::after {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-app) 10%, transparent),
+      color-mix(in srgb, var(--bg-app) 42%, transparent)
+    );
 }
 
 .messageContent {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.95rem;
   width: 100%;
   min-height: 100%;
   margin-top: auto;
 }
 
+.dateDivider {
+  position: sticky;
+  top: 0.65rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin: 0.1rem 0 0.25rem;
+}
+
+.dateDivider span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--surface-card) 86%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--text-main) 5%, transparent);
+}
+
 .messageRow {
   display: flex;
+  animation: messagePop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: left bottom;
 }
 
 .ownMessageRow {
   justify-content: flex-end;
+  transform-origin: right bottom;
+}
+
+.messageRowCompact {
+  margin-top: -0.5rem;
 }
 
 .messageBubble {
-  max-width: min(80%, 520px);
-  padding: 0.9rem 1rem 0.7rem;
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
-  border-radius: 20px 20px 20px 6px;
+  max-width: min(80%, 540px);
+  padding: 0.95rem 1rem 0.78rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 16%, var(--border-subtle));
+  border-radius: 28px 28px 28px 12px;
   color: var(--text-main);
-  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-card) 98%, transparent),
+      color-mix(in srgb, var(--bg-surface) 88%, transparent)
+    );
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 18px 36px color-mix(in srgb, var(--text-main) 7%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.messageBubble[data-grouped-prev="true"] {
+  border-top-left-radius: 18px;
+}
+
+.messageBubble[data-grouped-next="true"] {
+  border-bottom-left-radius: 18px;
 }
 
 .ownMessageBubble {
-  border-color: color-mix(in srgb, var(--brand-hover) 24%, transparent);
-  border-radius: 20px 20px 6px 20px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--brand-primary) 26%, transparent),
-    color-mix(in srgb, var(--brand-hover) 18%, transparent)
-  );
+  border-color: color-mix(in srgb, var(--brand-hover) 22%, transparent);
+  border-radius: 28px 28px 12px 28px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--brand-primary) 24%, transparent),
+      color-mix(in srgb, var(--brand-hover) 18%, transparent)
+    ),
+    color-mix(in srgb, var(--surface-card) 94%, transparent);
+}
+
+.ownMessageBubble[data-grouped-prev="true"] {
+  border-top-right-radius: 18px;
+  border-top-left-radius: 28px;
+}
+
+.ownMessageBubble[data-grouped-next="true"] {
+  border-bottom-right-radius: 18px;
+  border-bottom-left-radius: 28px;
 }
 
 .messageBubble p {
-  margin: 0 0 0.35rem;
+  margin: 0;
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+.messageBubble p + .messageMediaGrid {
+  margin-top: 0.65rem;
 }
 
 .messageMediaGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 0.5rem;
+  gap: 10px;
+}
+
+.messageMediaGrid[data-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .messageMediaCard {
+  position: relative;
   overflow: hidden;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-main) 8%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
+}
+
+.messageMediaCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 40%,
+      color-mix(in srgb, var(--text-main) 16%, transparent)
+    );
+  opacity: 0;
+  transition: opacity 0.24s ease;
+  pointer-events: none;
+}
+
+.messageMediaCard:hover::after {
+  opacity: 1;
+}
+
+.messageMediaCard:hover .messageMedia,
+.messageMediaCard:focus-within .messageMedia {
+  transform: scale(1.04);
 }
 
 .messageMedia {
   display: block;
   width: 100%;
-  max-height: 220px;
+  max-height: 240px;
   object-fit: cover;
+  transition: transform 0.26s ease;
 }
 
-.messageBubble span {
-  display: block;
-  color: var(--text-muted);
+.messageMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.45rem;
+  color: color-mix(in srgb, var(--text-muted) 90%, transparent);
   font-size: 0.72rem;
 }
 
+.ownMessageBubble .messageMeta {
+  justify-content: flex-end;
+}
+
 .messageSeen {
-  margin-top: 0.2rem;
-  color: var(--brand-primary) !important;
+  color: var(--brand-primary);
   font-weight: var(--font-weight-medium);
 }
 
+.typingBubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 74px;
+  padding: 0.9rem 1rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 14%, var(--border-subtle));
+  border-radius: 24px 24px 24px 12px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-card) 94%, transparent),
+      color-mix(in srgb, var(--bg-surface) 82%, transparent)
+    );
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 16px 32px color-mix(in srgb, var(--text-main) 6%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.typingDot {
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 84%, transparent);
+  animation: typingBounce 1.15s infinite ease-in-out;
+}
+
+.typingDot:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.typingDot:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
 .composer {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.8rem;
   padding: 1rem 1.4rem 1.2rem;
-  border-top: 0.5px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-app) 74%, transparent);
+  border-top: 0.5px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-app) 54%, transparent),
+      color-mix(in srgb, var(--bg-app) 82%, transparent)
+    );
+  backdrop-filter: blur(22px);
+  box-shadow:
+    0 -18px 36px color-mix(in srgb, var(--text-main) 4%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 14%, transparent);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.composer:focus-within {
+  border-top-color: color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  box-shadow:
+    0 -20px 42px color-mix(in srgb, var(--text-main) 5%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--brand-primary) 12%, transparent),
+    0 0 0 10px color-mix(in srgb, var(--brand-primary) 4%, transparent);
 }
 
 .composerInput {
   flex: 1 1 220px;
   width: 100%;
   max-height: 150px;
+  min-height: 52px;
   padding: 0.95rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
-  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  border-radius: 22px;
   outline: none;
   resize: none;
   color: var(--text-main);
-  background: color-mix(in srgb, var(--bg-surface) 84%, transparent);
+  line-height: 1.55;
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.composerInput:focus {
+  border-color: color-mix(in srgb, var(--brand-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--surface-card-strong) 92%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 20%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--brand-primary) 16%, transparent),
+    0 12px 28px color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+.composerInput::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 78%, transparent);
 }
 
 .fileInput {
@@ -360,34 +708,61 @@
 }
 
 .attachButton {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  border-radius: 18px;
   color: var(--text-main);
-  background: var(--surface-card);
+  background: color-mix(in srgb, var(--surface-card) 86%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
   cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.attachButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  background: color-mix(in srgb, var(--surface-card-strong) 84%, transparent);
+  box-shadow:
+    0 14px 24px color-mix(in srgb, var(--text-main) 6%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.attachButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .attachmentTray {
   display: flex;
   gap: 10px;
   width: 100%;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  border-radius: 22px;
   overflow-x: auto;
+  background: color-mix(in srgb, var(--surface-card) 78%, transparent);
 }
 
 .attachmentChip {
   position: relative;
   flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-card);
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-card-strong) 84%, transparent);
+  box-shadow:
+    0 12px 24px color-mix(in srgb, var(--text-main) 7%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
 }
 
 .attachmentPreview {
@@ -396,12 +771,25 @@
   object-fit: cover;
 }
 
+.attachmentKind {
+  position: absolute;
+  left: 0.45rem;
+  bottom: 0.45rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  color: var(--text-on-brand);
+  font-size: 0.64rem;
+  font-weight: var(--font-weight-medium);
+  background: rgba(4, 10, 22, 0.58);
+  backdrop-filter: blur(8px);
+}
+
 .removeAttachment {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -410,6 +798,14 @@
   color: var(--text-on-brand);
   background: rgba(4, 10, 22, 0.72);
   cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease;
+}
+
+.removeAttachment:hover {
+  transform: scale(1.06);
+  background: rgba(4, 10, 22, 0.88);
 }
 
 .emptyState {
@@ -426,17 +822,53 @@
   margin: 0;
 }
 
-@keyframes pulse {
+@keyframes statusPulse {
   0% {
-    opacity: 0.35;
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 34%, transparent);
   }
 
-  50% {
-    opacity: 0.7;
+  70% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, currentColor 0%, transparent);
   }
 
   100% {
-    opacity: 0.35;
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 0%, transparent);
+  }
+}
+
+@keyframes typingBounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes messagePop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes skeletonSweep {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 200% 50%;
   }
 }
 
@@ -486,7 +918,11 @@
   .messageStream {
     flex: 1;
     min-height: 0;
-    padding: 1rem 1rem calc(104px + env(safe-area-inset-bottom));
+    padding: 1rem 1rem calc(120px + env(safe-area-inset-bottom));
+  }
+
+  .messageBubble {
+    max-width: 88%;
   }
 
   .composer {
@@ -506,7 +942,7 @@
         color-mix(in srgb, var(--bg-app) 88%, transparent)
       ),
       var(--bg-surface);
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(16px);
   }
 
   .composerInput {
@@ -548,5 +984,60 @@
   .callButton {
     width: 38px;
     height: 38px;
+  }
+}
+
+@media (max-width: 640px) {
+  .conversationItem {
+    border-radius: 20px;
+  }
+
+  .chatIdentity {
+    gap: 0.7rem;
+  }
+
+  .dateDivider {
+    top: 0.45rem;
+  }
+
+  .dateDivider span {
+    min-width: 78px;
+    font-size: 0.68rem;
+  }
+
+  .messageBubble,
+  .ownMessageBubble {
+    max-width: 92%;
+    padding: 0.85rem 0.9rem 0.7rem;
+  }
+
+  .messageMedia {
+    max-height: 220px;
+  }
+
+  .typingBubble {
+    min-width: 66px;
+    padding: 0.8rem 0.9rem 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversationItem,
+  .searchBox,
+  .messageMedia,
+  .attachButton,
+  .removeAttachment,
+  .composer,
+  .composerInput {
+    transition: none;
+  }
+
+  .connected .statusDot,
+  .presenceOnline .statusDot,
+  .presenceTyping .statusDot,
+  .typingDot,
+  .messageRow,
+  .conversationSkeleton {
+    animation: none;
   }
 }

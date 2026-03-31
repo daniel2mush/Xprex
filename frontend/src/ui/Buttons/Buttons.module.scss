@@ -70,11 +70,15 @@
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
   color: var(--text-on-brand);
   border-color: transparent;
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  box-shadow: 
+    0 8px 24px color-mix(in srgb, var(--brand-primary) 24%, transparent),
+    0 1px 1px inset rgba(255, 255, 255, 0.25);
 
   &:hover:not(:disabled) {
     opacity: 0.95;
-    box-shadow: 0 14px 28px color-mix(in srgb, var(--brand-primary) 24%, transparent);
+    box-shadow: 
+      0 12px 28px color-mix(in srgb, var(--brand-primary) 28%, transparent),
+      0 1px 1px inset rgba(255, 255, 255, 0.25);
   }
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowUpRight,
   Bell,
   Bookmark,
   Compass,
@@ -181,27 +180,6 @@ export default function LeftSideBar() {
           </button>
         </div>
 
-        <div className={styles.summaryCard}>
-          <div>
-            <p className={styles.summaryEyebrow}>Live pulse</p>
-            <h2 className={styles.summaryTitle}>Stay on top of the app</h2>
-          </div>
-          <div className={styles.summaryStats}>
-            <div className={styles.summaryStat}>
-              <span className={styles.summaryValue}>{unreadMessages}</span>
-              <span className={styles.summaryLabel}>Unread messages</span>
-            </div>
-            <div className={styles.summaryStat}>
-              <span className={styles.summaryValue}>{unreadNotifications}</span>
-              <span className={styles.summaryLabel}>Alerts</span>
-            </div>
-          </div>
-          <Link href="/explore" className={styles.summaryLink}>
-            Explore what&apos;s happening
-            <ArrowUpRight size={14} />
-          </Link>
-        </div>
-
         <nav className={styles.navs}>
           {navigationItems.map(({ icon, name, href, isActive, badgeCount }) => (
             <Link
@@ -220,23 +198,6 @@ export default function LeftSideBar() {
               </span>
               <span className={styles.navContent}>
                 <span className={styles.navLabel}>{name}</span>
-                <span className={styles.navMeta}>
-                  {name === "Messages"
-                    ? "Direct and follower chats"
-                    : name === "Notifications"
-                      ? "Mentions, follows, reactions"
-                      : name === "Bookmarks"
-                        ? "Saved posts for later"
-                      : name === "Explore"
-                        ? "Search and discover"
-                        : name === "Profile"
-                          ? "Your public identity"
-                          : name === "Reports"
-                            ? "Moderation inbox"
-                          : name === "Settings"
-                            ? "Account and preferences"
-                            : "Main timeline"}
-                </span>
               </span>
               {isActive && <span className={styles.activeIndicator} aria-hidden="true" />}
             </Link>

@@ -1,10 +1,19 @@
 "use client";
 
 import styles from "./RightSideBar.module.scss";
+import Image from "next/image";
 import Link from "next/link";
 import { getProfilePath } from "@/lib/profile";
 import { useState } from "react";
-import { ArrowRight, Bell, Flame, Search, Sparkles, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Bell,
+  Flame,
+  Search,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetNotifications } from "@/query/NotificationsQuery";
 import { useGetConversations } from "@/query/MessagingQuery";
@@ -14,6 +23,56 @@ import {
   useTrendingDiscovery,
 } from "@/query/SearchQuery";
 import { timeAgoShort } from "@/lib/ParseDate";
+import { MessageItem, NotificationTypes } from "@/types/Types";
+
+const getConversationPreview = (message?: MessageItem) => {
+  if (!message) {
+    return "Start a chat";
+  }
+
+  const content = message.content.trim();
+  if (content) {
+    return content;
+  }
+
+  if (message.media.length === 1) {
+    const mediaType = message.media[0].type;
+
+    if (mediaType === "VIDEO") {
+      return "Shared a video";
+    }
+
+    if (mediaType === "GIF") {
+      return "Shared a GIF";
+    }
+
+    return "Shared a photo";
+  }
+
+  return `Shared ${message.media.length} attachments`;
+};
+
+const formatCompactCount = (count: number, label: string) =>
+  `${count} ${label}${count === 1 ? "" : "s"}`;
+
+const getNotificationSummary = (type: NotificationTypes["type"]) => {
+  switch (type) {
+    case "LIKE":
+      return "liked your post";
+    case "COMMENT":
+      return "commented on your post";
+    case "REPLY":
+      return "replied to you";
+    case "FOLLOW":
+      return "followed you";
+    case "REPOST":
+      return "reposted your post";
+    case "MESSAGE":
+      return "sent a message";
+    default:
+      return "sent an update";
+  }
+};
 
 export default function RightSideBar() {
   const router = useRouter();
@@ -54,13 +113,30 @@ export default function RightSideBar() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+          {search.trim() && (
+            <button
+              type="button"
+              className={styles.searchReset}
+              aria-label="Clear search"
+              onClick={() => setSearch("")}
+            >
+              <X size={14} />
+            </button>
+          )}
+          <button
+            type="submit"
+            className={styles.searchSubmit}
+            disabled={!search.trim()}
+          >
+            Explore
+          </button>
         </form>
 
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
               <p className={styles.eyebrow}>Live inbox</p>
-              <h2 className={styles.sectionTitle}>Conversation pulse</h2>
+              <h2 className={styles.sectionTitle}>Active Chats</h2>
             </div>
             <Link href="/messages" className={styles.inlineLink}>
               Open
@@ -75,26 +151,37 @@ export default function RightSideBar() {
                 <Link href={`/messages?conversationId=${conversation.id}`} className={styles.rowLink}>
                   <div className={styles.rowIconWrap}>
                     {conversation.participant.avatar ? (
-                      <img
+                      <Image
                         src={conversation.participant.avatar}
                         alt={conversation.participant.username}
                         className={styles.avatar}
+                        width={40}
+                        height={40}
+                        unoptimized
                       />
                     ) : (
                       <div className={styles.avatarFallback}>
                         {conversation.participant.username[0].toUpperCase()}
                       </div>
                     )}
+                    {conversation.participant.isOnline && (
+                      <span className={styles.onlineDot} aria-hidden="true" />
+                    )}
                   </div>
                   <div className={styles.rowMeta}>
                     <span className={styles.rowTitle}>{conversation.participant.username}</span>
                     <span className={styles.rowSubtle}>
-                      {conversation.lastMessage?.content ?? "Start the conversation"}
+                      {getConversationPreview(conversation.lastMessage)}
                     </span>
                   </div>
-                  {conversation.unreadCount > 0 && (
-                    <span className={styles.countBadge}>{conversation.unreadCount}</span>
-                  )}
+                  <div className={styles.rowAside}>
+                    <span className={styles.rowMetaPill}>
+                      {timeAgoShort(new Date(conversation.updatedAt))}
+                    </span>
+                    {conversation.unreadCount > 0 && (
+                      <span className={styles.countBadge}>{conversation.unreadCount}</span>
+                    )}
+                  </div>
                 </Link>
               </li>
             ))}
@@ -105,7 +192,7 @@ export default function RightSideBar() {
           <div className={styles.sectionHeader}>
             <div>
               <p className={styles.eyebrow}>Creators</p>
-              <h2 className={styles.sectionTitle}>Active voices</h2>
+              <h2 className={styles.sectionTitle}>Active Creators</h2>
             </div>
             <Sparkles size={14} className={styles.headerIcon} />
           </div>
@@ -119,10 +206,13 @@ export default function RightSideBar() {
                 <Link href={getProfilePath(creator)} className={styles.rowLink}>
                   <div className={styles.rowIconWrap}>
                     {creator.avatar ? (
-                      <img
+                      <Image
                         src={creator.avatar}
                         alt={creator.username}
                         className={styles.avatar}
+                        width={40}
+                        height={40}
+                        unoptimized
                       />
                     ) : (
                       <div className={styles.avatarFallback}>
@@ -132,7 +222,9 @@ export default function RightSideBar() {
                   </div>
                   <div className={styles.rowMeta}>
                     <span className={styles.rowTitle}>{creator.username}</span>
-                    <span className={styles.rowSubtle}>{creator.count} recent posts</span>
+                    <span className={styles.rowSubtle}>
+                      {formatCompactCount(creator.count, "mention")}
+                    </span>
                   </div>
                 </Link>
               </li>
@@ -144,7 +236,7 @@ export default function RightSideBar() {
           <div className={styles.sectionHeader}>
             <div>
               <p className={styles.eyebrow}>Signals</p>
-              <h2 className={styles.sectionTitle}>Recent activity</h2>
+              <h2 className={styles.sectionTitle}>Activity</h2>
             </div>
             <Bell size={14} className={styles.headerIcon} />
           </div>
@@ -159,7 +251,11 @@ export default function RightSideBar() {
                   </div>
                   <div className={styles.rowMeta}>
                     <span className={styles.rowTitle}>{notification.actor.username}</span>
-                    <span className={styles.rowSubtle}>{timeAgoShort(new Date(notification.createdAt))}</span>
+                    <span className={styles.rowSubtle}>
+                      {getNotificationSummary(notification.type)}{" "}
+                      <span className={styles.metaDivider}>·</span>{" "}
+                      {timeAgoShort(new Date(notification.createdAt))}
+                    </span>
                   </div>
                 </Link>
               </li>
@@ -171,7 +267,7 @@ export default function RightSideBar() {
           <div className={styles.sectionHeader}>
             <div>
               <p className={styles.eyebrow}>Discovery</p>
-              <h2 className={styles.sectionTitle}>Search history</h2>
+              <h2 className={styles.sectionTitle}>Recent Searches</h2>
             </div>
             <button
               type="button"
@@ -202,8 +298,8 @@ export default function RightSideBar() {
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
-              <p className={styles.eyebrow}>Feed energy</p>
-              <h2 className={styles.sectionTitle}>Trending now</h2>
+              <p className={styles.eyebrow}>Trending</p>
+              <h2 className={styles.sectionTitle}>Trending Now</h2>
             </div>
             <Flame size={14} className={styles.headerIcon} />
           </div>
@@ -219,7 +315,9 @@ export default function RightSideBar() {
                 >
                   <div className={styles.rowMeta}>
                     <span className={styles.rowTitle}>{topic.label}</span>
-                    <span className={styles.rowSubtle}>{topic.count} mentions in recent posts</span>
+                    <span className={styles.rowSubtle}>
+                      {formatCompactCount(topic.count, "mention")}
+                    </span>
                   </div>
                   <Sparkles size={14} />
                 </button>

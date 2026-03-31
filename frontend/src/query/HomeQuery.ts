@@ -52,6 +52,28 @@ export const useInfinitePosts = () => {
       return page < totalPages ? page + 1 : undefined;
     },
     staleTime: 1000 * 30,
+    
+    // Transform the data before it hits your component
+    select: (data) => {
+      // 1. Flatten all pages into one array
+      const allPosts = data.pages.flatMap((page) => page.data.posts);
+      
+      // 2. Use a Map to deduplicate by unique key
+      const uniquePosts = Array.from(
+        new Map(
+          allPosts.map((post) => [
+            post.feedEventId ?? `post:${post.id}`, 
+            post
+          ])
+        ).values()
+      );
+
+      // 3. Return the original structure plus your "clean" list
+      return {
+        ...data,
+        flattenedPosts: uniquePosts,
+      };
+    },
   });
 };
 

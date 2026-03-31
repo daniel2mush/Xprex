@@ -51,11 +51,6 @@ export default function LoginPage() {
   };
   return (
     <div className={style.panel}>
-      <div className={style.header}>
-        <p className={style.eyebrow}>Sign in with email</p>
-        <p className={style.description}>Pick up where you left off.</p>
-      </div>
-
       <form className={style.form} onSubmit={handleSubmit(Login)} noValidate>
         <Input
           label="Email"

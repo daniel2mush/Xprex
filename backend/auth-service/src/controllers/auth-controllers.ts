@@ -154,6 +154,8 @@ export const login = async (req: Request, res: Response) => {
 
     const { password: _pw, ...user } = userWithPassword;
 
+  
+
     const { accessToken, refreshToken } = await generateTokens(user);
     await storeRefreshToken(user.id, refreshToken);
 
@@ -302,7 +304,7 @@ export const updateProfile = async (req: Request, res: Response) => {
           res,
           400,
           false,
-          "Username must be between 3 and 25 characters",
+          "Handler must be between 3 and 25 characters",
         );
       }
 
@@ -311,7 +313,7 @@ export const updateProfile = async (req: Request, res: Response) => {
           res,
           400,
           false,
-          "Username can only contain lowercase letters, numbers, dots, and underscores",
+          "Handler can only contain lowercase letters, numbers, dots, and underscores",
         );
       }
 

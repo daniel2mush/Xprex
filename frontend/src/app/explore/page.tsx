@@ -3,10 +3,20 @@
 import { useOptimistic, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Compass, MapPin, Search, Sparkles, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Compass,
+  MapPin,
+  Search,
+  Sparkles,
+  Trash2,
+  UsersRound,
+  X,
+} from "lucide-react";
 import Feed from "@/components/home/Feed/Feed";
 import RightSideBar from "@/components/home/RightSideBar/RightSideBar";
-import { getProfilePath } from "@/lib/profile";
+import { formatHandle, getProfilePath } from "@/lib/profile";
 import { useGetAllPost } from "@/query/HomeQuery";
 import {
   useClearSearchHistory,
@@ -18,6 +28,14 @@ import {
 import { useFollowUser } from "@/query/ProfileQuery";
 import { SearchUserResult } from "@/types/Types";
 import styles from "./ExplorePage.module.scss";
+
+const FEATURED_CATEGORIES = [
+  { label: "Technology", value: "technology" },
+  { label: "Design", value: "design" },
+  { label: "Music", value: "music" },
+  { label: "Gaming", value: "gaming" },
+  { label: "Startups", value: "startups" },
+];
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -41,15 +59,23 @@ export default function ExplorePage() {
     isLoading: loadingPeople,
     error: peopleError,
   } = useSearchUsers(query);
+  const trimmedQuery = query.trim();
+  const hasQuery = trimmedQuery.length > 0;
 
   const posts = postsData?.data?.posts ?? [];
   const history = historyData?.data ?? [];
   const searchResults = searchData?.data.posts ?? [];
   const peopleResults = peopleData?.data.users ?? [];
-  const activePosts = query.trim() ? searchResults : posts;
+  const activePosts = hasQuery ? searchResults : posts;
 
   const trendingTopics = trendingData?.data.topics ?? [];
   const topCreators = trendingData?.data.creators ?? [];
+  const resultsCount =
+    activeTab === "people"
+      ? peopleResults.length
+      : activeTab === "top" && hasQuery
+        ? peopleResults.length + activePosts.length
+        : activePosts.length;
 
   const submitQuery = (value: string, nextTab = activeTab) => {
     const trimmed = value.trim();
@@ -66,52 +92,95 @@ export default function ExplorePage() {
     <section className={styles.layout}>
       <main className={styles.main}>
         <header className={styles.hero}>
-          <div>
-            <p className={styles.eyebrow}>Explore</p>
-            <h1 className={styles.title}>Search, signals, and fresh conversations</h1>
-            <p className={styles.subtitle}>
-              Use Explore to search posts, revisit your recent queries, and spot what is gaining momentum across the app.
-            </p>
+          <div className={styles.heroTop}>
+            <div className={styles.heroCopy}>
+              <div className={styles.heroLabelRow}>
+                <p className={styles.eyebrow}>Explore</p>
+                <span className={styles.livePill}>
+                  <span className={styles.liveDot} aria-hidden="true" />
+                  Updated live
+                </span>
+              </div>
+              <h1 className={styles.title}>Discover what&apos;s moving</h1>
+              <p className={styles.subtitle}>
+                Find people, posts, and rising topics in one sharp discovery hub.
+              </p>
+            </div>
+            <div className={styles.heroIcon}>
+              <Compass size={22} />
+            </div>
           </div>
-          <div className={styles.heroIcon}>
-            <Compass size={24} />
+
+          <div className={styles.searchShell}>
+            <form
+              className={styles.searchBar}
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitQuery(query, activeTab);
+              }}
+            >
+              <span className={styles.searchIcon} aria-hidden="true">
+                <Search size={18} />
+              </span>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search posts, people, or topics"
+              />
+              {hasQuery && (
+                <button
+                  type="button"
+                  className={styles.searchReset}
+                  aria-label="Clear search"
+                  onClick={() => submitQuery("", activeTab)}
+                >
+                  <X size={16} />
+                </button>
+              )}
+              <button type="submit" className={styles.searchSubmit}>
+                Search
+              </button>
+            </form>
+
+            <div className={styles.tabRow}>
+              {[
+                { id: "top", label: "Top" },
+                { id: "people", label: "People" },
+                { id: "posts", label: "Posts" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`${styles.tabButton} ${activeTab === tab.id ? styles.tabButtonActive : ""}`}
+                  onClick={() => submitQuery(query, tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.categoryRow}>
+              {FEATURED_CATEGORIES.map((category) => {
+                const isActiveCategory =
+                  trimmedQuery.toLowerCase() === category.value.toLowerCase();
+
+                return (
+                  <button
+                    key={category.value}
+                    type="button"
+                    className={`${styles.categoryChip} ${isActiveCategory ? styles.categoryChipActive : ""}`}
+                    onClick={() => submitQuery(category.value, "top")}
+                  >
+                    <span className={styles.categoryChipPrefix}>#</span>
+                    {category.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </header>
 
-        <form
-          className={styles.searchBar}
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitQuery(query, activeTab);
-          }}
-        >
-          <Search size={18} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search posts or usernames"
-          />
-          <button type="submit">Search</button>
-        </form>
-
-        <div className={styles.tabRow}>
-          {[
-            { id: "top", label: "Top" },
-            { id: "people", label: "People" },
-            { id: "posts", label: "Posts" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`${styles.tabButton} ${activeTab === tab.id ? styles.tabButtonActive : ""}`}
-              onClick={() => submitQuery(query, tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <section className={styles.panel}>
+        <section className={`${styles.panel} ${styles.historyPanel}`}>
           <div className={styles.panelHeader}>
             <div>
               <p className={styles.panelEyebrow}>Recent</p>
@@ -138,13 +207,16 @@ export default function ExplorePage() {
         </section>
 
         <section className={styles.discoveryGrid}>
-          <div className={styles.panel}>
+          <div className={`${styles.panel} ${styles.discoveryPanel}`}>
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.panelEyebrow}>Momentum</p>
                 <h2 className={styles.panelTitle}>Trending topics</h2>
               </div>
-              <Sparkles size={14} className={styles.panelIcon} />
+              <span className={styles.panelMeta}>
+                <Sparkles size={14} />
+                {trendingTopics.length || "No"} live topics
+              </span>
             </div>
             <div className={styles.topicList}>
               {trendingTopics.length === 0 && <p className={styles.emptyText}>Trending terms appear as new posts come in.</p>}
@@ -155,19 +227,29 @@ export default function ExplorePage() {
                   className={styles.topicCard}
                   onClick={() => submitQuery(topic.searchValue)}
                 >
+                  <div className={styles.topicMeta}>
+                    <span className={styles.topicTag}>Topic</span>
+                    <span className={styles.topicCount}>
+                      {formatCompactCount(topic.count)} mentions
+                    </span>
+                  </div>
                   <strong>{topic.label}</strong>
-                  <span>{topic.count} recent mentions</span>
+                  <span>Jump into the conversation</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className={styles.panel}>
+          <div className={`${styles.panel} ${styles.discoveryPanel}`}>
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.panelEyebrow}>Creators</p>
                 <h2 className={styles.panelTitle}>Fresh voices</h2>
               </div>
+              <span className={styles.panelMeta}>
+                <UsersRound size={14} />
+                {topCreators.length || "No"} creators
+              </span>
             </div>
             <div className={styles.creatorList}>
               {topCreators.length === 0 && <p className={styles.emptyText}>Creators will appear as posts arrive.</p>}
@@ -185,10 +267,18 @@ export default function ExplorePage() {
                   ) : (
                     <div className={styles.creatorFallback}>{creator.username[0].toUpperCase()}</div>
                   )}
-                  <div>
-                    <strong>{creator.username}</strong>
-                    <span>{creator.count} recent posts</span>
+                  <div className={styles.creatorCopy}>
+                    <div className={styles.creatorNameRow}>
+                      <strong>{creator.username}</strong>
+                      {creator.handle && (
+                        <span>{formatHandle(creator.handle)}</span>
+                      )}
+                    </div>
+                    <span>{formatCompactCount(creator.count)} recent posts</span>
                   </div>
+                  <span className={styles.creatorArrow} aria-hidden="true">
+                    <ArrowUpRight size={14} />
+                  </span>
                 </button>
               ))}
             </div>
@@ -198,20 +288,23 @@ export default function ExplorePage() {
         <section className={styles.resultsSection}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelEyebrow}>{query.trim() ? "Search results" : "Feed snapshot"}</p>
+              <p className={styles.panelEyebrow}>{hasQuery ? "Search results" : "Feed snapshot"}</p>
               <h2 className={styles.panelTitle}>
-                {query.trim() ? `Results for “${query.trim()}”` : "Latest posts"}
+                {hasQuery ? `Results for “${trimmedQuery}”` : "Latest posts"}
               </h2>
             </div>
+            <span className={styles.resultsMeta}>
+              {resultsCount} {resultsCount === 1 ? "result" : "results"}
+            </span>
           </div>
 
-          {!query.trim() && activeTab === "people" && (
+          {!hasQuery && activeTab === "people" && (
             <div className={styles.stateBlock}>
               Search for a name, bio keyword, or location to discover people.
             </div>
           )}
 
-          {query.trim() && activeTab !== "posts" && (
+          {hasQuery && activeTab !== "posts" && (
             <section className={styles.peopleSection}>
               <div className={styles.peopleHeader}>
                 <div>
@@ -229,26 +322,41 @@ export default function ExplorePage() {
               )}
 
               <div className={styles.peopleGrid}>
-                {peopleResults.map((person) => (
-                  <PersonSearchCard key={person.id} person={person} />
+                {peopleResults.map((person, index) => (
+                  <div
+                    key={person.id}
+                    className={styles.peopleGridItem}
+                    style={{ animationDelay: `${Math.min(index * 40, 240)}ms` }}
+                  >
+                    <PersonSearchCard person={person} />
+                  </div>
                 ))}
               </div>
             </section>
           )}
 
-          {activeTab !== "people" && query.trim() && loadingSearch && <div className={styles.stateBlock}>Searching...</div>}
-          {activeTab !== "people" && query.trim() && searchError && <div className={styles.stateBlock}>{searchError.message}</div>}
-          {!query.trim() && loadingFeed && <div className={styles.stateBlock}>Loading the latest posts...</div>}
+          {activeTab !== "people" && hasQuery && loadingSearch && <div className={styles.stateBlock}>Searching...</div>}
+          {activeTab !== "people" && hasQuery && searchError && <div className={styles.stateBlock}>{searchError.message}</div>}
+          {!hasQuery && loadingFeed && <div className={styles.stateBlock}>Loading the latest posts...</div>}
           {activeTab !== "people" && !loadingSearch && !loadingFeed && activePosts.length === 0 && (
             <div className={styles.stateBlock}>
-              {query.trim() ? "No posts matched that search yet." : "No posts to explore yet."}
+              {hasQuery ? "No posts matched that search yet." : "No posts to explore yet."}
             </div>
           )}
 
-          {activeTab !== "people" &&
-            activePosts.map((post) => (
-              <Feed key={`${post.feedEventId ?? post.id}-${query}`} data={post} />
-            ))}
+          {activeTab !== "people" && (
+            <div className={styles.resultsFeed}>
+              {activePosts.map((post, index) => (
+                <div
+                  key={`${post.feedEventId ?? post.id}-${query}`}
+                  className={styles.resultItem}
+                  style={{ animationDelay: `${Math.min(index * 35, 210)}ms` }}
+                >
+                  <Feed data={post} />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
@@ -263,6 +371,7 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
   const [isFollowing, setIsFollowing] = useOptimistic(person.isFollowing);
 
   const canMessage = person.followsYou || isFollowing;
+  const handleText = formatHandle(person.handle);
 
   return (
     <article className={styles.personCard}>
@@ -295,9 +404,19 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
             </div>
           )}
           <div className={styles.personCopy}>
-            <div className={styles.personNameRow}>
-              <strong>{person.username}</strong>
-              {person.isVerified && <CheckCircle2 size={14} />}
+            <div className={styles.personIdentity}>
+              <div>
+                <div className={styles.personNameRow}>
+                  <strong>{person.username}</strong>
+                  {person.isVerified && <CheckCircle2 size={14} />}
+                </div>
+                {handleText && (
+                  <p className={styles.personHandle}>{handleText}</p>
+                )}
+              </div>
+              <span className={styles.personStatsPill}>
+                {formatCompactCount(person._count.followers)} followers
+              </span>
             </div>
             <p className={styles.personBio}>{person.bio || "No bio yet."}</p>
             <div className={styles.personMeta}>
@@ -315,20 +434,18 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
               )}
             </div>
             <div className={styles.personStats}>
-              <span>{person._count.followers} followers</span>
-              <span>{person._count.posts} posts</span>
+              <span>
+                <strong>{formatCompactCount(person._count.posts)}</strong> posts
+              </span>
+              <span>
+                <strong>{formatCompactCount(person._count.following)}</strong>{" "}
+                following
+              </span>
             </div>
           </div>
         </div>
       </button>
       <div className={styles.personActions}>
-        <button
-          type="button"
-          className={styles.personAction}
-          onClick={() => router.push(getProfilePath(person))}
-        >
-          View profile
-        </button>
         <button
           type="button"
           className={styles.personActionPrimary}
@@ -346,13 +463,26 @@ function PersonSearchCard({ person }: { person: SearchUserResult }) {
         {canMessage && (
           <button
             type="button"
-            className={styles.personActionSecondary}
+            className={styles.personAction}
             onClick={() => router.push(`/messages?userId=${person.id}`)}
           >
             Message
           </button>
         )}
+        <button
+          type="button"
+          className={styles.personActionSecondary}
+          onClick={() => router.push(getProfilePath(person))}
+        >
+          View profile
+        </button>
       </div>
     </article>
   );
+}
+
+function formatCompactCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
 }

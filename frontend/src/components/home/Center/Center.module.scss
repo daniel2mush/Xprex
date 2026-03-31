@@ -17,141 +17,86 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 1.25rem;
+  gap: 12px;
+  padding: 1rem 1.25rem 1.25rem;
   width: 100%;
 }
 
-.feedHero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 8px 4px 4px;
-}
-
-.feedEyebrow,
-.composeEyebrow {
-  margin: 0 0 8px;
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--brand-light);
-}
-
-.feedTitle {
-  margin: 0;
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
-  line-height: 1;
-}
-
-.feedSubtitle {
-  margin: 12px 0 0;
-  max-width: 52ch;
-  color: var(--text-body);
-  line-height: 1.7;
-}
-
-.feedHighlights {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  min-width: min(300px, 44%);
-}
-
-.feedStat {
-  padding: 16px;
-  border: 1px solid var(--border-accent);
-  border-radius: 22px;
+.streamHeader {
+  position: sticky;
+  top: -1px;
+  z-index: 6;
+  margin: -1rem -1.25rem 0;
+  padding: 0.95rem 1.25rem 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--brand-primary) 8%, transparent),
-      color-mix(in srgb, var(--brand-hover) 4%, transparent)
-    ),
-    var(--surface-card);
-  box-shadow: var(--shadow-soft);
+      color-mix(in srgb, var(--bg-surface) 94%, transparent),
+      color-mix(in srgb, var(--bg-app) 88%, transparent)
+    );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 
-  strong {
-    display: block;
-    color: var(--text-main);
-    font-size: 1rem;
-  }
+.streamHeaderInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
 
-  span {
-    display: block;
-    margin-top: 6px;
-    color: var(--text-muted);
-    font-size: 0.74rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
+.streamTitle {
+  margin: 0;
+  font-size: clamp(1.12rem, 1.5vw, 1.35rem);
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.streamBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  color: var(--text-body);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.streamBadgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-success);
+  animation: streamPulse 2.4s ease-in-out infinite;
 }
 
 .composeCard {
-  padding: 1.25rem;
-  border-radius: 28px;
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--brand-primary) 14%, transparent),
-      transparent 38%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--brand-primary) 6%, transparent),
-      transparent 38%
-    ),
-    var(--surface-card);
-  box-shadow: var(--shadow-soft);
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 96%, transparent);
+  border-radius: 24px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-card) 98%, transparent),
+    color-mix(in srgb, var(--bg-surface) 86%, transparent)
+  );
+  overflow: hidden;
   transition:
-    box-shadow var(--duration-slow) ease,
-    border-color var(--duration-normal) ease;
+    border-color var(--duration-normal) ease,
+    box-shadow var(--duration-slow) ease;
 
   &:has(.input:focus) {
     border-color: var(--border-accent);
     box-shadow:
-      var(--shadow-soft),
-      0 0 0 1px color-mix(in srgb, var(--brand-primary) 20%, transparent),
-      0 0 40px color-mix(in srgb, var(--brand-primary) 6%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--brand-primary) 18%, transparent),
+      0 18px 36px color-mix(in srgb, var(--text-main) 7%, transparent);
   }
 }
 
-.composeHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 4px 4px 16px;
-}
-
-.composeHeaderActions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.composeTitle {
-  margin: 0;
-  max-width: 26ch;
-  font-size: clamp(1.1rem, 2vw, 1.45rem);
-  line-height: 1.25;
-  color: var(--text-main);
-}
-
-.composeHint {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--surface-accent);
-  color: var(--text-body);
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
-
-.mobileComposerClose,
 .mobileComposerButton,
 .mobileComposerBackdrop {
   display: none;
@@ -159,19 +104,19 @@
 
 .compose {
   display: flex;
-  gap: 14px;
-  padding: 6px 4px 4px;
+  gap: 12px;
+  padding: 18px 20px 16px;
 }
 
 .composeAvatar {
   flex-shrink: 0;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .avatarImg,
 .avatarFallback {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
 }
 
@@ -194,32 +139,20 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.composePrompt {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-
-  span {
-    color: var(--text-main);
-    font-weight: var(--font-weight-semibold);
-  }
+  gap: 10px;
 }
 
 .input {
   width: 100%;
-  min-height: 112px;
+  min-height: 72px;
   padding: 0;
   border: none;
   outline: none;
   resize: none;
   background: transparent;
   color: var(--text-main);
-  font-size: clamp(1rem, 1.3vw, 1.08rem);
-  line-height: 1.75;
+  font-size: clamp(1rem, 1.2vw, 1.05rem);
+  line-height: 1.65;
 
   &::placeholder {
     color: var(--text-muted);
@@ -238,8 +171,8 @@
 
 .previews {
   display: grid;
-  gap: 6px;
-  border-radius: 18px;
+  gap: 8px;
+  border-radius: 16px;
   overflow: hidden;
 
   &[data-count="1"] {
@@ -263,7 +196,7 @@
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--bg-elevated);
 }
 
@@ -278,9 +211,9 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 24px;
-  height: 24px;
-  border: none;
+  width: 26px;
+  height: 26px;
+  border: 1px solid color-mix(in srgb, var(--text-on-brand) 18%, transparent);
   border-radius: 999px;
   background: var(--overlay-scrim);
   color: var(--text-on-brand);
@@ -316,8 +249,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
 }
 
 .composeLeft,
@@ -337,10 +270,27 @@
   color: var(--color-error);
 }
 
-.divider {
-  width: 100%;
-  height: 1px;
-  background: color-mix(in srgb, var(--border-subtle) 88%, transparent);
+.streamBreak {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  }
+
+  span {
+    white-space: nowrap;
+  }
 }
 
 .loadingStack {
@@ -353,7 +303,8 @@
   position: relative;
   width: 100%;
   height: 140px;
-  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 92%, transparent);
+  border-radius: 22px;
   overflow: hidden;
   background: var(--bg-elevated);
 
@@ -414,6 +365,11 @@
   height: 1px;
 }
 
+@keyframes streamPulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 36%, transparent); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+
 @keyframes shimmerGlass {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -425,23 +381,13 @@
 }
 
 @media (max-width: 1024px) {
-  .feedHero,
-  .composeHeader {
+  .streamHeaderInner {
     flex-direction: column;
+    align-items: flex-start;
   }
 
-  .feedHighlights {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .composeHint {
-    white-space: normal;
-  }
-
-  .composeHeaderActions {
-    width: 100%;
-    justify-content: space-between;
+  .streamBadge {
+    align-self: flex-start;
   }
 }
 
@@ -455,23 +401,26 @@
   }
 
   .content {
-    padding: 0.9rem 0.8rem 0;
+    padding: 0 0.8rem 0;
+    gap: 10px;
   }
 
-  .feedHero {
-    display: none;
+  .streamHeader {
+    top: 0;
+    margin: 0 -0.8rem 0;
+    padding: 0.9rem 0.8rem 0.8rem;
   }
 
-  .feedHighlights {
-    grid-template-columns: 1fr;
+  .streamHeaderInner {
+    gap: 10px;
   }
 
   .composeCard {
     display: none;
   }
 
-  .divider {
-    display: none;
+  .streamBreak {
+    padding-inline: 2px;
   }
 
   .composeCardOpen {
@@ -481,8 +430,8 @@
     right: 12px;
     bottom: calc(78px + env(safe-area-inset-bottom));
     z-index: 45;
-    padding: 1rem;
-    border-radius: 24px;
+    border-radius: 20px;
+    background: var(--surface-card);
     box-shadow: var(--shadow-strong);
   }
 
@@ -493,18 +442,6 @@
     z-index: 44;
     border: none;
     background: var(--overlay-scrim);
-  }
-
-  .mobileComposerClose {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    background: var(--bg-surface);
-    color: var(--text-main);
   }
 
   .mobileComposerButton {
@@ -542,7 +479,7 @@
 
   .compose {
     gap: 10px;
-    padding-inline: 0;
+    padding: 14px;
   }
 
   .composeActions {
@@ -554,4 +491,29 @@
     width: 100%;
     justify-content: space-between;
   }
+}
+
+
+// ── Drag active state ──────────────────────
+.composeDragging {
+  border-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+}
+
+.dragOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  border: 2px dashed var(--brand-primary);
+  color: var(--brand-primary);
+  font-size: var(--text-fluid-sm);
+  font-weight: var(--font-weight-medium);
+  z-index: 10;
+  pointer-events: none;
 }

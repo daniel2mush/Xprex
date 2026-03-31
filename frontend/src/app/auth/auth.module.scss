@@ -2,375 +2,113 @@
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1rem, 4vw, 2rem);
+  // The global animated mesh background provides the environment
 }
 
-.shell {
-  width: min(1100px, 100%);
-  max-height: calc(100dvh - clamp(2rem, 6vw, 4rem));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 450px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 34px;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--bg-surface) 94%, transparent),
-      var(--surface-card)
-    ),
-    var(--bg-surface);
-  box-shadow: var(--shadow-strong);
-  overflow: hidden;
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.brandPanel {
+.container {
+  width: 100%;
+  max-width: 440px; // Very sleek, narrow card like modern SaaS
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(2rem, 4vw, 3.5rem);
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--brand-primary) 24%, transparent),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      color-mix(in srgb, var(--brand-hover) 18%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-surface) 82%, transparent),
-      transparent
-    ),
-    var(--bg-app);
-  border-right: 1px solid var(--border-subtle);
-}
-
-.brandTopRow {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .logoRow {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 .logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 15px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
-  box-shadow: 0 18px 32px
-    color-mix(in srgb, var(--brand-primary) 20%, transparent);
-  flex-shrink: 0;
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
-.brandEyebrow,
-.formEyebrow {
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--brand-light);
-}
-
-.brandBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.55rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-accent);
+.logoText {
+  font-size: 1.4rem;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
   color: var(--text-main);
-  font-size: 0.76rem;
-  background: color-mix(in srgb, var(--bg-surface) 72%, transparent);
 }
 
-.heroStack {
-  margin-top: 1.8rem;
-}
-
-.heroTitle {
-  margin: 0;
-  max-width: 10ch;
-  font-size: clamp(2.2rem, 4vw, 4rem);
-  line-height: 0.95;
-}
-
-.heroCopy {
-  margin: 16px 0 0;
-  max-width: 34ch;
-  color: var(--text-body);
-  font-size: 1rem;
-}
-
-.showcaseCard {
-  position: relative;
-  margin-top: 2rem;
-  padding: 1.3rem;
+.card {
+  width: 100%;
+  padding: 40px;
   border-radius: 28px;
-  border: 1px solid
-    color-mix(in srgb, var(--brand-primary) 18%, var(--border-subtle));
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--brand-primary) 18%, transparent),
-      transparent 42%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--brand-hover) 10%, transparent),
-      transparent 55%
-    ),
-    color-mix(in srgb, var(--bg-surface) 90%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 60%, transparent);
+  backdrop-filter: blur(40px) saturate(1.5);
+  -webkit-backdrop-filter: blur(40px) saturate(1.5);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
+  box-shadow: 
+    var(--shadow-strong),
+    0 0 0 1px inset rgba(255, 255, 255, 0.03);
   overflow: hidden;
 }
 
-.showcaseOrb {
-  position: absolute;
-  top: -28px;
-  right: -18px;
-  width: 120px;
-  height: 120px;
-  border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--brand-primary) 30%, transparent),
-    transparent 66%
-  );
-  pointer-events: none;
+.header {
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-.showcaseHeader {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  color: var(--text-main);
-}
-
-.showcaseEyebrow {
-  margin: 0 0 8px;
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.showcaseTitle {
-  display: block;
-  max-width: 16ch;
-  font-size: 1.2rem;
-  line-height: 1.15;
-}
-
-.showcaseRail {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.showcaseChip {
-  display: inline-flex;
-  padding: 0.55rem 0.8rem;
-  border-radius: 999px;
-  color: var(--text-main);
-  font-size: 0.8rem;
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--text-main) 8%, var(--border-subtle));
-}
-
-.showcaseMetrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.metricCard {
-  padding: 16px;
-  border-radius: 22px;
-  border: 1px solid
-    color-mix(in srgb, var(--text-main) 6%, var(--border-subtle));
-  background: color-mix(in srgb, var(--bg-surface) 76%, transparent);
-  backdrop-filter: blur(10px);
-
-  strong {
-    display: block;
-    color: var(--text-main);
-    font-size: 0.94rem;
-  }
-
-  span {
-    display: block;
-    margin-top: 6px;
-    color: var(--text-body);
-    font-size: 0.82rem;
-    line-height: 1.5;
-  }
-}
-
-.inlineHighlights {
-  display: flex;
-  gap: 12px;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.inlineHighlight {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0.8rem 1rem;
-  border-radius: 18px;
-  color: var(--text-main);
-  background: color-mix(in srgb, var(--bg-surface) 74%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--text-main) 6%, var(--border-subtle));
-  font-size: 0.84rem;
+.title {
+  font-size: 1.75rem;
   font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
 }
 
-.formPanel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
-  padding: clamp(1.75rem, 4vw, 3rem);
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.formHeader {
-  margin-bottom: 24px;
-}
-
-.heading {
-  margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
-}
-
-.subheading {
-  margin: 10px 0 0;
-  max-width: 30ch;
-  color: var(--text-body);
-  font-size: 0.96rem;
-}
-
-.TabsRoot {
-  width: 100%;
-  padding: 18px;
-  border-radius: 28px;
-  border: 1px solid var(--border-subtle);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--brand-primary) 5%, transparent),
-      transparent 32%
-    ),
-    var(--surface-card);
-  box-shadow: var(--shadow-soft);
-}
-
-.TabsList {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 6px;
-  border-radius: 999px;
-  background: var(--bg-app);
-}
-
-.TabsTrigger {
-  height: 42px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
+.subtitle {
   color: var(--text-muted);
   font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+
+  p {
+    margin: 0;
+  }
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-main);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: color 0.2s ease;
 
-  &[data-state="active"] {
-    background: var(--bg-surface);
-    color: var(--text-main);
-    box-shadow: 0 10px 18px color-mix(in srgb, var(--bg-app) 12%, transparent);
+  &:hover {
+    color: var(--brand-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 4px;
+    border-radius: 2px;
   }
 }
 
-.tabContent {
-  margin-top: 18px;
-}
-
-@media (max-width: 980px) {
-  .shell {
-    grid-template-columns: 1fr;
-  }
-
-  .brandPanel {
-    border-right: none;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .heroTitle {
-    max-width: 12ch;
-  }
-}
-
-@media (max-width: 768px) {
-  .brandPanel {
-    display: none;
-  }
-
-  .shell {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: 0.75rem;
-  }
-
-  .shell {
+@media (max-width: 480px) {
+  .card {
+    padding: 28px 24px;
     border-radius: 24px;
-    max-height: calc(100dvh - 1.5rem);
   }
-
-  .formPanel {
-    padding: 1.25rem;
-  }
-
-  .TabsRoot {
-    padding: 14px;
-    border-radius: 22px;
-  }
-
-  .showcaseMetrics {
-    grid-template-columns: 1fr;
+  
+  .title {
+    font-size: 1.5rem;
   }
 }
