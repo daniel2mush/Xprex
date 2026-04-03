@@ -8,12 +8,62 @@ const RECONNECT_INTERVAL = 3000;
 
 let connection: ChannelModel | null = null;
 let publisherChannel: Channel | null = null;
+let exchangeDurable: boolean | null = null;
+
+function getPreferredExchangeDurable(): boolean {
+  return process.env.RABBITMQ_EXCHANGE_DURABLE === "true";
+}
+
+function isDurableMismatchError(err: unknown): err is Error {
+  return (
+    err instanceof Error &&
+    err.message.includes("PRECONDITION_FAILED") &&
+    err.message.includes("inequivalent arg 'durable'") &&
+    err.message.includes(`exchange '${EXCHANGE_NAME}'`)
+  );
+}
+
+async function createExchangeChannel(): Promise<Channel> {
+  const conn = await getConnection();
+  let ch = await conn.createChannel();
+  const preferredDurable = exchangeDurable ?? getPreferredExchangeDurable();
+
+  try {
+    await ch.assertExchange(EXCHANGE_NAME, "topic", {
+      durable: preferredDurable,
+    });
+    exchangeDurable = preferredDurable;
+    logger.info(
+      `[RabbitMQ] Exchange '${EXCHANGE_NAME}' asserted (durable=${preferredDurable})`,
+    );
+    return ch;
+  } catch (err) {
+    if (!isDurableMismatchError(err)) {
+      throw err;
+    }
+
+    const compatibleDurable = !preferredDurable;
+    logger.warn(
+      `[RabbitMQ] Exchange '${EXCHANGE_NAME}' already exists with durable=${compatibleDurable}; reusing broker configuration`,
+    );
+
+    ch = await conn.createChannel();
+    await ch.assertExchange(EXCHANGE_NAME, "topic", {
+      durable: compatibleDurable,
+    });
+    exchangeDurable = compatibleDurable;
+    logger.info(
+      `[RabbitMQ] Exchange '${EXCHANGE_NAME}' asserted (durable=${compatibleDurable})`,
+    );
+    return ch;
+  }
+}
 
 /** Lazy singleton with auto-reconnect */
 async function getConnection(): Promise<ChannelModel> {
   if (connection) return connection;
 
-  const url = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
+  const url = process.env.RABBITMQ_URL!;
 
   while (true) {
     try {
@@ -46,11 +96,7 @@ async function getConnection(): Promise<ChannelModel> {
 export async function getPublisherChannel(): Promise<Channel> {
   if (publisherChannel) return publisherChannel;
 
-  const conn = await getConnection();
-  const ch = await conn.createChannel();
-
-  await ch.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
-  logger.info(`[RabbitMQ] Exchange '${EXCHANGE_NAME}' asserted`);
+  const ch = await createExchangeChannel();
 
   ch.on("error", (err) => {
     logger.error("[Publisher Channel] Error", err);
@@ -90,11 +136,7 @@ export async function consumeEvent(
   callback: (event: any, msg?: ConsumeMessage | null) => Promise<void> | void,
 ): Promise<void> {
   const setupConsumer = async () => {
-    const conn = await getConnection();
-    const consumerChannel = await conn.createChannel();
-    await consumerChannel.assertExchange(EXCHANGE_NAME, "topic", {
-      durable: true,
-    });
+    const consumerChannel = await createExchangeChannel();
 
     const { queue } = await consumerChannel.assertQueue("", {
       exclusive: true,

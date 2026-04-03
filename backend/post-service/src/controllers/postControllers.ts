@@ -32,23 +32,26 @@ export const CreatePost = async (req: Request, res: Response) => {
   }
 
   // Assuming frontend was updated to send mediaUrls instead of mediaUrls
-  const { content, mediaUrls } = data as CreatePostInput
+  const { content, mediaUrls } = data as CreatePostInput;
   const userId = req.user.userId;
+  let mediaIds: string[] = [];
 
   try {
-    // 1. Explicitly validate media URLs to prevent IDOR and silent failures
     if (mediaUrls?.length) {
-      const validMediaCount = await prisma.media.count({
+      const mediaRecords = await prisma.media.findMany({
         where: {
           url: { in: mediaUrls },
-          userId: userId, 
-          postId: null,   
+          userId: userId,
+          postId: null,
         },
+        select: { id: true },
       });
 
-      if (validMediaCount !== mediaUrls.length) {
+      if (mediaRecords.length !== mediaUrls.length) {
         return sendJson(res, 400, false, "One or more media items are invalid, already used, or do not belong to you.");
       }
+
+      mediaIds = mediaRecords.map((m) => m.id);
     }
 
     // 2. Create the post
@@ -56,9 +59,9 @@ export const CreatePost = async (req: Request, res: Response) => {
       data: {
         content,
         userId,
-        ...(mediaUrls?.length && {
+        ...(mediaIds.length && {
           media: {
-            connect: mediaUrls.map((id) => ({ id })),
+            connect: mediaIds.map((id: string) => ({ id })),
           },
         }),
       },

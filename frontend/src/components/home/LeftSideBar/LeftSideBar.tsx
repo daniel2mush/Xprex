@@ -14,6 +14,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "./LeftSideBar.module.scss";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -188,18 +189,42 @@ export default function LeftSideBar() {
               className={`${styles.nav} ${isActive ? styles.active : ""}`}
               title={collapsed ? name : undefined}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="active-pill"
+                  className={styles.activePill}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
               <span className={styles.navIcon}>
-                {icon}
+                <motion.span
+                  initial={false}
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  {icon}
+                </motion.span>
                 {badgeCount > 0 && (
-                  <span className={styles.notificationBadge} aria-hidden="true">
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={styles.notificationBadge}
+                    aria-hidden="true"
+                  >
                     {badgeCount > 99 ? "99+" : badgeCount}
-                  </span>
+                  </motion.span>
                 )}
               </span>
               <span className={styles.navContent}>
                 <span className={styles.navLabel}>{name}</span>
               </span>
-              {isActive && <span className={styles.activeIndicator} aria-hidden="true" />}
+              {isActive && (
+                <motion.span
+                  layoutId="active-indicator"
+                  className={styles.activeIndicator}
+                  aria-hidden="true"
+                />
+              )}
             </Link>
           ))}
         </nav>

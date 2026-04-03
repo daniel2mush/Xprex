@@ -109,11 +109,23 @@
   border: 1px solid transparent;
   text-decoration: none;
   color: var(--text-body);
+  color: var(--text-body);
   transition:
     transform 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease,
     color 0.16s ease;
+}
+
+.activePill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-primary) 14%, transparent),
+    color-mix(in srgb, var(--brand-hover) 8%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  border-radius: 18px;
+  z-index: 0;
 }
 
 .nav:hover {
@@ -125,16 +137,11 @@
 
 .active {
   color: var(--text-main);
-  border-color: var(--border-accent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--brand-primary) 16%, transparent),
-    color-mix(in srgb, var(--brand-hover) 10%, transparent)
-  );
+  background: transparent;
 
   .navIcon {
     color: var(--brand-primary);
-    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand-primary) 40%, transparent));
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand-primary) 30%, transparent));
   }
 }
 
@@ -194,10 +201,11 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
+  box-shadow: 0 0 10px var(--brand-primary);
 }
 
 .profileShell {

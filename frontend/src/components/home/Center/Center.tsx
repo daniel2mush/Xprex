@@ -1,48 +1,51 @@
 "use client";
+import { PostSkeleton } from "@/components/common/SkeletonLoader";
 import styles from "./Center.module.scss";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useCreatePost,
   useInfinitePosts,
   useUploadMedia,
 } from "@/query/HomeQuery";
-import { useUserStore }  from "@/store/userStore";
+import { useUserStore } from "@/store/userStore";
 import { ImageIcon, Plus, X } from "lucide-react";
-import { Button }        from "@/ui/Buttons/Buttons";
+import { Button } from "@/ui/Buttons/Buttons";
 import { useRef, useState, useCallback } from "react";
-import Feed              from "../Feed/Feed";
-import { useInView }     from "react-intersection-observer";
-import { useDropzone }   from "react-dropzone";
-import { postSchema }    from "@/lib/Schemas/zodSchema";
+import Feed from "../Feed/Feed";
+import { useInView } from "react-intersection-observer";
+import { useDropzone } from "react-dropzone";
+import { postSchema } from "@/lib/Schemas/zodSchema";
 
 interface PreviewFile {
-  file:    File;
+  file: File;
   preview: string;
 }
 
 const ACCEPTED_TYPES = {
-  "image/jpeg":  [".jpg", ".jpeg"],
-  "image/png":   [".png"],
-  "image/webp":  [".webp"],
-  "image/avif":  [".avif"],
-  "video/mp4":   [".mp4"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/webp": [".webp"],
+  "image/avif": [".avif"],
+  "video/mp4": [".mp4"],
 };
 
-const MAX_SIZE  = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_FILES = 4;
 
 export default function Center() {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfinitePosts();
-  const { user }                     = useUserStore();
+  const { user } = useUserStore();
   const { mutateAsync: uploadMedia } = useUploadMedia();
   const { mutate: createPost, isPending } = useCreatePost();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [content,            setContent]            = useState("");
-  const [previews,           setPreviews]           = useState<PreviewFile[]>([]);
-  const [errors,             setErrors]             = useState<string[]>([]);
+  const [content, setContent] = useState("");
+  const [previews, setPreviews] = useState<PreviewFile[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
   const [showMobileComposer, setShowMobileComposer] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const posts = data?.flattenedPosts ?? [];
 
@@ -72,7 +75,7 @@ export default function Center() {
       });
 
       const remaining = MAX_FILES - previews.length;
-      const toAdd     = acceptedFiles.slice(0, remaining);
+      const toAdd = acceptedFiles.slice(0, remaining);
 
       if (acceptedFiles.length > remaining) {
         newErrors.push(
@@ -93,12 +96,12 @@ export default function Center() {
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
-    accept:        ACCEPTED_TYPES,
-    maxSize:       MAX_SIZE,
-    maxFiles:      MAX_FILES,
-    noClick:       true,   // we control clicks manually via the button
-    noKeyboard:    true,
-    disabled:      previews.length >= MAX_FILES,
+    accept: ACCEPTED_TYPES,
+    maxSize: MAX_SIZE,
+    maxFiles: MAX_FILES,
+    noClick: true, // we control clicks manually via the button
+    noKeyboard: true,
+    disabled: previews.length >= MAX_FILES,
   });
 
   const removePreview = (index: number) => {
@@ -110,6 +113,7 @@ export default function Center() {
 
   // ── Submit ──────────────────────────────
   const handleSubmit = async () => {
+    setUploading(true);
     setErrors([]);
 
     const validation = postSchema.safeParse({
@@ -123,9 +127,10 @@ export default function Center() {
     }
 
     try {
-      const mediaUrls = previews.length > 0
-        ? await uploadMedia(previews.map((p) => p.file))
-        : [];
+      const mediaUrls =
+        previews.length > 0
+          ? await uploadMedia(previews.map((p) => p.file))
+          : [];
 
       createPost(
         { content: content.trim(), mediaUrls },
@@ -144,6 +149,8 @@ export default function Center() {
       );
     } catch (err: unknown) {
       setErrors([err instanceof Error ? err.message : "Something went wrong"]);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -153,15 +160,14 @@ export default function Center() {
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
-  const charCount   = content.length;
-  const charLimit   = 500;
+  const charCount = content.length;
+  const charLimit = 500;
   const isOverLimit = charCount > charLimit;
-  const canSubmit   = content.trim().length >= 5 && !isOverLimit && !isPending;
+  const canSubmit = content.trim().length >= 5 && !isOverLimit && !isPending;
 
   return (
     <main className={styles.container}>
       <div className={styles.content}>
-
         {/* ── Header ── */}
         <header className={styles.streamHeader}>
           <div className={styles.streamHeaderInner}>
@@ -234,7 +240,11 @@ export default function Center() {
                 <div className={styles.previews} data-count={previews.length}>
                   {previews.map((p, i) => (
                     <div key={i} className={styles.previewItem}>
-                      <img src={p.preview} alt="" className={styles.previewImg} />
+                      <img
+                        src={p.preview}
+                        alt=""
+                        className={styles.previewImg}
+                      />
                       <button
                         className={styles.removeBtn}
                         onClick={() => removePreview(i)}
@@ -251,7 +261,9 @@ export default function Center() {
               {/* Errors */}
               {errors.length > 0 && (
                 <ul className={styles.errorList}>
-                  {errors.map((e, i) => <li key={i}>{e}</li>)}
+                  {errors.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
                 </ul>
               )}
 
@@ -285,8 +297,8 @@ export default function Center() {
                     type="button"
                     size="sm"
                     onClick={handleSubmit}
-                    isLoading={isPending}
-                    disabled={!canSubmit}
+                    isLoading={uploading}
+                    disabled={uploading}
                   >
                     Post
                   </Button>
@@ -300,32 +312,52 @@ export default function Center() {
           <span>Latest</span>
         </div>
 
-        {isLoading && (
-          <div className={styles.loadingStack}>
-            {[...Array(4)].map((_, i) => <div key={i} className={styles.skeleton} />)}
+        {isLoading ? (
+          <div className="flex flex-col">
+            {[...Array(5)].map((_, i) => (
+              <PostSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.feed}>
+            {posts.length === 0 && (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon}>
+                  <ImageIcon size={28} />
+                </div>
+                <h3 className={styles.emptyTitle}>The stage is yours</h3>
+                <p>Nothing here yet. Be the first to post.</p>
+              </div>
+            )}
+
+            <AnimatePresence mode="popLayout">
+              {posts.map((post, i) => (
+                <motion.div
+                  key={post.feedEventId ?? post.id}
+                  initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: i < 10 ? i * 0.05 : 0,
+                    ease: "easeOut",
+                  }}
+                  layout
+                >
+                  <Feed data={post} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
+
+            {isFetchingNextPage && (
+              <div className="py-4">
+                <PostSkeleton />
+              </div>
+            )}
           </div>
         )}
-
-        {!isLoading && posts.length === 0 && (
-          <div className={styles.empty}>
-            <div className={styles.emptyIcon}><ImageIcon size={28} /></div>
-            <h3 className={styles.emptyTitle}>The stage is yours</h3>
-            <p>Nothing here yet. Be the first to post.</p>
-          </div>
-        )}
-
-        {!isLoading && posts.map((post) => (
-          <Feed key={post.feedEventId ?? post.id} data={post} />
-        ))}
-
-        <div ref={loadMoreRef} className={styles.loadMoreTrigger} />
-
-        {isFetchingNextPage && (
-          <div className={styles.loadingStack}>
-            {[...Array(2)].map((_, i) => <div key={i} className={styles.skeleton} />)}
-          </div>
-        )}
-
       </div>
 
       <button

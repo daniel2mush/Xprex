@@ -1,0 +1,51 @@
+@use "../../styles/variables" as *;
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    $surface-elevated 25%,
+    rgba($border-dark, 0.4) 50%,
+    $surface-elevated 75%
+  );
+  background-size: 200% 100%;
+  animation: pulse 1.5s infinite ease-in-out;
+  border-radius: $radius-sm;
+  width: 100%;
+  display: block;
+}
+
+@keyframes pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.avatar {
+  border-radius: $radius-full;
+  width: 42px;
+  height: 42px;
+}
+
+.title {
+  height: 24px;
+  margin-bottom: 8px;
+  width: 60%;
+}
+
+.text {
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.textShort {
+  width: 40%;
+}
+
+.media {
+  height: 250px;
+  border-radius: $radius-md;
+  margin-top: 12px;
+}
